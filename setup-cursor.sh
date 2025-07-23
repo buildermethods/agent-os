@@ -26,7 +26,7 @@ fi
 
 echo ""
 echo "📁 Creating .cursor/rules directory..."
-mkdir -p .cursor/rules
+mkdir -p "$HOME/.cursor/rules"
 
 # Base URL for raw GitHub content
 BASE_URL="https://raw.githubusercontent.com/buildermethods/agent-os/main"
@@ -38,7 +38,7 @@ echo "📥 Downloading and setting up Cursor command files..."
 process_command_file() {
     local cmd="$1"
     local temp_file="/tmp/${cmd}.md"
-    local target_file=".cursor/rules/${cmd}.mdc"
+    local target_file="$HOME/.cursor/rules/${cmd}.mdc"
 
     # Download the file
     if curl -s -o "$temp_file" "${BASE_URL}/commands/${cmd}.md"; then
