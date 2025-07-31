@@ -7,15 +7,17 @@ This file directs GitHub Copilot to use Agent OS standards for structured AI-ass
 ## Project Standards
 
 ### Development Standards
+
 - **Tech Stack Guidelines:** @~/.agent-os/standards/tech-stack.md
 - **Code Style Preferences:** @~/.agent-os/standards/code-style.md
 - **Best Practices Philosophy:** @~/.agent-os/standards/best-practices.md
 
 ### Agent OS Instructions
-- **Initialize Products:** @.github/instructions/plan-product.instructions.md
-- **Plan Features:** @.github/instructions/create-spec.instructions.md
-- **Execute Tasks:** @.github/instructions/execute-tasks.instructions.md
-- **Analyze Existing Code:** @.github/instructions/analyze-product.instructions.md
+
+- **Initialize Products:** @~/.agent-os/instructions/plan-product.md
+- **Plan Features:** @~/.agent-os/instructions/create-spec.md
+- **Execute Tasks:** @~/.agent-os/instructions/execute-tasks.md
+- **Analyze Existing Code:** @~/.agent-os/instructions/analyze-product.md
 
 ## How These Work Together
 
@@ -26,6 +28,7 @@ This file directs GitHub Copilot to use Agent OS standards for structured AI-ass
 ## Using Agent OS with GitHub Copilot
 
 Reference the appropriate instruction file based on your current need:
+
 - **Starting a new project:** @.github/instructions/plan-product.instructions.md
 - **Working with existing code:** @.github/instructions/analyze-product.instructions.md
 - **Planning a new feature:** @.github/instructions/create-spec.instructions.md
@@ -33,10 +36,10 @@ Reference the appropriate instruction file based on your current need:
 
 ## Important Notes
 
-- These standards define how development should proceed in this project
-- Project-specific files in `@.agent-os/product/` override global defaults
-- Always reference the full instruction files for complete workflows
+- These are YOUR standards - customize them to match your preferences
+- Project-specific standards in `.agent-os/product/` override these globals
+- Update these files as you discover new patterns and preferences
 
 ---
 
-*Using Agent OS for structured AI-assisted development. Learn more at [buildermethods.com/agent-os](https://buildermethods.com/agent-os)*
+_Using Agent OS for structured AI-assisted development. Learn more at [buildermethods.com/agent-os](https://buildermethods.com/agent-os)_
