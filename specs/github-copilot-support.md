@@ -13,10 +13,10 @@ The setup will create the following structure in the target repository:
 .github/
 ├── copilot-instructions.md          # Main Copilot configuration
 └── instructions/                    # Agent OS instruction files
-    ├── create-spec.instruction.md
-    ├── execute-tasks.instruction.md
-    ├── plan-product.instruction.md
-    └── analyze-product.instruction.md
+    ├── create-spec.instructions.md
+    ├── execute-tasks.instructions.md
+    ├── plan-product.instructions.md
+    └── analyze-product.instructions.md
 ```
 
 ### Setup Script Requirements
@@ -40,11 +40,11 @@ The setup will create the following structure in the target repository:
 - Provides context about the Agent OS methodology
 - Includes coding standards and best practices
 
-**Instruction Files**: `.github/instructions/*.instruction.md`
+**Instruction Files**: `.github/instructions/*.instructions.md`
 - Adapted versions of base Agent OS commands for Copilot
 - Optimized for Copilot's interaction model
 - Include clear task breakdowns and technical specifications
-- Follow GitHub's `.instruction.md` naming convention
+- Follow GitHub's `.instructions.md` naming convention
 
 ## Task Breakdown
 
@@ -78,11 +78,11 @@ Develop `.github/copilot-instructions.md` template that:
 ### Task 4: Adapt Instruction Files for Copilot
 **Estimated Time**: 90 minutes
 
-Create Copilot-optimized versions with `.instruction.md` extension:
-- `plan-product.instruction.md` - Product planning workflow
-- `create-spec.instruction.md` - Feature specification creation
-- `execute-tasks.instruction.md` - Task execution guidance
-- `analyze-product.instruction.md` - Product analysis workflow
+Create Copilot-optimized versions with `.instructions.md` extension:
+- `plan-product.instructions.md` - Product planning workflow
+- `create-spec.instructions.md` - Feature specification creation
+- `execute-tasks.instructions.md` - Task execution guidance
+- `analyze-product.instructions.md` - Product analysis workflow
 
 Each file should:
 - Use Copilot-friendly language and structure
@@ -118,7 +118,7 @@ Implement logic to:
 - Base URL: `https://raw.githubusercontent.com/buildermethods/agent-os/main`
 - Download paths:
   - `/github-copilot/copilot-instructions.md` → `.github/copilot-instructions.md`
-  - `/github-copilot/instructions/*.instruction.md` → `.github/instructions/*.instruction.md`
+  - `/commands/*.md` → `.github/instructions/*.instructions.md`
 
 ### Error Handling
 - Network connectivity issues
@@ -138,7 +138,7 @@ Implement logic to:
    - Instructions are properly formatted for Copilot
    - References to Agent OS workflows work correctly
    - Coding standards are clearly communicated
-   - Follows GitHub's `.instruction.md` naming convention
+   - Follows GitHub's `.instructions.md` naming convention
 
 3. **User Experience**
    - Simple one-command setup
@@ -168,10 +168,6 @@ Implement logic to:
 
 1. `setup-github-copilot.sh` - Main setup script
 2. `github-copilot/copilot-instructions.md` - Copilot configuration template
-3. `github-copilot/instructions/plan-product.instruction.md` - Product planning for Copilot
-4. `github-copilot/instructions/create-spec.instruction.md` - Spec creation for Copilot
-5. `github-copilot/instructions/execute-tasks.instruction.md` - Task execution for Copilot
-6. `github-copilot/instructions/analyze-product.instruction.md` - Product analysis for Copilot
 
 ## Integration Points
 
@@ -179,9 +175,11 @@ Implement logic to:
 - Should maintain consistency with Cursor and Claude Code setups
 - Needs to work with existing Agent OS base workflows
 - Follow GitHub Copilot's instruction file conventions
+- Reuse existing command files from `/commands/` folder
 
 ## Notes
 
-- Corrected file extensions to use `.instruction.md` as per GitHub's documentation
+- Uses `.instructions.md` extension as per GitHub's documentation
 - Main configuration file remains `.github/copilot-instructions.md`
-- Individual instruction files use `.instruction.md` extension for proper Copilot recognition
+- Individual instruction files reuse content from `/commands/` folder
+- No need for separate template files - commands folder provides the content

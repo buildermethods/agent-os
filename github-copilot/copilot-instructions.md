@@ -14,10 +14,10 @@ This file directs GitHub Copilot to use Agent OS standards for structured AI-ass
 
 ### Agent OS Instructions
 
-- **Initialize Products:** Use `@.github/instructions/plan-product.instruction.md` for new product setup
-- **Plan Features:** Use `@.github/instructions/create-spec.instruction.md` for feature specifications
-- **Execute Tasks:** Use `@.github/instructions/execute-tasks.instruction.md` for implementation
-- **Analyze Existing Code:** Use `@.github/instructions/analyze-product.instruction.md` for codebase analysis
+- **Initialize Products:** Use `@.github/instructions/plan-product.instructions.md` for new product setup
+- **Plan Features:** Use `@.github/instructions/create-spec.instructions.md` for feature specifications
+- **Execute Tasks:** Use `@.github/instructions/execute-tasks.instructions.md` for implementation
+- **Analyze Existing Code:** Use `@.github/instructions/analyze-product.instructions.md` for codebase analysis
 
 ## How Agent OS Works
 
@@ -32,12 +32,10 @@ Agent OS provides four core workflows for systematic development:
 
 Reference the appropriate instruction file based on your current need:
 
-- **Starting a new project:** `@.github/instructions/plan-product.instruction.md`
-- **Working with existing code:** `@.github/instructions/analyze-product.instruction.md`
-- **Planning a new feature:** `@.github/instructions/create-spec.instruction.md`
-- **Building and shipping code:** `@.github/instructions/execute-tasks.instruction.md`
-
-## Project Context
+- **Starting a new project:** `@.github/instructions/plan-product.instructions.md`
+- **Working with existing code:** `@.github/instructions/analyze-product.instructions.md`  
+- **Planning a new feature:** `@.github/instructions/create-spec.instructions.md`
+- **Building and shipping code:** `@.github/instructions/execute-tasks.instructions.md`## Project Context
 
 When generating code or suggestions:
 

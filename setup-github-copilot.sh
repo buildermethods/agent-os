@@ -76,11 +76,11 @@ echo "📥 Downloading GitHub Copilot instruction files to .github/instructions/
 instructions=("plan-product" "create-spec" "execute-tasks" "analyze-product")
 
 for instruction in "${instructions[@]}"; do
-    filename="${instruction}.instruction.md"
+    filename="${instruction}.instructions.md"
     if [ -f ".github/instructions/${filename}" ]; then
         echo "  ⚠️  .github/instructions/${filename} already exists - skipping"
     else
-        curl -s -o ".github/instructions/${filename}" "${BASE_URL}/github-copilot/instructions/${filename}"
+        curl -s -o ".github/instructions/${filename}" "${BASE_URL}/commands/${instruction}.md"
         echo "  ✓ .github/instructions/${filename}"
     fi
 done
@@ -98,10 +98,10 @@ echo "1. Review and customize .github/copilot-instructions.md for your project"
 echo "2. Commit these files to your repository"
 echo ""
 echo "Initiate Agent OS workflows with GitHub Copilot using:"
-echo "  @.github/instructions/plan-product.instruction.md"
-echo "  @.github/instructions/analyze-product.instruction.md"
-echo "  @.github/instructions/create-spec.instruction.md"
-echo "  @.github/instructions/execute-tasks.instruction.md"
+echo "  @.github/instructions/plan-product.instructions.md"
+echo "  @.github/instructions/analyze-product.instructions.md"
+echo "  @.github/instructions/create-spec.instructions.md"
+echo "  @.github/instructions/execute-tasks.instructions.md"
 echo ""
 echo "Learn more at https://buildermethods.com/agent-os"
 echo ""
