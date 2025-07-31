@@ -24,38 +24,13 @@ if [ ! -d "$HOME/.agent-os/instructions" ] || [ ! -d "$HOME/.agent-os/standards"
     exit 1
 fi
 
-# Check if we're in a Git repository
-if [ ! -d ".git" ]; then
-    echo "⚠️  Not in a Git repository!"
-    echo ""
-    echo "This script must be run from the root of a Git repository."
-    echo "Please navigate to your project's root directory and try again."
-    echo ""
-    echo "To initialize a new Git repository:"
-    echo "  git init"
-    echo "  git add ."
-    echo "  git commit -m \"Initial commit\""
-    echo ""
-    exit 1
-fi
-
-# Check if .github directory can be created
-if [ ! -w "." ]; then
-    echo "⚠️  No write permissions in current directory!"
-    echo ""
-    echo "Please ensure you have write permissions in this directory."
-    echo ""
-    exit 1
-fi
+# Create directories
+echo ""
+echo "📁 Creating .github/instructions directory..."
+mkdir -p ".github/instructions"
 
 # Base URL for raw GitHub content
 BASE_URL="https://raw.githubusercontent.com/buildermethods/agent-os/main"
-
-# Create directories
-echo "📁 Creating directories..."
-mkdir -p ".github/instructions"
-
-echo "  ✓ .github/instructions/"
 
 # Download GitHub Copilot configuration file
 echo ""
@@ -73,9 +48,7 @@ echo ""
 echo "📥 Downloading GitHub Copilot instruction files to .github/instructions/"
 
 # List of instruction files to download
-instructions=("plan-product" "create-spec" "execute-tasks" "analyze-product")
-
-for instruction in "${instructions[@]}"; do
+for instruction in plan-product create-spec execute-tasks analyze-product; do
     filename="${instruction}.instructions.md"
     if [ -f ".github/instructions/${filename}" ]; then
         echo "  ⚠️  .github/instructions/${filename} already exists - skipping"
@@ -94,14 +67,11 @@ echo "   .github/instructions/              - GitHub Copilot Agent OS commands"
 echo ""
 echo "Next steps:"
 echo ""
-echo "1. Review and customize .github/copilot-instructions.md for your project"
-echo "2. Commit these files to your repository"
-echo ""
-echo "Initiate Agent OS workflows with GitHub Copilot using:"
-echo "  @.github/instructions/plan-product.instructions.md"
-echo "  @.github/instructions/analyze-product.instructions.md"
-echo "  @.github/instructions/create-spec.instructions.md"
-echo "  @.github/instructions/execute-tasks.instructions.md"
+echo "Use Agent OS commands in GitHub Copilot using:"
+echo "  #.github/instructions/plan-product.instructions.md"
+echo "  #.github/instructions/analyze-product.instructions.md"
+echo "  #.github/instructions/create-spec.instructions.md"
+echo "  #.github/instructions/execute-tasks.instructions.md"
 echo ""
 echo "Learn more at https://buildermethods.com/agent-os"
 echo ""
