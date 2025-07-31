@@ -6,7 +6,7 @@
 
 Use it with:
 
-✅ Claude Code, Cursor, or any other AI coding tool.
+✅ Claude Code, Cursor, Copilot, or any other AI coding tool.
 
 ✅ New products or established codebases.
 
@@ -18,7 +18,7 @@ Use it with:
 
 ### Documentation & Installation
 
-Docs, installation, useage, & best practices 👉 [It's all here](https://buildermethods.com/agent-os)
+Docs, installation, usage, & best practices 👉 [It's all here](https://buildermethods.com/agent-os)
 
 ---
 
