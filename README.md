@@ -6,13 +6,13 @@
 
 Use it with:
 
-✅ Claude Code, Cursor, or any other AI coding tool.
+✅ Claude Code, Cursor, VS Code (GitHub Copilot), or any other AI coding tool.
 
 ✅ New products or established codebases.
 
 ✅ Big features, small fixes, or anything in between.
 
-✅ Any language or framework.
+✅ Any language or framework (JavaScript, TypeScript, Python, etc.).
 
 ---
 
