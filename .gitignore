@@ -9,6 +9,7 @@ Thumbs.db
 
 # IDE
 .vscode/
+.github/
 .idea/
 *.swp
 *.swo
