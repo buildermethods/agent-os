@@ -25,4 +25,5 @@ Global tech stack defaults for Agent OS projects, that will influence project-sp
 ### Development Tools
 - **Package Manager**: uv (modern Python package manager)
 - **Linting**: Ruff 0.12.5+ (Python linter/formatter)
+- **Type Checking**: mypy 1.13.0+ (static type checker)
 - **Testing**: Pytest 8.4.1+ with pytest-asyncio

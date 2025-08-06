@@ -170,18 +170,7 @@ ELSE:
 - **Extensible**: Pattern can be used for other language plugins
 - **Backward compatible**: Existing functionality preserved
 
-## Contributing
-
-This plugin is part of the Agent OS Python contribution. See [`CONTRIBUTION_PLAN.md`](CONTRIBUTION_PLAN.md) for details on:
-
-- Contribution strategy and timeline
-- Pull request preparation
-- Value proposition for the main repository
-- Future enhancement plans
-
 ## Implementation Details
-
-For technical implementation details, see [`PYTHON_VSCODE_IMPLEMENTATION.md`](PYTHON_VSCODE_IMPLEMENTATION.md) which covers:
 
 - File structure and organization
 - Integration points with core Agent OS
