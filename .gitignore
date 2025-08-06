@@ -33,3 +33,5 @@ node_modules/
 # Temporary files
 *.tmp
 *.temp
+
+testing/test_venv/

@@ -17,7 +17,8 @@ testing/
 ├── README.md              # This file
 ├── start_tests.sh         # Main script to start the test environment
 ├── mock_website/          # Mock Agent OS website
-     └── website.py         # NiceGUI + FastAPI application
+│    └── website.py        # NiceGUI + FastAPI application
+└── test_venv/             # Python virtual environment (created automatically)
 ```
 
 ## Requirements
@@ -59,35 +60,35 @@ The required Python packages (nicegui, fastapi, uvicorn) will be installed autom
 1. **Mock Website (`mock_website/website.py`):**
    - Uses NiceGUI to create a UI that mimics buildermethods.com/agent-os
    - Uses FastAPI to serve setup scripts from the `/api` endpoints
-   - Replaces GitHub URLs with localhost URLs
+   - Serves the actual setup scripts from the project root directory
+   - Prioritizes base Agent OS installation followed by AI tool selection
 
-2. **Test Setup Scripts (`setups/test_setup-*.sh`):**
-   - Modified versions of the real setup scripts
-   - Create test files in `~/.agent-os/test/` instead of actual installations
-   - Simulate the installation process without making real changes
+2. **Setup Script Serving:**
+   - Serves real setup scripts directly from the project root (`setup.sh`, `setup-*.sh`)
+   - No test versions needed - uses the actual installation scripts
+   - Enables testing of real installation workflows locally
 
 3. **Start Script (`start_tests.sh`):**
    - Installs uv if not already present
    - Creates a virtual environment using `uv venv test_venv`
    - Installs required dependencies with `uv pip install`
-   - Makes setup scripts executable
-   - Starts the mock website server
+   - Starts the mock website server using the virtual environment
 
 ## Development
 
 To add a new setup script:
 
-1. Create a new script in `setups/` following the naming pattern: `test_setup-{tool-name}.sh`
+1. Create a new script in the project root following the naming pattern: `setup-{tool-name}.sh`
 2. The script will automatically be served at: `http://localhost:8080/api/setup-{tool-name}.sh`
-3. Update the mock website if you want to add it to the UI
+3. Update the mock website UI in `mock_website/website.py` if you want to add it to the interface
 
 ## Notes
 
-- Test installations create files in `~/.agent-os/test/` to avoid conflicts with real installations
+- The testing environment serves the actual setup scripts from the project root
 - The mock website runs on port 8080 by default
-- All test setup scripts include "(TEST MODE)" indicators to distinguish from real installations
 - The virtual environment is created in `testing/test_venv/` using uv
 - uv is used for faster and more reliable Python package management
+- The website UI prioritizes base Agent OS installation before AI tool selection
 
 ## Troubleshooting
 
