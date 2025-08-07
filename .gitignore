@@ -35,3 +35,4 @@ node_modules/
 *.temp
 
 testing/test_venv/
+testing/mock_website/__pycache__/website.cpython-312.pyc

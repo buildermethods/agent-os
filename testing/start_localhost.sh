@@ -90,7 +90,7 @@ main() {
     
     # Change to testing directory
     cd "$(dirname "$0")"
-    curl -sSL http://localhost:8080/api/setup.sh | bash
+    # curl -sSL http://localhost:8080/agent-os/api/setup.sh | bash
     # Run checks and setup
     check_python
     install_uv
@@ -101,22 +101,23 @@ main() {
     print_status "Test environment ready!"
     print_status "You can test the setup scripts using:"
     echo ""
-    echo "  curl -sSL http://localhost:8080/api/setup.sh | bash"
-    echo "  curl -sSL http://localhost:8080/api/setup-cursor.sh | bash"
-    echo "  curl -sSL http://localhost:8080/api/setup-claude-code.sh | bash"
-    echo "  curl -sSL http://localhost:8080/api/setup-github-copilot.sh | bash"
-    echo "  curl -sSL http://localhost:8080/api/setup-kilocode.sh | bash"
+    echo "  curl -sSL http://localhost:8080/agent-os/api/setup.sh | bash"
+    echo "  curl -sSL http://localhost:8080/agent-os/api/setup-cursor.sh | bash"
+    echo "  curl -sSL http://localhost:8080/agent-os/api/setup-claude-code.sh | bash"
+    echo "  curl -sSL http://localhost:8080/agent-os/api/setup-github-copilot.sh | bash"
+    echo "  curl -sSL http://localhost:8080/agent-os/api/setup-kilocode.sh | bash"
     echo ""
     # Start the website
     print_status "Starting Agent OS mock website..."
-    print_status "Website will be available at: http://localhost:8080"
-    print_status "API endpoints will be available at: http://localhost:8080/api/"
+    print_status "Website will be available at: http://localhost:8080/agent-os"
+    print_status "API endpoints will be available at: http://localhost:8080/agent-os/api/"
     echo ""
     print_warning "Press Ctrl+C to stop the server"
     echo ""
     
-    # Run the website with activated virtual environment
-    "$VENV_DIR/bin/python" mock_website/website.py
+    # Run the website with uvicorn and activated virtual environment
+    cd mock_website
+    "$VENV_DIR/bin/uvicorn" website:app --host 0.0.0.0 --port 8080 --log-level info
 }
 
 # Handle cleanup on exit
