@@ -248,3 +248,9 @@ Verify installation completeness and provide clear next steps for the user to st
     - [ ] Team can adopt Agent OS workflow
   </verify>
 </final_checklist>
+
+---
+
+## User Customization
+
+Read and incorporate instructions/core/analyze-product_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

@@ -5,6 +5,12 @@
 
 set -e  # Exit on error
 
+# Execute setup-cursor_before.sh if it exists
+if [ -f "./setup-cursor_before.sh" ]; then
+    echo "🔧 Executing setup-cursor_before.sh..."
+    source ./setup-cursor_before.sh
+fi
+
 echo "🚀 Agent OS Cursor Setup"
 echo "========================"
 echo ""
@@ -84,3 +90,9 @@ echo "  @execute-tasks    - Build and ship code"
 echo ""
 echo "Learn more at https://buildermethods.com/agent-os"
 echo ""
+
+# Execute setup-cursor_after.sh if it exists
+if [ -f "./setup-cursor_after.sh" ]; then
+    echo "🔧 Executing setup-cursor_after.sh..."
+    source ./setup-cursor_after.sh
+fi

@@ -5,6 +5,12 @@
 
 set -e  # Exit on error
 
+# Execute setup_before.sh if it exists
+if [ -f "./setup_before.sh" ]; then
+    echo "🔧 Executing setup_before.sh..."
+    source ./setup_before.sh
+fi
+
 # Initialize flags
 OVERWRITE_INSTRUCTIONS=false
 OVERWRITE_STANDARDS=false
@@ -252,3 +258,9 @@ echo "   - Using something else? See instructions at https://buildermethods.com/
 echo ""
 echo "Learn more at https://buildermethods.com/agent-os"
 echo ""
+
+# Execute setup_after.sh if it exists
+if [ -f "./setup_after.sh" ]; then
+    echo "🔧 Executing setup_after.sh..."
+    source ./setup_after.sh
+fi

@@ -5,6 +5,12 @@
 
 set -e  # Exit on error
 
+# Execute setup-claude-code_before.sh if it exists
+if [ -f "./setup-claude-code_before.sh" ]; then
+    echo "🔧 Executing setup-claude-code_before.sh..."
+    source ./setup-claude-code_before.sh
+fi
+
 echo "🚀 Agent OS Claude Code Setup"
 echo "============================="
 echo ""
@@ -85,3 +91,9 @@ echo "  /execute-task"
 echo ""
 echo "Learn more at https://buildermethods.com/agent-os"
 echo ""
+
+# Execute setup-claude-code_after.sh if it exists
+if [ -f "./setup-claude-code_after.sh" ]; then
+    echo "🔧 Executing setup-claude-code_after.sh..."
+    source ./setup-claude-code_after.sh
+fi

@@ -58,3 +58,9 @@ Main agent might request:
 - "Run tests matching pattern 'user_auth'"
 
 You execute the requested tests and provide focused analysis.
+
+---
+
+## User Customization
+
+Read and incorporate claude-code/agents/test-runner_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

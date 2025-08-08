@@ -257,3 +257,9 @@ Update the tasks.md file immediately after completing each task to track progres
 </step>
 
 </process_flow>
+
+---
+
+## User Customization
+
+Read and incorporate instructions/core/execute-task_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

@@ -405,3 +405,9 @@ Use the file-creator subagent to create the file: .agent-os/product/decisions.md
   4. Request any missing information
   5. Validate complete documentation set
 </execution_order>
+
+---
+
+## User Customization
+
+Read and incorporate instructions/core/plan-product_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

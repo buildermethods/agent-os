@@ -75,3 +75,9 @@ IF current task involves writing or updating JavaScript:
 ELSE:
   SKIP: JavaScript style guide not relevant to current task
 </conditional-block>
+
+---
+
+## User Customization
+
+Read and incorporate standards/code-style_USER.md, if it exists. For any conflicting information, the USER document takes precedence.
