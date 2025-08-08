@@ -31,3 +31,9 @@ Global tech stack defaults for Agent OS projects, overridable in project-specifi
 - Tests: Run before deployment
 - Production Environment: main branch
 - Staging Environment: staging branch
+
+---
+
+## User Customization
+
+Read and incorporate standards/tech-stack_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

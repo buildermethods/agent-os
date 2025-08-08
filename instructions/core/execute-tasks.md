@@ -375,3 +375,9 @@ Create a structured summary message with emojis showing what was done, any issue
     - [ ] Summary provided to user
   </verify>
 </final_checklist>
+
+---
+
+## User Customization
+
+Read and incorporate instructions/core/execute-tasks_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

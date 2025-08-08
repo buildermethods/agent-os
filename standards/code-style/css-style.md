@@ -23,3 +23,9 @@ We always use the latest version of TailwindCSS for all CSS.
             2xl:p-16 2xl:text-3xl 2xl:font-bold 2xl:w-3/4">
   I'm a call-to-action!
 </div>
+
+---
+
+## User Customization
+
+Read and incorporate standards/code-style/css-style_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

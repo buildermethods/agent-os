@@ -65,3 +65,9 @@ Example usage:
 - "Get the product pitch from mission-lite.md"
 - "Find Ruby style rules from code-style.md"
 - "Extract Task 3 requirements from the password-reset spec"
+
+---
+
+## User Customization
+
+Read and incorporate claude-code/agents/context-fetcher_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

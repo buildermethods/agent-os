@@ -55,3 +55,9 @@ When adding third-party dependencies:
   - Number of stars/downloads
   - Clear documentation
 </conditional-block>
+
+---
+
+## User Customization
+
+Read and incorporate standards/best-practices_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

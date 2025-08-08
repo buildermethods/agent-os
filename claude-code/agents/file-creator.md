@@ -357,3 +357,9 @@ Files created successfully using [template_name] templates.
 - Report all successes and failures clearly
 
 Remember: Your role is to handle the mechanical aspects of file creation, allowing the main agent to focus on content generation and logic.
+
+---
+
+## User Customization
+
+Read and incorporate claude-code/agents/file-creator_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

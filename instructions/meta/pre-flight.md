@@ -13,3 +13,9 @@ encoding: UTF-8
 - Process XML blocks sequentially
 
 - Use exact templates as provided
+
+---
+
+## User Customization
+
+Read and incorporate instructions/meta/pre-flight_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

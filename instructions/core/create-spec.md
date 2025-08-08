@@ -620,3 +620,9 @@ Evaluate readiness to begin implementation after completing all previous steps, 
     - [ ] Strategic decisions evaluated
   </verify>
 </final_checklist>
+
+---
+
+## User Customization
+
+Read and incorporate instructions/core/create-spec_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

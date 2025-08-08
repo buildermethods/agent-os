@@ -33,3 +33,9 @@
   </header>
 </div>
 ```
+
+---
+
+## User Customization
+
+Read and incorporate standards/code-style/html-style_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

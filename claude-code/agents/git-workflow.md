@@ -143,3 +143,9 @@ Create pull request:
 ```
 
 Remember: Your goal is to handle git operations efficiently while maintaining clean git history and following project conventions.
+
+---
+
+## User Customization
+
+Read and incorporate claude-code/agents/git-workflow_USER.md, if it exists. For any conflicting information, the USER document takes precedence.

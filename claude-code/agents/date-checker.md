@@ -93,3 +93,9 @@ Today's date: 2025-08-02
 ```
 
 Remember: Your primary goal is to output today's date in YYYY-MM-DD format so it becomes available in the main agent's context window.
+
+---
+
+## User Customization
+
+Read and incorporate claude-code/agents/date-checker_USER.md, if it exists. For any conflicting information, the USER document takes precedence.
