@@ -75,3 +75,29 @@ IF current task involves writing or updating JavaScript:
 ELSE:
   SKIP: JavaScript style guide not relevant to current task
 </conditional-block>
+
+<conditional-block task-condition="python" context-check="python-style">
+IF current task involves writing or updating Python code:
+  IF python-style.md already in context:
+    SKIP: Re-reading this file
+    NOTE: "Using Python style guide already in context"
+  ELSE:
+    <plugin_detection>
+      IF python_project_detected:
+        USE: Python plugin style guide
+        READ: @plugins/python/standards/python-style.md
+      ELSE:
+        USE: Standard Python style guide (if available)
+        READ: @~/.agent-os/standards/code-style/python-style.md (fallback)
+    </plugin_detection>
+    <context_fetcher_strategy>
+      IF current agent is Claude Code AND context-fetcher agent exists:
+        USE: @agent:context-fetcher
+        REQUEST: "Get Python style rules from appropriate location based on plugin detection"
+        PROCESS: Returned style rules
+      ELSE:
+        READ the appropriate Python style guide based on plugin detection
+    </context_fetcher_strategy>
+ELSE:
+  SKIP: Python style guide not relevant to current task
+</conditional-block>

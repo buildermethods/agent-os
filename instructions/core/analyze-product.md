@@ -33,9 +33,10 @@ Perform a deep codebase analysis of the current codebase to understand current s
   </project_structure>
   <technology_stack>
     - Frameworks in use
-    - Dependencies (package.json, Gemfile, requirements.txt, etc.)
+    - Dependencies (package.json, Gemfile, requirements.txt, pyproject.toml, etc.)
     - Database systems
     - Infrastructure configuration
+    - Python environment and package manager (pip, poetry, uv, etc.)
   </technology_stack>
   <implementation_progress>
     - Completed features
@@ -66,6 +67,16 @@ Perform a deep codebase analysis of the current codebase to understand current s
 ### Step 2: Gather Product Context
 
 Use the context-fetcher subagent to supplement codebase analysis with business context and future plans.
+
+<data_sources>
+  <primary>user_direct_input</primary>
+  <fallback_sequence>
+    1. @~/.agent-os/standards/tech-stack.md
+    2. @~/.agent-os/standards/python-tech-stack.md
+    3. @~/.claude/CLAUDE.md
+    4. Cursor User Rules
+  </fallback_sequence>
+</data_sources>
 
 <context_questions>
   Based on my analysis of your codebase, I can see you're building [OBSERVED_PRODUCT_TYPE].

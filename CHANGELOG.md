@@ -5,6 +5,49 @@ All notable changes to Agent OS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-08-06
+
+### Added
+- **Python Plugin System** - New plugin architecture for language-specific Agent OS extensions
+  - `plugins/python/` directory with Python-specific instructions and standards
+  - `plugins/python/instructions/core/create-spec.md` for Python project specifications
+  - `plugins/python/standards/python-tech-stack.md` for Python technology choices
+  - Plugin-based approach allows for language-specific customizations while maintaining core Agent OS functionality
+
+- **TypeScript Plugin System** - TypeScript-specific Agent OS extensions
+  - `plugins/typescript/` directory with TypeScript-specific instructions and standards
+  - `plugins/typescript/instructions/core/create-spec.md` for TypeScript project specifications
+  - `plugins/typescript/standards/typescript-tech-stack.md` for TypeScript technology choices
+  - Comprehensive TypeScript development workflow integration
+
+- **Enhanced Testing Environment** - Improved local testing infrastructure
+  - Mock website now serves actual setup scripts from project root instead of test versions
+  - Restructured UI to prioritize base Agent OS installation before AI tool selection
+  - Real installation script testing capability for better development workflow
+  - Removed dependency on separate test setup scripts for simplified maintenance
+
+### Changed
+- **Testing Infrastructure** - Major refactoring of the testing environment
+  - `testing/start_tests.sh` no longer depends on `testing/setups/` directory
+  - `testing/mock_website/website.py` now serves scripts directly from project root
+  - Website UI reorganized with Step 1 (base installation) and Step 2 (AI tool selection)
+  - Removed `testing/setups/` directory and test-specific setup scripts
+
+- **Plugin Architecture** - Introduced modular plugin system for language-specific extensions
+  - Core Agent OS remains language-agnostic
+  - Language-specific functionality moved to dedicated plugin directories
+  - Consistent plugin structure across Python and TypeScript implementations
+
+### Improved
+- **Development Workflow** - Testing environment now uses real setup scripts for more accurate testing
+- **Code Organization** - Plugin-based architecture provides better separation of concerns
+- **User Experience** - Clearer installation flow with prioritized base installation
+- **Maintainability** - Eliminated duplicate test scripts in favor of serving actual installation scripts
+
+### Removed
+- **Test Setup Scripts** - Removed `testing/setups/` directory and all test-specific setup scripts
+- **Mock Installation Logic** - No longer needed since real scripts are served locally
+
 ## [1.3.1] - 2025-08-02
 
 ### Added

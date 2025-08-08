@@ -16,6 +16,23 @@ Generate detailed feature specifications aligned with product roadmap and missio
   EXECUTE: @~/.agent-os/instructions/meta/pre-flight.md
 </pre_flight_check>
 
+<plugin_detection>
+  <python_detection>
+    IF python_project_detected:
+      OVERRIDE: Use @plugins/python/instructions/core/create-spec.md instead
+      DETECTION_CRITERIA:
+        - pyproject.toml exists in project root
+        - requirements.txt exists in project root
+        - main.py or app.py exists in project root
+        - Manual override: "python" specified in .agent-os/product/tech-stack.md
+      WHEN_DETECTED:
+        REDIRECT: @plugins/python/instructions/core/create-spec.md
+        STOP: Do not continue with this file
+    ELSE:
+      CONTINUE: with standard create-spec process
+  </python_detection>
+</plugin_detection>
+
 <process_flow>
 
 <step number="1" subagent="context-fetcher" name="spec_initiation">
