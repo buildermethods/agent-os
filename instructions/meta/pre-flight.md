@@ -8,8 +8,10 @@ encoding: UTF-8
 
 # Pre-Flight Rules
 
-- IMPORTANT: For any step that specifies a subagent in the subagent="" XML attribute you MUST use the specified subagent to perform the instructions for that step.
+- IMPORTANT: Subagent references (subagent="context-fetcher", subagent="file-creator", etc.) are conceptual workflow steps. Execute the step instructions directly without looking for actual subagent tools.
 
 - Process XML blocks sequentially
 
 - Use exact templates as provided
+
+- Product directory (`.agent-os/product/`) is optional - Agent OS works with or without it

@@ -18,7 +18,24 @@ Use it with:
 
 ### Documentation & Installation
 
-Docs, installation, useage, & best practices 👉 [It's all here](https://buildermethods.com/agent-os)
+📖 **Complete Setup Guide**: See [SETUP-GUIDE.md](SETUP-GUIDE.md) for detailed installation and configuration instructions.
+
+🚀 **Quick Start**: 
+```bash
+# Global installation (recommended)
+git clone https://github.com/buildermethods/agent-os ~/.agent-os
+cd ~/.agent-os && npm install
+
+# Start with project analysis
+@~/.agent-os/instructions/core/analyze-product.md
+```
+
+🔧 **New Features**:
+- **Lifecycle Management**: Track and manage spec progress with automated dashboards
+- **Test Command**: `@~/.agent-os/instructions/core/test-lifecycle.md` to set up lifecycle management
+- **Dashboard Generation**: `npm run dashboard` to generate spec status dashboards
+
+📚 **Full Documentation**: [buildermethods.com/agent-os](https://buildermethods.com/agent-os)
 
 ---
 

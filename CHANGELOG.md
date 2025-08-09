@@ -5,6 +5,55 @@ All notable changes to Agent OS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-01-XX
+
+### Added
+- **Lifecycle Management System** - Complete spec lifecycle tracking and management
+  - New `@test-lifecycle` command (`instructions/core/test-lifecycle.md`)
+  - Automated dashboard generation for spec status tracking
+  - Support for spec status categories: planning, active, completed, archived
+  - Status file creation and management (`status.md` for each spec)
+  - Folder naming conventions for lifecycle phases
+
+- **Dashboard Generation Scripts** - Automated spec overview and tracking
+  - `scripts/test-lifecycle.js` - Test and setup lifecycle management
+  - `scripts/simple-dashboard-generator.js` - Generate project-specific dashboards
+  - `scripts/global-dashboard-generator.js` - Generate dashboards from Agent OS directory
+  - NPM scripts for easy dashboard generation (`npm run dashboard`, `npm run test:lifecycle`)
+
+- **Enhanced Setup Documentation** - Comprehensive installation and configuration guide
+  - New `SETUP-GUIDE.md` with detailed installation instructions
+  - Global vs project-specific installation methods
+  - Troubleshooting common setup issues
+  - Best practices and workflow guidance
+
+- **Package.json Support** - NPM integration for lifecycle management
+  - Scripts for dashboard generation and testing
+  - Proper project metadata and dependencies
+  - Integration with existing Node.js workflows
+
+### Changed
+- **Create-Spec Instructions** - Enhanced with lifecycle management integration
+  - Automatic `status.md` file creation for new specs
+  - Dashboard file creation for first spec in a project
+  - Conditional lifecycle setup based on existing infrastructure
+
+- **Pre-flight Checks** - Improved clarity and error handling
+  - Clarified subagent references as conceptual workflow steps
+  - Added note about optional `.agent-os/product/` directory
+  - Better guidance for backward compatibility
+
+- **README** - Updated with new features and improved quick start
+  - Added information about lifecycle management features
+  - Enhanced installation instructions with npm support
+  - Clear documentation of new commands and capabilities
+
+### Fixed
+- **Installation Process** - Resolved setup confusion and missing components
+  - Clear distinction between global and project installation
+  - Proper handling of missing product directory
+  - Better error messages and troubleshooting guidance
+
 ## [1.3.1] - 2025-08-02
 
 ### Added
