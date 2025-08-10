@@ -5,6 +5,32 @@
 
 set -e  # Exit on error
 
+# Flags
+USE_LOCAL=false
+REPO_PATH=""
+
+# Parse args
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --local)
+      USE_LOCAL=true
+      shift
+      ;;
+    --repo-path)
+      REPO_PATH="$2"
+      shift 2
+      ;;
+    -h|--help)
+      echo "Usage: $0 [--local] [--repo-path <path>]"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
 echo "🚀 Agent OS Claude Code Setup"
 echo "============================="
 echo ""
@@ -24,8 +50,28 @@ if [ ! -d "$HOME/.agent-os/instructions" ] || [ ! -d "$HOME/.agent-os/standards"
     exit 1
 fi
 
-# Base URL for raw GitHub content
+# Determine source
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE_URL="https://raw.githubusercontent.com/buildermethods/agent-os/main"
+if [ "$USE_LOCAL" = true ]; then
+  if [ -z "$REPO_PATH" ]; then
+    REPO_PATH="$SCRIPT_DIR"
+  fi
+  echo "📦 Using local source: $REPO_PATH"
+else
+  echo "🌐 Using remote source: $BASE_URL"
+fi
+
+# Helper to fetch a file from local or remote
+fetch_to() {
+  local dest="$1"
+  local rel="$2"
+  if [ "$USE_LOCAL" = true ]; then
+    cp "$REPO_PATH/$rel" "$dest"
+  else
+    curl -s -o "$dest" "${BASE_URL}/$rel"
+  fi
+}
 
 # Create directories
 echo "📁 Creating directories..."
@@ -41,7 +87,7 @@ for cmd in plan-product create-spec execute-tasks analyze-product; do
     if [ -f "$HOME/.claude/commands/${cmd}.md" ]; then
         echo "  ⚠️  ~/.claude/commands/${cmd}.md already exists - skipping"
     else
-        curl -s -o "$HOME/.claude/commands/${cmd}.md" "${BASE_URL}/commands/${cmd}.md"
+        fetch_to "$HOME/.claude/commands/${cmd}.md" "commands/${cmd}.md"
         echo "  ✓ ~/.claude/commands/${cmd}.md"
     fi
 done
@@ -57,7 +103,7 @@ for agent in "${agents[@]}"; do
     if [ -f "$HOME/.claude/agents/${agent}.md" ]; then
         echo "  ⚠️  ~/.claude/agents/${agent}.md already exists - skipping"
     else
-        curl -s -o "$HOME/.claude/agents/${agent}.md" "${BASE_URL}/claude-code/agents/${agent}.md"
+        fetch_to "$HOME/.claude/agents/${agent}.md" "claude-code/agents/${agent}.md"
         echo "  ✓ ~/.claude/agents/${agent}.md"
     fi
 done

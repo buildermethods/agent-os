@@ -5,6 +5,32 @@
 
 set -e  # Exit on error
 
+# Flags
+USE_LOCAL=false
+REPO_PATH=""
+
+# Parse args
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --local)
+      USE_LOCAL=true
+      shift
+      ;;
+    --repo-path)
+      REPO_PATH="$2"
+      shift 2
+      ;;
+    -h|--help)
+      echo "Usage: $0 [--local] [--repo-path <path>]"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
 echo "🚀 Agent OS Cursor Setup"
 echo "========================"
 echo ""
@@ -28,8 +54,28 @@ echo ""
 echo "📁 Creating .cursor/rules directory..."
 mkdir -p .cursor/rules
 
-# Base URL for raw GitHub content
+# Determine source
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE_URL="https://raw.githubusercontent.com/buildermethods/agent-os/main"
+if [ "$USE_LOCAL" = true ]; then
+  if [ -z "$REPO_PATH" ]; then
+    REPO_PATH="$SCRIPT_DIR"
+  fi
+  echo "📦 Using local source: $REPO_PATH"
+else
+  echo "🌐 Using remote source: $BASE_URL"
+fi
+
+# Helper to fetch a file from local or remote
+fetch_to() {
+  local dest="$1"
+  local rel="$2"
+  if [ "$USE_LOCAL" = true ]; then
+    cp "$REPO_PATH/$rel" "$dest"
+  else
+    curl -s -o "$dest" "${BASE_URL}/$rel"
+  fi
+}
 
 echo ""
 echo "📥 Downloading and setting up Cursor command files..."
@@ -41,7 +87,7 @@ process_command_file() {
     local target_file=".cursor/rules/${cmd}.mdc"
 
     # Download the file
-    if curl -s -o "$temp_file" "${BASE_URL}/commands/${cmd}.md"; then
+    if fetch_to "$temp_file" "commands/${cmd}.md"; then
         # Create the front-matter and append original content
         cat > "$target_file" << EOF
 ---
@@ -58,7 +104,7 @@ EOF
 
         echo "  ✓ .cursor/rules/${cmd}.mdc"
     else
-        echo "  ❌ Failed to download ${cmd}.md"
+        echo "  ❌ Failed to fetch ${cmd}.md"
         return 1
     fi
 }
