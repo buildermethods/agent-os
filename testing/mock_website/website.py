@@ -148,6 +148,18 @@ async def main_page():
                             </div>
                         </details>
                     </div>
+
+                    <!-- Gemini CLI -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="text-xl font-bold mb-2">Gemini CLI</h4>
+                        <p class="text-gray-600 mb-4">Google Gemini Code Assist CLI integration</p>
+                        <details class="mb-2">
+                            <summary class="cursor-pointer font-semibold">Installation</summary>
+                            <div class="bg-gray-100 rounded p-2 mt-2">
+                                <code class="text-sm">curl -sSL http://localhost:8080/agent-os/api/setup-gemini-cli.sh | bash</code>
+                            </div>
+                        </details>
+                    </div>
                 </div>
             </div>
             

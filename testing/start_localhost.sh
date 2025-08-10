@@ -37,46 +37,65 @@ check_python() {
     
     # Check Python version
     python_version=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-    print_status "Python version: $python_version"
+    print_status "Found Python version: $python_version"
 }
 
-# Install uv if not present
-install_uv() {
-    if ! command -v uv &> /dev/null; then
-        print_status "Installing uv (modern Python package manager)..."
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        
-        # Add uv to PATH for current session
-        export PATH="$HOME/.cargo/bin:$PATH"
-        
-        # Verify installation
-        if ! command -v uv &> /dev/null; then
-            print_error "Failed to install uv. Please install it manually from https://github.com/astral-sh/uv"
-            exit 1
-        fi
-        
-        print_success "uv installed successfully"
+# Check pip and venv availability
+check_python_tools() {
+    if ! python3 -m pip --version &> /dev/null; then
+        print_error "pip not found for python3."
+        echo "  - Ubuntu/Debian: install with: sudo apt update && sudo apt install -y python3-pip"
+        echo "  - CentOS/RHEL: install with: sudo yum install python3-pip"
+        echo "  - macOS: install with: brew install python"
+        exit 1
     else
-        print_status "uv is already installed"
+        print_status "pip is available for python3"
+    fi
+
+    # Check that venv module works
+    if ! python3 -c "import venv" &> /dev/null; then
+        print_error "Python venv module not available."
+        echo "  - Ubuntu/Debian: install with: sudo apt install -y python3-venv"
+        echo "  - CentOS/RHEL: venv is included with python3"
+        echo "  - macOS: venv is included with python"
+        exit 1
+    elif ! python3 -m venv --help &> /dev/null; then
+        print_error "python3 -m venv is present but not usable."
+        echo "  - Ubuntu/Debian: install with: sudo apt install -y python3-venv"
+        exit 1
+    else
+        print_status "venv is available for python3"
     fi
 }
 
-# Install dependencies using uv
-install_dependencies() {
-    print_status "Setting up Python environment with uv..."
-    
-    # Create virtual environment with uv if it doesn't exist
+# Setup virtual environment and install dependencies
+setup_environment() {
     VENV_DIR="$(pwd)/test_venv"
+    
+    print_status "Setting up Python virtual environment..."
+    
+    # Create virtual environment if it doesn't exist
     if [ ! -d "$VENV_DIR" ]; then
         print_status "Creating virtual environment in $VENV_DIR..."
-        uv venv "$VENV_DIR"
+        if ! python3 -m venv "$VENV_DIR"; then
+            print_error "Failed to create virtual environment."
+            exit 1
+        fi
+        print_success "Virtual environment created"
+    else
+        print_status "Virtual environment already exists in $VENV_DIR"
     fi
     
-    # Install packages with uv
-    print_status "Installing required packages with uv..."
-    uv pip install --python "$VENV_DIR/bin/python" nicegui fastapi uvicorn
+    # Activate virtual environment
+    print_status "Activating virtual environment..."
+    source "$VENV_DIR/bin/activate"
     
-    print_success "Dependencies installed successfully with uv"
+    # Upgrade pip and install packages
+    print_status "Installing required packages..."
+    python -m pip install --upgrade pip
+    pip install fastapi uvicorn nicegui
+    
+    print_success "Dependencies installed successfully"
 }
 
 
@@ -90,12 +109,11 @@ main() {
     
     # Change to testing directory
     cd "$(dirname "$0")"
-    # curl -sSL http://localhost:8080/agent-os/api/setup.sh | bash
+    
     # Run checks and setup
     check_python
-    install_uv
-    install_dependencies
-    
+    check_python_tools
+    setup_environment
     
     echo ""
     print_status "Test environment ready!"
@@ -106,7 +124,9 @@ main() {
     echo "  curl -sSL http://localhost:8080/agent-os/api/setup-claude-code.sh | bash"
     echo "  curl -sSL http://localhost:8080/agent-os/api/setup-github-copilot.sh | bash"
     echo "  curl -sSL http://localhost:8080/agent-os/api/setup-kilocode.sh | bash"
+    echo "  curl -sSL http://localhost:8080/agent-os/api/setup-gemini-cli.sh | bash"
     echo ""
+    
     # Start the website
     print_status "Starting Agent OS mock website..."
     print_status "Website will be available at: http://localhost:8080/agent-os"
@@ -115,19 +135,15 @@ main() {
     print_warning "Press Ctrl+C to stop the server"
     echo ""
     
-    # Run the website with uvicorn and activated virtual environment
+    # Run the website with uvicorn using the activated virtual environment
     cd mock_website
-    "$VENV_DIR/bin/uvicorn" website:app --host 0.0.0.0 --port 8080 --log-level info
+    uvicorn website:app --host 0.0.0.0 --port 8080 --log-level info
 }
 
 # Handle cleanup on exit
 cleanup() {
     echo ""
     print_status "Shutting down test environment..."
-    # Deactivate virtual environment if active
-    if [[ "$VIRTUAL_ENV" != "" ]]; then
-        deactivate
-    fi
     print_success "Test environment stopped"
 }
 

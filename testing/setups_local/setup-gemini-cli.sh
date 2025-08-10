@@ -16,7 +16,7 @@ if [ ! -d "$HOME/.agent-os/instructions" ] || [ ! -d "$HOME/.agent-os/standards"
     echo "Please install the Agent OS base installation first:"
     echo ""
     echo "Option 1 - Automatic installation:"
-    echo "  curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup.sh | bash"
+    echo "  curl -sSL http://localhost:8080/agent-os/api/setup.sh | bash"
     echo ""
     echo "Option 2 - Manual installation:"
     echo "  Follow instructions at https://buildermethods.com/agent-os"
@@ -49,8 +49,8 @@ echo "📁 Creating .gemini directory..."
 mkdir -p .gemini/prompts
 mkdir -p .gemini/context
 
-# Base URL for raw GitHub content
-BASE_URL="http://localhost:8080"
+# Base URL for local test API
+BASE_URL="http://localhost:8080/agent-os/api"
 
 echo ""
 echo "📥 Downloading and setting up Gemini CLI prompt files..."

@@ -5,6 +5,41 @@ All notable changes to Agent OS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-08-10
+
+### Added
+
+- **Simplified Testing Environment** - Streamlined local testing setup with standard Python tools
+  - Removed dependency on `uv` package manager for easier setup
+  - Uses standard Python `venv` and `pip` for virtual environment management
+  - Improved prerequisite checks with clear error messages and OS-specific installation instructions
+  - Enhanced script portability with proper directory resolution
+
+### Changed
+
+- **Testing Infrastructure** - Major simplification of `testing/start_localhost.sh`
+  - Replaced `uv` with standard Python toolchain (python3, pip, venv)
+  - Added strict prerequisite validation with helpful error messages for missing dependencies
+  - Streamlined virtual environment setup process
+  - Simplified package installation using standard `pip install`
+  - Improved script execution reliability with proper working directory management
+
+### Improved
+
+- **Developer Experience** - Easier setup for new contributors and users
+  - No need to install external package managers like `uv`
+  - Clear, actionable error messages for missing system dependencies
+  - Works consistently across different Python installations and operating systems
+  - Script runs correctly regardless of execution directory
+
+### Technical Details
+
+- Testing environment now requires only Python 3.8+, pip, and venv (standard Python tools)
+- Virtual environment created at `testing/test_venv` using `python3 -m venv`
+- All dependencies (fastapi, uvicorn, nicegui) installed via standard pip
+- Script uses `cd "$(dirname "$0")"` for proper working directory resolution
+- Maintains full compatibility with existing Agent OS installation workflows
+
 ## [1.4.0] - 2025-08-06
 
 ### Added
@@ -26,12 +61,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Real installation script testing capability for better development workflow
   - Removed dependency on separate test setup scripts for simplified maintenance
 
+- **Gemini CLI Integration (Testing UI)**
+  - Added Gemini CLI installation card to local testing website
+  - New `testing/setups_local/setup-gemini-cli.sh` script for Gemini CLI workflow
+  - Uses local API endpoints for offline testing
+
+
 ### Changed
+
 - **Testing Infrastructure** - Major refactoring of the testing environment
   - `testing/start_tests.sh` no longer depends on `testing/setups/` directory
   - `testing/mock_website/website.py` now serves scripts directly from project root
   - Website UI reorganized with Step 1 (base installation) and Step 2 (AI tool selection)
   - Removed `testing/setups/` directory and test-specific setup scripts
+  - Updated Gemini CLI setup script to use `http://localhost:8080/agent-os/api/` endpoints instead of remote GitHub URLs for local testing
 
 - **Plugin Architecture** - Introduced modular plugin system for language-specific extensions
   - Core Agent OS remains language-agnostic
@@ -39,12 +82,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Consistent plugin structure across Python and TypeScript implementations
 
 ### Improved
+
 - **Development Workflow** - Testing environment now uses real setup scripts for more accurate testing
 - **Code Organization** - Plugin-based architecture provides better separation of concerns
 - **User Experience** - Clearer installation flow with prioritized base installation
 - **Maintainability** - Eliminated duplicate test scripts in favor of serving actual installation scripts
 
 ### Removed
+
 - **Test Setup Scripts** - Removed `testing/setups/` directory and all test-specific setup scripts
 - **Mock Installation Logic** - No longer needed since real scripts are served locally
 
