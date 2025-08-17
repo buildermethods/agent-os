@@ -28,8 +28,9 @@ Use the context-fetcher subagent to collect all required inp duts from the user 
   <primary>user_direct_input</primary>
   <fallback_sequence>
     1. @~/.agent-os/standards/tech-stack.md
-    2. @~/.claude/CLAUDE.md
-    3. Cursor User Rules
+    2. @~/.agent-os/standards/python-tech-stack.md
+    3. @~/.claude/CLAUDE.md
+    4. Cursor User Rules
   </fallback_sequence>
 </data_sources>
 
@@ -216,8 +217,9 @@ Use the file-creator subagent to create the file: .agent-os/product/tech-stack.m
       <if_not_in>user_input</if_not_in>
       <then_check>
         1. @~/.agent-os/standards/tech-stack.md
-        2. @~/.claude/CLAUDE.md
-        3. Cursor User Rules
+        2. @~/.agent-os/standards/python-tech-stack.md
+        3. @~/.claude/CLAUDE.md
+        4. Cursor User Rules
       </then_check>
       <else>add_to_missing_list</else>
     </for_each>

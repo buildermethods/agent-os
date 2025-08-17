@@ -9,6 +9,7 @@ Thumbs.db
 
 # IDE
 .vscode/
+.github/
 .idea/
 *.swp
 *.swo
@@ -32,3 +33,6 @@ node_modules/
 # Temporary files
 *.tmp
 *.temp
+
+testing/test_venv/
+testing/mock_website/__pycache__/*

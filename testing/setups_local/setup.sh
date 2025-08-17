@@ -38,12 +38,12 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "🚀 Agent OS Setup Script"
-echo "========================"
+echo "🚀 Agent OS Setup Script (Local Test Environment)"
+echo "================================================="
 echo ""
 
-# Base URL for raw GitHub content
-BASE_URL="https://raw.githubusercontent.com/buildermethods/agent-os/main"
+# Base URL for local test environment
+BASE_URL="http://localhost:8080/agent-os/api"
 
 # Create directories
 echo "📁 Creating directories..."
@@ -216,12 +216,85 @@ else
     fi
 fi
 
+# Download plugin files
+echo ""
+echo "📥 Downloading plugin files to ~/.agent-os/plugins/"
+
+# Create plugin directories
+mkdir -p "$HOME/.agent-os/plugins/python/instructions/core"
+mkdir -p "$HOME/.agent-os/plugins/python/standards"
+mkdir -p "$HOME/.agent-os/plugins/typescript/instructions/core"
+mkdir -p "$HOME/.agent-os/plugins/typescript/standards"
+
+echo "  📂 Python plugin:"
+
+# Python plugin files
+if [ -f "$HOME/.agent-os/plugins/python/instructions/core/create-spec.md" ] && [ "$OVERWRITE_INSTRUCTIONS" = false ]; then
+    echo "    ⚠️  ~/.agent-os/plugins/python/instructions/core/create-spec.md already exists - skipping"
+else
+    curl -s -o "$HOME/.agent-os/plugins/python/instructions/core/create-spec.md" "${BASE_URL}/plugins/python/instructions/core/create-spec.md"
+    if [ -f "$HOME/.agent-os/plugins/python/instructions/core/create-spec.md" ] && [ "$OVERWRITE_INSTRUCTIONS" = true ]; then
+        echo "    ✓ ~/.agent-os/plugins/python/instructions/core/create-spec.md (overwritten)"
+    else
+        echo "    ✓ ~/.agent-os/plugins/python/instructions/core/create-spec.md"
+    fi
+fi
+
+if [ -f "$HOME/.agent-os/plugins/python/standards/python-style.md" ] && [ "$OVERWRITE_STANDARDS" = false ]; then
+    echo "    ⚠️  ~/.agent-os/plugins/python/standards/python-style.md already exists - skipping"
+else
+    curl -s -o "$HOME/.agent-os/plugins/python/standards/python-style.md" "${BASE_URL}/plugins/python/standards/python-style.md"
+    if [ -f "$HOME/.agent-os/plugins/python/standards/python-style.md" ] && [ "$OVERWRITE_STANDARDS" = true ]; then
+        echo "    ✓ ~/.agent-os/plugins/python/standards/python-style.md (overwritten)"
+    else
+        echo "    ✓ ~/.agent-os/plugins/python/standards/python-style.md"
+    fi
+fi
+
+if [ -f "$HOME/.agent-os/plugins/python/standards/python-tech-stack.md" ] && [ "$OVERWRITE_STANDARDS" = false ]; then
+    echo "    ⚠️  ~/.agent-os/plugins/python/standards/python-tech-stack.md already exists - skipping"
+else
+    curl -s -o "$HOME/.agent-os/plugins/python/standards/python-tech-stack.md" "${BASE_URL}/plugins/python/standards/python-tech-stack.md"
+    if [ -f "$HOME/.agent-os/plugins/python/standards/python-tech-stack.md" ] && [ "$OVERWRITE_STANDARDS" = true ]; then
+        echo "    ✓ ~/.agent-os/plugins/python/standards/python-tech-stack.md (overwritten)"
+    else
+        echo "    ✓ ~/.agent-os/plugins/python/standards/python-tech-stack.md"
+    fi
+fi
+
+echo ""
+echo "  📂 TypeScript plugin:"
+
+# TypeScript plugin files
+if [ -f "$HOME/.agent-os/plugins/typescript/instructions/core/create-spec.md" ] && [ "$OVERWRITE_INSTRUCTIONS" = false ]; then
+    echo "    ⚠️  ~/.agent-os/plugins/typescript/instructions/core/create-spec.md already exists - skipping"
+else
+    curl -s -o "$HOME/.agent-os/plugins/typescript/instructions/core/create-spec.md" "${BASE_URL}/plugins/typescript/instructions/core/create-spec.md"
+    if [ -f "$HOME/.agent-os/plugins/typescript/instructions/core/create-spec.md" ] && [ "$OVERWRITE_INSTRUCTIONS" = true ]; then
+        echo "    ✓ ~/.agent-os/plugins/typescript/instructions/core/create-spec.md (overwritten)"
+    else
+        echo "    ✓ ~/.agent-os/plugins/typescript/instructions/core/create-spec.md"
+    fi
+fi
+
+if [ -f "$HOME/.agent-os/plugins/typescript/standards/typescript-tech-stack.md" ] && [ "$OVERWRITE_STANDARDS" = false ]; then
+    echo "    ⚠️  ~/.agent-os/plugins/typescript/standards/typescript-tech-stack.md already exists - skipping"
+else
+    curl -s -o "$HOME/.agent-os/plugins/typescript/standards/typescript-tech-stack.md" "${BASE_URL}/plugins/typescript/standards/typescript-tech-stack.md"
+    if [ -f "$HOME/.agent-os/plugins/typescript/standards/typescript-tech-stack.md" ] && [ "$OVERWRITE_STANDARDS" = true ]; then
+        echo "    ✓ ~/.agent-os/plugins/typescript/standards/typescript-tech-stack.md (overwritten)"
+    else
+        echo "    ✓ ~/.agent-os/plugins/typescript/standards/typescript-tech-stack.md"
+    fi
+fi
+
 echo ""
 echo "✅ Agent OS base installation complete!"
 echo ""
 echo "📍 Files installed to:"
 echo "   ~/.agent-os/standards/     - Your development standards"
 echo "   ~/.agent-os/instructions/  - Agent OS instructions"
+echo "   ~/.agent-os/plugins/       - Language-specific plugins (Python, TypeScript)"
 echo ""
 if [ "$OVERWRITE_INSTRUCTIONS" = false ] && [ "$OVERWRITE_STANDARDS" = false ]; then
     echo "💡 Note: Existing files were skipped to preserve your customizations"
@@ -243,12 +316,18 @@ echo ""
 echo "2. Install commands for your AI coding assistant(s):"
 echo ""
 echo "   - Using Claude Code? Install the Claude Code commands with:"
-echo "     curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup-claude-code.sh | bash"
+echo "     curl -sSL http://localhost:8080/agent-os/api/setup-claude-code.sh | bash"
 echo ""
 echo "   - Using Cursor? Install the Cursor commands with:"
-echo "     curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup-cursor.sh | bash"
+echo "     curl -sSL http://localhost:8080/agent-os/api/setup-cursor.sh | bash"
+echo ""
+echo "   - Using GitHub Copilot? Install the GitHub Copilot commands with:"
+echo "     curl -sSL http://localhost:8080/agent-os/api/setup-github-copilot.sh | bash"
+echo ""
+echo "   - Using KiloCode? Install the KiloCode commands with:"
+echo "     curl -sSL http://localhost:8080/agent-os/api/setup-kilocode.sh | bash"
 echo ""
 echo "   - Using something else? See instructions at https://buildermethods.com/agent-os"
 echo ""
-echo "Learn more at https://buildermethods.com/agent-os"
+echo "Test environment running at http://localhost:8080/agent-os"
 echo ""

@@ -31,3 +31,25 @@ Global tech stack defaults for Agent OS projects, overridable in project-specifi
 - Tests: Run before deployment
 - Production Environment: main branch
 - Staging Environment: staging branch
+
+## Language-Specific Stacks
+
+### TypeScript Projects
+
+When TypeScript is detected or specified, Agent OS uses an optimized stack selected based on project requirements:
+
+- **Default**: Modern TypeScript stack with React, Hono.js, PostgreSQL, and Dokploy
+- **MERN**: MongoDB, Express.js, React, Node.js
+- **MEAN**: MongoDB, Express.js, Angular, Node.js
+
+See [TypeScript Plugin](../plugins/typescript/README.md) for detailed stack specifications.
+
+#### Why the Default TypeScript Stack?
+
+The default TypeScript stack is optimized for AI-assisted development:
+
+- **Claude Code Compatibility**: React + TypeScript has the most proven success stories with Claude Code
+- **Cross-Platform Needs**: Quasar's unified approach aligns with Agent OS's multi-platform goals
+- **Type Safety**: Full TypeScript coverage improves AI code generation accuracy
+- **Modern Performance**: Hono.js provides Express-like simplicity with better performance
+- **Self-Hosted Deployment**: Dokploy offers PaaS convenience without vendor lock-in
