@@ -1,8 +1,8 @@
 ---
-description: Rules to execute a task and its sub-tasks using Agent OS
+description: Rules to execute a task and its sub-tasks using Agent OS with mandatory specification awareness
 globs:
 alwaysApply: false
-version: 1.0
+version: 2.0
 encoding: UTF-8
 ---
 
@@ -19,26 +19,78 @@ Execute a specific task along with its sub-tasks systematically following a TDD 
 
 <process_flow>
 
-<step number="1" name="task_understanding">
+<step number="1" name="specification_discovery" priority="MANDATORY">
 
-### Step 1: Task Understanding
+### Step 1: Specification Discovery
 
-Read and analyze the given parent task and all its sub-tasks from tasks.md to gain complete understanding of what needs to be built.
+BEFORE reading task details, discover and catalog ALL available specifications and requirements documentation.
 
-<task_analysis>
+<specification_locations>
+  <search_directories>
+    - .agent-os/specs/
+    - .agent-os/specifications/  
+    - specs/
+    - docs/
+    - requirements/
+    - architecture/
+    - design/
+  </search_directories>
+  
+  <search_patterns>
+    - *-spec.md, *-specification.md
+    - requirements.md, *-requirements.md
+    - schema.md, *-schema.md
+    - architecture.md, design.md
+    - api-*.md, interface-*.md
+    - business-*.md, logic-*.md
+    - README.md files in relevant directories
+  </search_patterns>
+</specification_locations>
+
+<discovery_process>
+  1. Search for specification files using patterns above
+  2. Catalog found specifications with brief descriptions
+  3. Identify which specs are relevant to the current task domain
+  4. Note any missing specifications for critical areas
+</discovery_process>
+
+<instructions>
+  ACTION: Search project for ALL specification files
+  CATALOG: Create index of available specs and their purposes
+  IDENTIFY: Specs relevant to current task domain
+  DOCUMENT: Available specifications before proceeding
+</instructions>
+
+</step>
+
+<step number="2" name="task_understanding_with_specs">
+
+### Step 2: Task Understanding with Specification Context
+
+Read and analyze tasks from tasks.md while mapping requirements to discovered specifications.
+
+<task_analysis_enhanced>
   <read_from_tasks_md>
     - Parent task description
-    - All sub-task descriptions
+    - All sub-task descriptions  
     - Task dependencies
     - Expected outcomes
   </read_from_tasks_md>
-</task_analysis>
+  
+  <specification_mapping>
+    For each task requirement:
+    - Search for corresponding spec sections
+    - Extract relevant constraints and rules
+    - Note any requirements without spec coverage
+    - Document spec-to-requirement relationships
+  </specification_mapping>
+</task_analysis_enhanced>
 
 <instructions>
-  ACTION: Read the specific parent task and all its sub-tasks
-  ANALYZE: Full scope of implementation required
-  UNDERSTAND: Dependencies and expected deliverables
-  NOTE: Test requirements for each sub-task
+  ACTION: Read tasks AND map to relevant specifications
+  ANALYZE: Requirements in context of available specs
+  EXTRACT: All constraints, rules, and expectations from specs
+  IDENTIFY: Any gaps between tasks and specifications
 </instructions>
 
 </step>
@@ -126,11 +178,58 @@ Use the context-fetcher subagent to retrieve relevant code style rules from @.ag
 
 </step>
 
-<step number="5" name="task_execution">
+<step number="5" name="approach_design_and_validation">
 
-### Step 5: Task and Sub-task Execution
+### Step 5: Approach Design and Specification Validation
 
-Execute the parent task and all sub-tasks in order using test-driven development (TDD) approach.
+Document implementation approach and validate against specifications BEFORE coding.
+
+<approach_documentation>
+  <design_summary>
+    ## Implementation Approach
+    
+    ### Specification Alignment
+    - Relevant specs: [list spec files and sections consulted]
+    - Key requirements: [extracted from specifications]
+    - Constraints: [from specs and requirements]
+    
+    ### Implementation Strategy
+    - Approach: [high-level implementation method]
+    - Expected inputs: [format, structure, constraints]
+    - Expected outputs: [format, structure, validation criteria]
+    - Dependencies: [external systems, libraries, data sources]
+    
+    ### Validation Criteria
+    - Success metrics: [from specifications]
+    - Acceptance criteria: [from requirements]
+    - Error handling: [from specs or best practices]
+  </design_summary>
+</approach_documentation>
+
+<pre_implementation_validation>
+  VERIFY approach against specifications:
+  ✓ Implementation strategy aligns with architectural specs
+  ✓ Expected outputs match specification requirements
+  ✓ Dependencies and interfaces follow defined contracts
+  ✓ Error handling covers specified scenarios
+  
+  HALT if approach conflicts with specifications
+</pre_implementation_validation>
+
+<instructions>
+  ACTION: Document implementation approach BEFORE coding
+  VALIDATE: Approach against all relevant specifications
+  CONFIRM: Expected outcomes align with spec requirements
+  PROCEED: Only after validation confirms spec compliance
+</instructions>
+
+</step>
+
+<step number="6" name="task_execution">
+
+### Step 6: Task and Sub-task Execution with Specification Compliance
+
+Execute the parent task and all sub-tasks in order using test-driven development (TDD) approach with specification compliance checks.
 
 <typical_task_structure>
   <first_subtask>Write tests for [feature]</first_subtask>
@@ -141,16 +240,19 @@ Execute the parent task and all sub-tasks in order using test-driven development
 <execution_order>
   <subtask_1_tests>
     IF sub-task 1 is "Write tests for [feature]":
-      - Write all tests for the parent feature
-      - Include unit tests, integration tests, edge cases
+      - Write tests based on specification requirements
+      - Include unit tests, integration tests, edge cases from specs
+      - Add tests for specification compliance
       - Run tests to ensure they fail appropriately
       - Mark sub-task 1 complete
   </subtask_1_tests>
 
   <middle_subtasks_implementation>
     FOR each implementation sub-task (2 through n-1):
-      - Implement the specific functionality
+      - Implement functionality according to specifications
+      - Reference spec sections in code comments
       - Make relevant tests pass
+      - Validate outputs against spec expectations during development
       - Update any adjacent/related tests if needed
       - Refactor while keeping tests green
       - Mark sub-task complete
@@ -160,10 +262,27 @@ Execute the parent task and all sub-tasks in order using test-driven development
     IF final sub-task is "Verify all tests pass":
       - Run entire test suite
       - Fix any remaining failures
+      - Ensure specification compliance tests pass
       - Ensure no regressions
       - Mark final sub-task complete
   </final_subtask_verification>
 </execution_order>
+
+<specification_compliance_during_implementation>
+  <during_coding>
+    - Reference specification sections in code comments
+    - Add runtime validation for spec requirements where appropriate
+    - Log specification compliance checkpoints
+    - Implement spec violation exceptions/warnings
+  </during_coding>
+  
+  <testing_with_specs>
+    - Write tests that validate specification compliance
+    - Test edge cases defined in specifications
+    - Verify error handling matches spec requirements
+    - Test integration points as documented
+  </testing_with_specs>
+</specification_compliance_during_implementation>
 
 <test_management>
   <new_tests>
@@ -226,11 +345,70 @@ Use the test-runner subagent to run and verify only the tests specific to this p
 
 </step>
 
-<step number="7" name="task_status_updates">
+<step number="8" name="output_validation" priority="MANDATORY">
 
-### Step 7: Mark this task and sub-tasks complete
+### Step 8: Output Validation Against Specifications
 
-IMPORTANT: In the tasks.md file, mark this task and its sub-tasks complete by updating each task checkbox to [x].
+Validate ALL outputs against specifications before marking tasks complete.
+
+<validation_checklist>
+  <specification_compliance>
+    ✓ Output format matches specification requirements
+    ✓ Data structure follows defined schemas
+    ✓ Business rules and constraints properly enforced
+    ✓ Interface contracts correctly implemented
+    ✓ Error handling covers specified scenarios
+  </specification_compliance>
+  
+  <quality_checks>
+    ✓ Expected functionality delivered
+    ✓ Edge cases handled as specified
+    ✓ Dependencies work as documented
+    ✓ Performance meets specified criteria
+    ✓ No specification requirements missed
+  </quality_checks>
+  
+  <anomaly_detection>
+    RED FLAGS requiring investigation:
+    - Outputs significantly different from spec expectations
+    - Missing functionality described in specifications
+    - Behavior contradicting documented requirements
+    - Dependencies not working as specified
+    - Test results not matching acceptance criteria
+  </anomaly_detection>
+</validation_checklist>
+
+<validation_process>
+  1. Compare implementation against each relevant specification
+  2. Verify all requirements from specs are addressed
+  3. Test edge cases and error scenarios from specifications
+  4. Confirm outputs match expected formats and constraints
+  5. Validate integration points work as documented
+</validation_process>
+
+<failure_handling>
+  IF validation fails:
+    1. Document specific specification violations
+    2. Return to appropriate step (design, implementation, or testing)
+    3. Correct violations and re-validate
+    4. Do not mark complete until all validations pass
+</failure_handling>
+
+<instructions>
+  ACTION: Validate ALL outputs against specifications
+  COMPARE: Implementation behavior with spec requirements
+  TEST: Edge cases and scenarios from specifications
+  DOCUMENT: Validation results and compliance status
+  HALT: If any specification requirements are violated
+</instructions>
+
+</step>
+
+<step number="9" name="task_status_updates">
+
+### Step 9: Mark this task and sub-tasks complete
+
+ONLY after output validation passes, mark this task and its sub-tasks complete by updating each task checkbox to [x] in tasks.md.
 
 <update_format>
   <completed>- [x] Task description</completed>
