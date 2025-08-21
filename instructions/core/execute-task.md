@@ -95,7 +95,7 @@ Read and analyze tasks from tasks.md while mapping requirements to discovered sp
 
 </step>
 
-<step number="2" name="technical_spec_review">
+<step number="3" name="technical_spec_review">
 
 ### Step 2: Technical Specification Review
 
@@ -120,7 +120,7 @@ Search and extract relevant sections from technical-spec.md to understand the te
 
 </step>
 
-<step number="3" subagent="context-fetcher" name="best_practices_review">
+<step number="4" subagent="context-fetcher" name="best_practices_review">
 
 ### Step 3: Best Practices Review
 
@@ -149,7 +149,7 @@ Use the context-fetcher subagent to retrieve relevant sections from @.agent-os/s
 
 </step>
 
-<step number="3.5" subagent="context-fetcher" name="codebase_reference_check">
+<step number="5" subagent="context-fetcher" name="codebase_reference_check">
 
 ### Step 3.5: Load Task-Specific Codebase References
 
@@ -189,7 +189,7 @@ ELSE:
 
 </step>
 
-<step number="4" subagent="context-fetcher" name="code_style_review">
+<step number="6" subagent="context-fetcher" name="code_style_review">
 
 ### Step 4: Code Style Review
 
@@ -218,7 +218,7 @@ Use the context-fetcher subagent to retrieve relevant code style rules from @.ag
 
 </step>
 
-<step number="5" name="approach_design_and_validation">
+<step number="7" name="approach_design_and_validation">
 
 ### Step 5: Approach Design and Specification Validation
 
@@ -265,7 +265,7 @@ Document implementation approach and validate against specifications BEFORE codi
 
 </step>
 
-<step number="6" name="task_execution">
+<step number="8" name="task_execution">
 
 ### Step 6: Task and Sub-task Execution with Specification Compliance
 
@@ -347,7 +347,7 @@ Execute the parent task and all sub-tasks in order using test-driven development
 
 </step>
 
-<step number="6" subagent="test-runner" name="task_test_verification">
+<step number="9" subagent="test-runner" name="task_test_verification">
 
 ### Step 6: Task-Specific Test Verification
 
@@ -385,7 +385,7 @@ Use the test-runner subagent to run and verify only the tests specific to this p
 
 </step>
 
-<step number="6.5" subagent="codebase-indexer" name="update_codebase_references">
+<step number="10" subagent="codebase-indexer" name="update_codebase_references">
 
 ### Step 6.5: Update Codebase References
 
@@ -438,7 +438,7 @@ ELSE:
 
 </step>
 
-<step number="7" name="task_status_updates">
+<step number="11" name="task_progress_updates">
 
 ### Step 7: Task Status Updates
 
@@ -446,7 +446,7 @@ Update task statuses in real-time as work progresses.
 
 </step>
 
-<step number="8" name="output_validation" priority="MANDATORY">
+<step number="12" name="output_validation" priority="MANDATORY">
 
 ### Step 8: Output Validation Against Specifications
 
@@ -505,7 +505,7 @@ Validate ALL outputs against specifications before marking tasks complete.
 
 </step>
 
-<step number="9" name="task_status_updates">
+<step number="13" name="task_completion_updates">
 
 ### Step 9: Mark this task and sub-tasks complete
 
