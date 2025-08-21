@@ -25,3 +25,16 @@ project_types:
   #   standards: ~/.agent-os/project_types/type_b/standards
 
 default_project_type: default
+
+codebase_indexing:
+  enabled: true
+  incremental: true  # Only update changed files during task execution
+  patterns:
+    js: ["function", "export", "class", "const.*=.*=>"]
+    ts: ["function", "export", "class", "interface", "type", "const.*=.*=>"]
+    py: ["def ", "class ", "import ", "from "]
+    rb: ["def ", "class ", "module "]
+    go: ["func ", "type ", "interface "]
+    rs: ["fn ", "struct ", "impl ", "trait "]
+    java: ["public ", "private ", "protected ", "class ", "interface "]
+    cs: ["public ", "private ", "protected ", "class ", "interface "]
