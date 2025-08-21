@@ -148,6 +148,16 @@ Execute all assigned parent tasks and their subtasks using @.agent-os/instructio
     - User requests early termination
     - Blocking issue prevents continuation
   </exit_conditions>
+  
+  <debugging_escalation>
+    IF multiple_tasks_experiencing_issues:
+      CONSIDER: @commands/debug-spec.md
+      REASON: Systemic or integration issues across tasks
+    
+    IF single_task_blocked:
+      USE: @commands/debug-task.md (already in execute-task.md)
+      REASON: Task-specific debugging
+  </debugging_escalation>
 </loop_logic>
 
 <task_status_check>
@@ -170,11 +180,35 @@ Execute all assigned parent tasks and their subtasks using @.agent-os/instructio
 
 </step>
 
-<step number="6" name="complete_tasks">
+<step number="6" name="pre_completion_verification">
 
-### Step 6: Run the task completion steps
+### Step 6: Pre-Completion Verification
 
-After all tasks in tasks.md have been implemented, use @.agent-os/instructions/core/complete-tasks.md to run our series of steps we always run when finishing and delivering a new feature.
+Before running completion steps, verify the spec is fully functional.
+
+<verification_checkpoint>
+  IF integration_issues_detected:
+    USE: @commands/debug-spec.md
+    REASON: Ensure spec-wide integration before completion
+    RESOLVE: All cross-task issues
+  
+  IF all_tests_passing:
+    PROCEED: To completion steps
+</verification_checkpoint>
+
+<instructions>
+  ACTION: Run full spec test suite
+  VERIFY: All integration points working
+  DEBUG: Any spec-wide issues if found
+</instructions>
+
+</step>
+
+<step number="7" name="complete_tasks">
+
+### Step 7: Run the task completion steps
+
+After all tasks in tasks.md have been implemented and verified, use @.agent-os/instructions/core/complete-tasks.md to run our series of steps we always run when finishing and delivering a new feature.
 
 <instructions>
   LOAD: @.agent-os/instructions/core/complete-tasks.md once

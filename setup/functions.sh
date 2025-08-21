@@ -124,7 +124,7 @@ install_from_github() {
 
     # Core instructions
     echo "  📂 Core instructions:"
-    for file in plan-product complete-tasks create-spec create-tasks execute-tasks execute-task analyze-product; do
+    for file in plan-product complete-tasks create-spec create-tasks execute-tasks execute-task analyze-product debug-issue debug-task debug-spec investigate-bug fix-regression; do
         download_file "${BASE_URL}/instructions/core/${file}.md" \
             "$target_dir/instructions/core/${file}.md" \
             "$overwrite_inst" \
@@ -138,6 +138,11 @@ install_from_github() {
         "$target_dir/instructions/meta/pre-flight.md" \
         "$overwrite_inst" \
         "instructions/meta/pre-flight.md"
+    
+    download_file "${BASE_URL}/instructions/meta/debugging-decision-tree.md" \
+        "$target_dir/instructions/meta/debugging-decision-tree.md" \
+        "$overwrite_inst" \
+        "instructions/meta/debugging-decision-tree.md"
 
     # Download standards
     echo ""
@@ -175,7 +180,7 @@ install_from_github() {
         echo "📥 Downloading command files to $target_dir/commands/"
         mkdir -p "$target_dir/commands"
 
-        for cmd in plan-product create-spec create-tasks execute-tasks analyze-product; do
+        for cmd in plan-product create-spec create-tasks execute-tasks analyze-product debug-issue debug-task debug-spec investigate-bug fix-regression; do
             download_file "${BASE_URL}/commands/${cmd}.md" \
                 "$target_dir/commands/${cmd}.md" \
                 "$overwrite_std" \
