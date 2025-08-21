@@ -124,7 +124,7 @@ install_from_github() {
 
     # Core instructions
     echo "  📂 Core instructions:"
-    for file in plan-product complete-tasks create-spec create-tasks execute-tasks execute-task analyze-product debug-issue debug-task debug-spec investigate-bug fix-regression; do
+    for file in plan-product complete-tasks create-spec create-tasks execute-tasks execute-task analyze-product debug investigate fix-regression; do
         download_file "${BASE_URL}/instructions/core/${file}.md" \
             "$target_dir/instructions/core/${file}.md" \
             "$overwrite_inst" \
@@ -180,7 +180,7 @@ install_from_github() {
         echo "📥 Downloading command files to $target_dir/commands/"
         mkdir -p "$target_dir/commands"
 
-        for cmd in plan-product create-spec create-tasks execute-tasks analyze-product debug-issue debug-task debug-spec investigate-bug fix-regression; do
+        for cmd in plan-product create-spec create-tasks execute-tasks analyze-product debug investigate fix-regression; do
             download_file "${BASE_URL}/commands/${cmd}.md" \
                 "$target_dir/commands/${cmd}.md" \
                 "$overwrite_std" \

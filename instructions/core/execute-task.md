@@ -155,8 +155,8 @@ Execute the parent task and all sub-tasks in order using test-driven development
       - Refactor while keeping tests green
       
       IF encountering_persistent_issues:
-        USE: @commands/debug-task.md
-        CONTEXT: Current task and subtask
+        USE: @commands/debug.md
+        CONTEXT: Will auto-detect task scope
         RESOLVE: Issues before continuing
       
       - Mark sub-task complete
@@ -219,8 +219,8 @@ Use the test-runner subagent to run and verify only the tests specific to this p
         - Debug and fix the specific issue
         - Re-run only the failed tests
       ELSE IF persistent_or_complex_issue:
-        USE: @commands/debug-task.md
-        PROVIDE: Task context and test failures
+        USE: @commands/debug.md
+        NOTE: Auto-detects task context
         FOLLOW: Systematic debugging process
     
   ELSE:
@@ -261,8 +261,8 @@ IMPORTANT: In the tasks.md file, mark this task and its sub-tasks complete by up
   
   <debugging_escalation>
     IF blocked_after_attempts:
-      CONSIDER: @commands/debug-task.md for systematic investigation
-      OR: @commands/investigate-bug.md for analysis without fixing
+      CONSIDER: @commands/debug.md for systematic investigation
+      OR: @commands/investigate.md for analysis without fixing
       DOCUMENT: Investigation findings with blocking issue
   </debugging_escalation>
 </blocking_criteria>

@@ -13,7 +13,7 @@ Agent OS uses a modular, file-based architecture organized into:
 - **Instructions** (`instructions/`): Step-by-step workflows for common development tasks
   - `core/`: Main product development and debugging workflows
     - Development: plan-product, create-spec, execute-tasks
-    - Debugging: debug-issue, investigate-bug, fix-regression
+    - Debugging: debug (smart context-aware), investigate, fix-regression
   - `meta/`: Pre-flight and post-flight check instructions
   
 - **Standards** (`standards/`): Coding guidelines and technical requirements
@@ -61,23 +61,20 @@ When working in a project with Agent OS installed:
 3. **Execute Tasks**: Use `@commands/execute-tasks.md` to implement features following TDD workflow
 4. **Task Management**: Tasks are tracked in `.agent-os/tasks/[spec-name]/tasks.md`
 
-#### Debugging Workflows
+#### Debugging Workflows (Simplified)
 
-##### General Debugging
-1. **Debug Issues**: Use `@commands/debug-issue.md` to systematically debug and fix issues
-2. **Investigate Bugs**: Use `@commands/investigate-bug.md` to analyze bugs without immediately fixing
-3. **Fix Regressions**: Use `@commands/fix-regression.md` to quickly fix broken functionality
+Agent OS uses only 3 smart debugging commands:
 
-##### Spec/Task-Specific Debugging
-1. **Debug Task**: Use `@commands/debug-task.md` when debugging issues in a specific task during implementation
-2. **Debug Spec**: Use `@commands/debug-spec.md` for integration issues across multiple tasks in a spec
+1. **Debug**: Use `@commands/debug.md` - Auto-detects context (task, spec, or general) and applies appropriate workflow
+2. **Investigate**: Use `@commands/investigate.md` - Analyze issues without fixing for complex problems
+3. **Fix Regressions**: Use `@commands/fix-regression.md` - Quick fixes for previously working functionality
 
-##### Debug Documentation
-- General debug reports: `.agent-os/debugging/`
-- Task-specific debug reports: `.agent-os/debugging/tasks/`
-- Spec-wide debug reports: `.agent-os/debugging/specs/`
-- Investigation reports: `.agent-os/debugging/investigations/`
-- Regression reports: `.agent-os/debugging/regressions/`
+Debug reports are automatically organized by detected scope:
+- Task debugging: `.agent-os/debugging/tasks/`
+- Spec debugging: `.agent-os/debugging/specs/`
+- General debugging: `.agent-os/debugging/`
+- Investigations: `.agent-os/debugging/investigations/`
+- Regressions: `.agent-os/debugging/regressions/`
 
 ### Key Workflow Patterns
 
@@ -92,11 +89,11 @@ When working in a project with Agent OS installed:
    - Final subtask verifies all tests pass
 
 3. **Systematic Debugging**:
-   - Context-aware debugging (general, task-specific, or spec-wide)
-   - Structured investigation process with root cause analysis
-   - Integration with spec/task workflow for in-progress implementations
+   - Smart context auto-detection (task, spec, or general scope)
+   - Single `debug` command adapts to any situation
+   - Structured investigation and root cause analysis
    - Regression tests to prevent recurrence
-   - Comprehensive documentation at appropriate scope level
+   - Automatic report organization by scope
 
 4. **Subagent Delegation**:
    - Instructions use specialized subagents for specific tasks

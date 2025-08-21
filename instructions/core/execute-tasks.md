@@ -150,13 +150,10 @@ Execute all assigned parent tasks and their subtasks using @.agent-os/instructio
   </exit_conditions>
   
   <debugging_escalation>
-    IF multiple_tasks_experiencing_issues:
-      CONSIDER: @commands/debug-spec.md
-      REASON: Systemic or integration issues across tasks
-    
-    IF single_task_blocked:
-      USE: @commands/debug-task.md (already in execute-task.md)
-      REASON: Task-specific debugging
+    IF tasks_experiencing_issues:
+      USE: @commands/debug.md
+      NOTE: Will auto-detect appropriate scope (task vs spec)
+      REASON: Unified debugging with context awareness
   </debugging_escalation>
 </loop_logic>
 
@@ -188,8 +185,8 @@ Before running completion steps, verify the spec is fully functional.
 
 <verification_checkpoint>
   IF integration_issues_detected:
-    USE: @commands/debug-spec.md
-    REASON: Ensure spec-wide integration before completion
+    USE: @commands/debug.md
+    NOTE: Will detect spec-wide scope automatically
     RESOLVE: All cross-task issues
   
   IF all_tests_passing:

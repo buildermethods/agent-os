@@ -2,7 +2,7 @@
 description: Decision tree for choosing the appropriate debugging workflow
 globs:
 alwaysApply: false
-version: 1.0
+version: 2.0
 encoding: UTF-8
 ---
 
@@ -10,100 +10,71 @@ encoding: UTF-8
 
 ## Overview
 
-Quick reference guide for choosing the appropriate debugging workflow based on context and issue type.
+Quick reference guide for choosing the appropriate debugging workflow.
+
+## Simplified Debugging Commands
+
+Agent OS now uses only **3 debugging commands**:
+
+### 1. `@commands/debug.md` - Smart Debugging
+- **Auto-detects context** (task, spec, or general)
+- Use for any debugging where you need to fix the issue
+- Handles all scopes intelligently
+
+### 2. `@commands/investigate.md` - Analysis Only
+- Use when you need to understand an issue without fixing
+- Creates investigation reports for later resolution
+- Good for complex issues needing deeper analysis
+
+### 3. `@commands/fix-regression.md` - Regression Fixes
+- Use when something that previously worked is now broken
+- Leverages git history to find breaking changes
+- Quick path to restoration
 
 ## Decision Flow
 
 ```
-Is the issue occurring during spec/task implementation?
-├─ YES
-│   ├─ Is it specific to a single task?
-│   │   ├─ YES → Use @commands/debug-task.md
-│   │   └─ NO
-│   │       └─ Are multiple tasks affected or integration issues present?
-│   │           ├─ YES → Use @commands/debug-spec.md
-│   │           └─ NO → Use @commands/debug-issue.md
-│   └─ 
-└─ NO
-    ├─ Is it a regression (previously working)?
-    │   ├─ YES → Use @commands/fix-regression.md
-    │   └─ NO
-    │       ├─ Do you need to fix it immediately?
-    │       │   ├─ YES → Use @commands/debug-issue.md
-    │       │   └─ NO → Use @commands/investigate-bug.md
-    │       └─
-    └─
+Need to debug something?
+├─ Was it working before? (Regression)
+│   └─ YES → Use @commands/fix-regression.md
+│   
+├─ Do you need to fix it now?
+│   ├─ YES → Use @commands/debug.md (auto-detects context)
+│   └─ NO → Use @commands/investigate.md
+│
+└─ Just use @commands/debug.md when in doubt!
 ```
 
-## Command Selection Guide
+## How Context Auto-Detection Works
 
-### Use `@commands/debug-task.md` when:
-- Debugging during task implementation
-- Issue is isolated to a single task
-- Tests for that specific task are failing
-- Need to maintain task context and update task status
+The `debug.md` command automatically determines:
 
-### Use `@commands/debug-spec.md` when:
-- Multiple tasks in a spec are affected
-- Integration between tasks is broken
-- Systemic issues across the spec
-- End-to-end tests failing despite unit tests passing
+1. **Checks for active spec**: Is there a tasks.md with incomplete tasks?
+2. **Determines scope**:
+   - Single task affected → Task scope
+   - Multiple tasks/integration → Spec scope  
+   - No active spec → General scope
+3. **Applies appropriate workflow**: Uses the right approach for the detected context
 
-### Use `@commands/debug-issue.md` when:
-- General debugging needed (not spec/task specific)
-- Production issue or bug report
-- Want systematic debugging with immediate fix
-- Issue spans multiple specs or is application-wide
+## Integration with Execution Workflows
 
-### Use `@commands/investigate-bug.md` when:
-- Need to analyze without fixing immediately
-- Gathering information for later resolution
-- Creating documentation for another developer
-- Issue is complex and needs thorough investigation
-
-### Use `@commands/fix-regression.md` when:
-- Feature was previously working
-- Can identify when it last worked
-- Need quick restoration of functionality
-- Want to use git bisect to find breaking commit
-
-## Integration Points
-
-### During execute-task.md:
-- Persistent issues in subtask → debug-task.md
-- Test failures after implementation → debug-task.md
-- Blocking issues after 3 attempts → debug-task.md or investigate-bug.md
-
-### During execute-tasks.md:
-- Multiple tasks experiencing issues → debug-spec.md
-- Integration issues detected → debug-spec.md
-- Pre-completion verification failures → debug-spec.md
-
-### Standalone Debugging:
-- User reports bug → debug-issue.md
-- User reports regression → fix-regression.md
-- User needs investigation → investigate-bug.md
-
-## Escalation Path
-
-1. **Simple Fix**: Try inline debugging first
-2. **Task Issue**: Escalate to debug-task.md
-3. **Spec Issue**: Escalate to debug-spec.md
-4. **Investigation**: Use investigate-bug.md if can't fix
-5. **Documentation**: Create debug report for handoff
+During `execute-task.md` or `execute-tasks.md`:
+- Issues encountered → `debug.md` (auto-detects context)
+- Need investigation only → `investigate.md`
+- Previous functionality broken → `fix-regression.md`
 
 ## Output Locations
 
-- **Task debugging**: `.agent-os/debugging/tasks/[spec]-[task]-[timestamp].md`
-- **Spec debugging**: `.agent-os/debugging/specs/[spec]-[timestamp].md`
-- **General debugging**: `.agent-os/debugging/[timestamp]-[issue].md`
-- **Investigations**: `.agent-os/debugging/investigations/[timestamp]-[bug].md`
-- **Regressions**: `.agent-os/debugging/regressions/[timestamp]-[issue].md`
+Debug reports are automatically organized by scope:
+- **Task debugging**: `.agent-os/debugging/tasks/`
+- **Spec debugging**: `.agent-os/debugging/specs/`
+- **General debugging**: `.agent-os/debugging/`
+- **Investigations**: `.agent-os/debugging/investigations/`
+- **Regressions**: `.agent-os/debugging/regressions/`
 
 ## Best Practices
 
-1. **Choose the right scope**: Don't use spec-wide debugging for single task issues
-2. **Maintain context**: Use task/spec debugging when in implementation flow
-3. **Document findings**: All debugging workflows create reports
-4. **Update status**: Task/spec debugging updates tasks.md automatically
-5. **Prevent recurrence**: Add tests for all bugs found
+1. **Trust auto-detection**: The debug command is smart enough to figure out context
+2. **Use investigate for complex issues**: When you need time to think
+3. **Use fix-regression for speed**: When you know it worked before
+4. **Document everything**: All commands create appropriate reports
