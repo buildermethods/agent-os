@@ -97,6 +97,46 @@ Use the context-fetcher subagent to retrieve relevant sections from @.agent-os/s
 
 </step>
 
+<step number="3.5" subagent="context-fetcher" name="codebase_reference_check">
+
+### Step 3.5: Load Task-Specific Codebase References
+
+Use the context-fetcher subagent to retrieve relevant codebase references for functions, imports, and schemas that may be needed for this task.
+
+<conditional-block task-condition="imports-needed">
+IF task involves importing or using existing functions:
+  <selective_loading>
+    ACTION: Use context-fetcher subagent
+    REQUEST: "Find codebase references for:
+              - Functions in modules: [RELEVANT_MODULES]
+              - Import paths for: [NEEDED_COMPONENTS]
+              - Related schemas if data operations"
+    USE: Grep to find only relevant sections
+    LOAD: Only matching signatures and imports
+  </selective_loading>
+ELSE:
+  SKIP: No codebase references needed
+</conditional-block>
+
+<reference_usage>
+  PURPOSE: Prevent hallucination of function names
+  VERIFY: Correct import paths and exports
+  CHECK: Existing function signatures
+  ENSURE: Consistent with codebase patterns
+</reference_usage>
+
+<instructions>
+  ACTION: Check if .agent-os/codebase/ exists
+  IF exists:
+    GREP: Relevant sections only
+    CACHE: For task duration
+  ELSE:
+    NOTE: No codebase references available
+    CONTINUE: With task execution
+</instructions>
+
+</step>
+
 <step number="4" subagent="context-fetcher" name="code_style_review">
 
 ### Step 4: Code Style Review
@@ -222,6 +262,59 @@ Use the test-runner subagent to run and verify only the tests specific to this p
   PROCESS: Returned failure information
   VERIFY: 100% pass rate for task-specific tests
   CONFIRM: This feature's tests are complete
+</instructions>
+
+</step>
+
+<step number="6.5" subagent="codebase-indexer" name="update_codebase_references">
+
+### Step 6.5: Update Codebase References
+
+If any new functions, classes, or exports were created during this task, update the codebase references incrementally.
+
+<conditional-block task-condition="code-created-or-modified">
+IF new functions/classes/exports were created OR existing ones modified:
+  <incremental_update>
+    ACTION: Use codebase-indexer subagent
+    REQUEST: "Update codebase references for changed files:
+              - Files modified: [LIST_OF_MODIFIED_FILES]
+              - Extract new/updated signatures
+              - Update functions.md and imports.md
+              - Maintain existing unchanged references"
+    SCOPE: Only files changed in this task
+    PRESERVE: References for unchanged files
+  </incremental_update>
+ELSE:
+  SKIP: No code changes requiring reference updates
+</conditional-block>
+
+<update_strategy>
+  <changed_files>
+    IDENTIFY: Files created or modified in task
+    EXTRACT: New function signatures
+    EXTRACT: New exports and imports
+    UPDATE: Relevant reference sections
+  </changed_files>
+  
+  <efficiency>
+    SCAN: Only changed files
+    UPDATE: Only affected sections
+    SKIP: Unchanged modules
+    MAINTAIN: Alphabetical order
+  </efficiency>
+</update_strategy>
+
+<instructions>
+  ACTION: Check if .agent-os/codebase/ exists
+  IF exists AND files were modified:
+    USE: codebase-indexer for incremental update
+    UPDATE: Only changed file references
+    PRESERVE: Existing unchanged references
+  ELSE IF not exists:
+    SKIP: No reference system initialized
+    NOTE: Run @commands/index-codebase.md to enable
+  ELSE:
+    SKIP: No file changes in this task
 </instructions>
 
 </step>
