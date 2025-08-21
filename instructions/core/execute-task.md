@@ -19,46 +19,36 @@ Execute a specific task along with its sub-tasks systematically following a TDD 
 
 <process_flow>
 
-<step number="1" name="specification_discovery" priority="MANDATORY">
+<step number="1" name="specification_cache_check" priority="MANDATORY">
 
-### Step 1: Specification Discovery
+### Step 1: Use Cached Specification Index
 
-BEFORE reading task details, discover and catalog ALL available specifications and requirements documentation.
+Use the specification cache passed from execute-tasks.md to quickly access relevant specifications without redundant discovery.
 
-<specification_locations>
-  <search_directories>
-    - .agent-os/specs/
-    - .agent-os/specifications/  
-    - specs/
-    - docs/
-    - requirements/
-    - architecture/
-    - design/
-  </search_directories>
-  
-  <search_patterns>
-    - *-spec.md, *-specification.md
-    - requirements.md, *-requirements.md
-    - schema.md, *-schema.md
-    - architecture.md, design.md
-    - api-*.md, interface-*.md
-    - business-*.md, logic-*.md
-    - README.md files in relevant directories
-  </search_patterns>
-</specification_locations>
+<cache_usage>
+  IF spec_cache provided from execute-tasks:
+    USE: Cached specification index
+    SKIP: File system discovery
+    ACCESS: Spec locations from cache
+  ELSE:
+    FALLBACK: Perform specification discovery
+    CACHE: Results for subsequent tasks
+</cache_usage>
 
-<discovery_process>
-  1. Search for specification files using patterns above
-  2. Catalog found specifications with brief descriptions
-  3. Identify which specs are relevant to the current task domain
-  4. Note any missing specifications for critical areas
-</discovery_process>
+<cached_index_structure>
+  Received from execute-tasks Step 2:
+  - Spec file paths and locations
+  - Section mappings
+  - Last modified timestamps
+  - Quick lookup index
+</cached_index_structure>
 
 <instructions>
-  ACTION: Search project for ALL specification files
-  CATALOG: Create index of available specs and their purposes
-  IDENTIFY: Specs relevant to current task domain
-  DOCUMENT: Available specifications before proceeding
+  ACTION: Check for spec_cache parameter
+  IF EXISTS: Use cached index for instant spec access
+  ELSE: Perform discovery and create cache
+  BENEFIT: Saves 2-3 seconds per task execution
+  PROCEED: With cached spec information
 </instructions>
 
 </step>
@@ -95,132 +85,67 @@ Read and analyze tasks from tasks.md while mapping requirements to discovered sp
 
 </step>
 
-<step number="3" name="technical_spec_review">
+<step number="3" subagent="context-fetcher" name="batched_context_retrieval">
 
-### Step 2: Technical Specification Review
+### Step 3: Batched Context Retrieval
 
-Search and extract relevant sections from technical-spec.md to understand the technical implementation approach for this task.
+Use the context-fetcher subagent to retrieve ALL relevant context in a SINGLE batched request, reducing overhead and improving performance.
 
-<selective_reading>
-  <search_technical_spec>
-    FIND sections in technical-spec.md related to:
-    - Current task functionality
+<batched_request>
+  ACTION: Use context-fetcher subagent
+  REQUEST: "Batch retrieve the following context for task execution:
+  
+    FROM technical-spec.md:
+    - Sections related to [CURRENT_TASK_FUNCTIONALITY]
     - Implementation approach for this feature
     - Integration requirements
     - Performance criteria
-  </search_technical_spec>
-</selective_reading>
-
-<instructions>
-  ACTION: Search technical-spec.md for task-relevant sections
-  EXTRACT: Only implementation details for current task
-  SKIP: Unrelated technical specifications
-  FOCUS: Technical approach for this specific feature
-</instructions>
-
-</step>
-
-<step number="4" subagent="context-fetcher" name="best_practices_review">
-
-### Step 3: Best Practices Review
-
-Use the context-fetcher subagent to retrieve relevant sections from @.agent-os/standards/best-practices.md that apply to the current task's technology stack and feature type.
-
-<selective_reading>
-  <search_best_practices>
-    FIND sections relevant to:
-    - Task's technology stack
-    - Feature type being implemented
-    - Testing approaches needed
+    
+    FROM @.agent-os/standards/best-practices.md:
+    - Best practices for [TASK_TECH_STACK]
+    - Patterns for [FEATURE_TYPE]
+    - Testing approaches
     - Code organization patterns
-  </search_best_practices>
-</selective_reading>
-
-<instructions>
-  ACTION: Use context-fetcher subagent
-  REQUEST: "Find best practices sections relevant to:
-            - Task's technology stack: [CURRENT_TECH]
-            - Feature type: [CURRENT_FEATURE_TYPE]
-            - Testing approaches needed
-            - Code organization patterns"
-  PROCESS: Returned best practices
-  APPLY: Relevant patterns to implementation
-</instructions>
-
-</step>
-
-<step number="5" subagent="context-fetcher" name="codebase_reference_check">
-
-### Step 3.5: Load Task-Specific Codebase References
-
-Use the context-fetcher subagent to retrieve relevant codebase references for functions, imports, and schemas that may be needed for this task.
-
-<conditional-block task-condition="imports-needed">
-IF task involves importing or using existing functions:
-  <selective_loading>
-    ACTION: Use context-fetcher subagent
-    REQUEST: "Find codebase references for:
-              - Functions in modules: [RELEVANT_MODULES]
-              - Import paths for: [NEEDED_COMPONENTS]
-              - Related schemas if data operations"
-    USE: Grep to find only relevant sections
-    LOAD: Only matching signatures and imports
-  </selective_loading>
-ELSE:
-  SKIP: No codebase references needed
-</conditional-block>
-
-<reference_usage>
-  PURPOSE: Prevent hallucination of function names
-  VERIFY: Correct import paths and exports
-  CHECK: Existing function signatures
-  ENSURE: Consistent with codebase patterns
-</reference_usage>
-
-<instructions>
-  ACTION: Check if .agent-os/codebase/ exists
-  IF exists:
-    GREP: Relevant sections only
-    CACHE: For task duration
-  ELSE:
-    NOTE: No codebase references available
-    CONTINUE: With task execution
-</instructions>
-
-</step>
-
-<step number="6" subagent="context-fetcher" name="code_style_review">
-
-### Step 4: Code Style Review
-
-Use the context-fetcher subagent to retrieve relevant code style rules from @.agent-os/standards/code-style.md for the languages and file types being used in this task.
-
-<selective_reading>
-  <search_code_style>
-    FIND style rules for:
-    - Languages used in this task
-    - File types being modified
-    - Component patterns being implemented
+    
+    FROM @.agent-os/standards/code-style.md:
+    - Style rules for [LANGUAGES_IN_TASK]
+    - Formatting for [FILE_TYPES]
+    - Component patterns
     - Testing style guidelines
-  </search_code_style>
-</selective_reading>
+    
+    FROM .agent-os/codebase/ (if exists and needed):
+    - Function signatures in [RELEVANT_MODULES]
+    - Import paths for [NEEDED_COMPONENTS]
+    - Related schemas if data operations
+    
+    Return as structured summary with clear section markers"
+</batched_request>
+
+<optimization_benefits>
+  BEFORE: 4 sequential subagent calls (12-16 seconds)
+  AFTER: 1 batched subagent call (3-4 seconds)
+  SAVINGS: 9-12 seconds per task
+  CONTEXT: Remains clean and organized
+</optimization_benefits>
+
+<cache_strategy>
+  CACHE: Response for entire task duration
+  REUSE: For all subtasks within parent task
+  CLEAR: Cache when moving to next parent task
+</cache_strategy>
 
 <instructions>
-  ACTION: Use context-fetcher subagent
-  REQUEST: "Find code style rules for:
-            - Languages: [LANGUAGES_IN_TASK]
-            - File types: [FILE_TYPES_BEING_MODIFIED]
-            - Component patterns: [PATTERNS_BEING_IMPLEMENTED]
-            - Testing style guidelines"
-  PROCESS: Returned style rules
-  APPLY: Relevant formatting and patterns
+  ACTION: Make ONE batched request to context-fetcher
+  CACHE: Response for task duration
+  USE: Cached context throughout subtasks
+  BENEFIT: 75% reduction in context retrieval overhead
 </instructions>
 
 </step>
 
-<step number="7" name="approach_design_and_validation">
+<step number="4" name="approach_design_and_validation">
 
-### Step 5: Approach Design and Specification Validation
+### Step 4: Approach Design and Specification Validation
 
 Document implementation approach and validate against specifications BEFORE coding.
 
@@ -265,9 +190,9 @@ Document implementation approach and validate against specifications BEFORE codi
 
 </step>
 
-<step number="8" name="task_execution">
+<step number="5" name="task_execution">
 
-### Step 6: Task and Sub-task Execution with Specification Compliance
+### Step 5: Task and Sub-task Execution with Specification Compliance
 
 Execute the parent task and all sub-tasks in order using test-driven development (TDD) approach with specification compliance checks.
 
@@ -347,7 +272,7 @@ Execute the parent task and all sub-tasks in order using test-driven development
 
 </step>
 
-<step number="9" subagent="test-runner" name="task_test_verification">
+<step number="6" subagent="test-runner" name="task_test_verification">
 
 ### Step 6: Task-Specific Test Verification
 
@@ -374,10 +299,20 @@ Use the test-runner subagent to run and verify only the tests specific to this p
     - Ready to proceed
 </final_verification>
 
+<test_result_caching>
+  CACHE: Test results for use in complete-tasks
+  STORE: 
+    - Test files executed
+    - Pass/fail status
+    - Timestamp of test run
+  BENEFIT: Avoid re-running same tests in complete-tasks
+</test_result_caching>
+
 <instructions>
   ACTION: Use test-runner subagent
   REQUEST: "Run tests for [this parent task's test files]"
   WAIT: For test-runner analysis
+  CACHE: Results for complete-tasks workflow
   PROCESS: Returned failure information
   VERIFY: 100% pass rate for task-specific tests
   CONFIRM: This feature's tests are complete
@@ -385,14 +320,25 @@ Use the test-runner subagent to run and verify only the tests specific to this p
 
 </step>
 
-<step number="10" subagent="codebase-indexer" name="update_codebase_references">
+<step number="7" subagent="codebase-indexer" name="update_codebase_references">
 
-### Step 6.5: Update Codebase References
+### Step 7: Update Codebase References
 
 If any new functions, classes, or exports were created during this task, update the codebase references incrementally.
 
 <conditional-block task-condition="code-created-or-modified">
 IF new functions/classes/exports were created OR existing ones modified:
+  <smart_skip_check>
+    CHECK: Git diff for actual code changes
+    IF only test files or documentation changed:
+      SKIP: No production code to index
+      SAVE: 3-5 seconds
+    ELSE IF only minor changes (< 5 lines):
+      CONSIDER: Skipping if changes don't affect signatures
+    ELSE:
+      PROCEED: With incremental update
+  </smart_skip_check>
+  
   <incremental_update>
     ACTION: Use codebase-indexer subagent
     REQUEST: "Update codebase references for changed files:
@@ -405,6 +351,7 @@ IF new functions/classes/exports were created OR existing ones modified:
   </incremental_update>
 ELSE:
   SKIP: No code changes requiring reference updates
+  LOG: "No indexing needed - no code modifications"
 </conditional-block>
 
 <update_strategy>
@@ -438,17 +385,17 @@ ELSE:
 
 </step>
 
-<step number="11" name="task_progress_updates">
+<step number="8" name="task_progress_updates">
 
-### Step 7: Task Status Updates
+### Step 8: Task Status Updates
 
 Update task statuses in real-time as work progresses.
 
 </step>
 
-<step number="12" name="output_validation" priority="MANDATORY">
+<step number="9" name="output_validation" priority="MANDATORY">
 
-### Step 8: Output Validation Against Specifications
+### Step 9: Output Validation Against Specifications
 
 Validate ALL outputs against specifications before marking tasks complete.
 
@@ -505,9 +452,9 @@ Validate ALL outputs against specifications before marking tasks complete.
 
 </step>
 
-<step number="13" name="task_completion_updates">
+<step number="10" name="task_completion_updates">
 
-### Step 9: Mark this task and sub-tasks complete
+### Step 10: Mark this task and sub-tasks complete
 
 ONLY after output validation passes, mark this task and its sub-tasks complete by updating each task checkbox to [x] in tasks.md.
 

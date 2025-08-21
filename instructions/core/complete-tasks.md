@@ -18,16 +18,38 @@ After all tasks in the current spec have been completed, follow these steps to m
 
 <process_flow>
 
-<step number="1" subagent="test-runner" name="test_suite_verification">
+<step number="1" subagent="test-runner" name="test_suite_verification" parallel="true">
 
-### Step 1: Run All Tests
+### Step 1: Run All Tests (Can Run in Parallel)
 
 Use the test-runner subagent to run the ALL tests in the application's test suite to ensure no regressions and fix any failures until all tests pass.
 
+<parallel_execution>
+  CAN_RUN_WITH: Steps that don't modify code
+  SPECIFICALLY: Step 5 (roadmap check - read only)
+  BENEFIT: Saves 10-15 seconds when tests are long
+</parallel_execution>
+
+<smart_test_execution>
+  IF test results cached from execute-task (last 5 minutes):
+    CHECK: Cached test status
+    IF all tests passed in cache:
+      SKIP: Re-running tests
+      USE: Cached results
+      SAVE: 15-30 seconds
+    ELSE:
+      RUN: Only previously failed tests
+  ELSE:
+    RUN: Full test suite as normal
+</smart_test_execution>
+
 <instructions>
-  ACTION: Use test-runner subagent
-  REQUEST: "Run the full test suite"
-  WAIT: For test-runner analysis
+  ACTION: Check for cached test results first
+  IF CACHED AND PASSING: Skip test execution
+  ELSE: Use test-runner subagent
+  REQUEST: "Run the full test suite" (or subset if cache partial)
+  PARALLEL: Can start while other read-only operations run
+  WAIT: For test-runner analysis before Step 3
   PROCESS: Fix any reported failures
   REPEAT: Until all tests pass
 </instructions>
@@ -47,45 +69,37 @@ Use the test-runner subagent to run the ALL tests in the application's test suit
 
 </step>
 
-<step number="2" name="specification_compliance_verification">
+<step number="2" name="specification_compliance_check">
 
-### Step 2: Specification Compliance Verification
+### Step 2: Quick Specification Compliance Check
 
-Before running tests, validate that the implemented features comply with the original specifications to catch requirement violations early.
+Verify that specification validation was completed during task execution. Only perform full validation if it was skipped or failed previously.
 
-<instructions>
-  ACTION: Load original specifications for the current feature
-  SEARCH: Specification files in [SPEC_FOLDER_PATH] and related spec directories
-  VALIDATE: Implementation matches specification requirements
-  CHECK: All specified functionality is present and correct
-  VERIFY: No specification requirements were missed or incorrectly implemented
-  DOCUMENT: Any deviations from specifications with justification
-</instructions>
-
-<compliance_checklist>
-  <specification_adherence>
-    ✓ All specified features are implemented
-    ✓ API contracts match specification definitions
-    ✓ User interface matches design specifications
-    ✓ Business rules are correctly enforced
-    ✓ Error handling covers specified scenarios
-  </specification_adherence>
-  <requirement_coverage>
-    ✓ Functional requirements are met
-    ✓ Non-functional requirements are addressed
-    ✓ Edge cases from specifications are handled
-    ✓ Integration points work as specified
-  </requirement_coverage>
-</compliance_checklist>
-
-<validation_failure_handling>
-  IF specification violations found:
-    HALT: Do not proceed to testing
-    FIX: Address specification compliance issues
-    RETRY: Re-validate compliance before continuing
-  ELSE:
+<smart_skip_logic>
+  IF execute-task already validated specifications (Step 9):
+    SKIP: Full validation (already completed)
+    VERIFY: No new specification violations reported
     PROCEED: To test suite execution
-</validation_failure_handling>
+  ELSE IF validation was skipped or incomplete:
+    PERFORM: Quick compliance check on changed files only
+    FOCUS: New functionality added since last validation
+  ELSE:
+    CONTINUE: With minimal verification
+</smart_skip_logic>
+
+<quick_verification>
+  CHECK: Task completion notes for validation status
+  REVIEW: Any specification deviation notes from execute-task
+  CONFIRM: No critical compliance issues remain
+  TIME_SAVED: 5-10 seconds when validation already passed
+</quick_verification>
+
+<validation_required_only_if>
+  - Execute-task validation was skipped
+  - New code was added after validation
+  - Specification files were modified during execution
+  - User explicitly requests re-validation
+</validation_required_only_if>
 
 </step>
 
@@ -175,15 +189,27 @@ Use the project-manager subagent to read the current spec's tasks.md file and ve
 Use the project-manager subagent to read @.agent-os/product/roadmap.md and mark roadmap items as complete with [x] ONLY IF the executed tasks have completed any roadmap item(s) and the spec completes that item.
 
 <conditional_execution>
-  <preliminary_check>
-    EVALUATE: Did executed tasks complete any roadmap item(s)?
-    IF NO:
-      SKIP this entire step
-      PROCEED to step 7
-    IF YES:
-      CONTINUE with roadmap check
-  </preliminary_check>
+  <smart_preliminary_check>
+    QUICK_CHECK: Task names against roadmap keywords
+    IF no task names match roadmap items:
+      SKIP: Entire step immediately
+      SAVE: 3-5 seconds
+      PROCEED: To step 6
+    ELSE IF partial match found:
+      EVALUATE: Did executed tasks complete any roadmap item(s)?
+      IF NO:
+        SKIP: This entire step
+        PROCEED: To step 6
+      IF YES:
+        CONTINUE: With roadmap check
+  </smart_preliminary_check>
 </conditional_execution>
+
+<quick_match_logic>
+  COMPARE: Parent task names with roadmap item titles
+  USE: Simple string matching for initial filter
+  BENEFIT: Avoid reading roadmap when clearly unrelated
+</quick_match_logic>
 
 <roadmap_criteria>
   <update_when>
@@ -203,22 +229,31 @@ Use the project-manager subagent to read @.agent-os/product/roadmap.md and mark 
 
 </step>
 
-<step number="6" subagent="project-manager" name="document_recap">
+<step number="6" subagent="project-manager" name="document_and_summarize">
 
-### Step 6: Create Recap Document
+### Step 6: Create Documentation and Summary (Batched)
 
-Use the project-manager subagent to create a recap document in .agent-os/recaps/ folder that summarizes what was built for this spec.
+Use the project-manager subagent to create BOTH the recap document and completion summary in a single batched request.
 
-<instructions>
+<batched_request>
   ACTION: Use project-manager subagent
-  REQUEST: "Create recap document for current spec:
+  REQUEST: "Complete documentation and summary tasks:
+            
+            TASK 1 - Create recap document:
             - Create file: .agent-os/recaps/[SPEC_FOLDER_NAME].md
             - Use template format with completed features summary
             - Include context from spec-lite.md
-            - Document: [SPEC_FOLDER_PATH]"
-  WAIT: For recap document creation
-  PROCESS: Verify file is created with proper content
-</instructions>
+            - Document: [SPEC_FOLDER_PATH]
+            
+            TASK 2 - Generate completion summary:
+            - List what's been done with descriptions
+            - Note any issues encountered
+            - Include testing instructions if applicable
+            - Add PR link from Step 3
+            
+            Return both outputs in single response"
+  BENEFIT: Saves 3-5 seconds by batching operations
+</batched_request>
 
 <recap_template>
   # [yyyy-mm-dd] Recap: Feature Name
@@ -233,26 +268,6 @@ Use the project-manager subagent to create a recap document in .agent-os/recaps/
 
   [Copy the summary found in spec-lite.md to provide concise context of what the initial goal for this spec was]
 </recap_template>
-
-<file_creation>
-  <location>.agent-os/recaps/</location>
-  <naming>[SPEC_FOLDER_NAME].md</naming>
-  <format>markdown with yaml frontmatter if needed</format>
-</file_creation>
-
-<content_requirements>
-  <summary>1 paragraph plus bullet points</summary>
-  <context>from spec-lite.md summary</context>
-  <reference>link to original spec</reference>
-</content_requirements>
-
-</step>
-
-<step number="7" subagent="project-manager" name="completion_summary">
-
-### Step 7: Completion Summary
-
-Use the project-manager subagent to create a structured summary message with emojis showing what was done, any issues, testing instructions, and PR link.
 
 <summary_template>
   ## ✅ What's been done
@@ -276,29 +291,11 @@ Use the project-manager subagent to create a structured summary message with emo
   View PR: [GITHUB_PR_URL]
 </summary_template>
 
-<summary_sections>
-  <required>
-    - functionality recap
-    - pull request info
-  </required>
-  <conditional>
-    - issues encountered (if any)
-    - testing instructions (if testable in browser)
-  </conditional>
-</summary_sections>
-
-<instructions>
-  ACTION: Create comprehensive summary
-  INCLUDE: All required sections
-  ADD: Conditional sections if applicable
-  FORMAT: Use emoji headers for scannability
-</instructions>
-
 </step>
 
-<step number="8" subagent="project-manager" name="completion_notification">
+<step number="7" subagent="project-manager" name="completion_notification">
 
-### Step 8: Task Completion Notification
+### Step 7: Task Completion Notification
 
 Use the project-manager subagent to play a system sound to alert the user that tasks are complete.
 

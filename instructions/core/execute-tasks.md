@@ -37,11 +37,47 @@ Identify which tasks to execute from the spec (using spec_srd_reference file pat
 
 </step>
 
-<step number="2" subagent="context-fetcher" name="context_analysis">
+<step number="2" subagent="spec-cache-manager" name="specification_discovery_cache">
 
-### Step 2: Context Analysis
+### Step 2: Specification Discovery and Caching
 
-Use the context-fetcher subagent to gather minimal context for task understanding by always loading spec tasks.md, and conditionally loading @.agent-os/product/mission-lite.md, spec-lite.md, and sub-specs/technical-spec.md if not already in context.
+Use the spec-cache-manager subagent to perform comprehensive specification discovery once and cache for entire session.
+
+<instructions>
+  ACTION: Use spec-cache-manager subagent
+  REQUEST: "Perform specification discovery for project:
+            - Search all specification directories
+            - Create lightweight index of spec files
+            - Map spec sections to file paths
+            - Return cached index for session use"
+  STORE: Spec index for passing to execute-task iterations
+  NOTE: This happens ONCE for entire task session
+</instructions>
+
+<cache_structure>
+  <spec_index>
+    {
+      "auth-spec.md": {
+        "path": ".agent-os/specs/auth/auth-spec.md",
+        "sections": ["2.1 Login", "2.2 Logout", "2.3 Session"],
+        "last_modified": "timestamp"
+      },
+      "api-spec.md": {
+        "path": ".agent-os/specs/api/api-spec.md",
+        "sections": ["3.1 Endpoints", "3.2 Authentication"],
+        "last_modified": "timestamp"
+      }
+    }
+  </spec_index>
+</cache_structure>
+
+</step>
+
+<step number="3" subagent="context-fetcher" name="context_analysis">
+
+### Step 3: Initial Context Analysis
+
+Use the context-fetcher subagent to gather minimal context for task understanding by loading core documents.
 
 <instructions>
   ACTION: Use context-fetcher subagent to:
@@ -49,8 +85,8 @@ Use the context-fetcher subagent to gather minimal context for task understandin
     - REQUEST: "Get spec summary from spec-lite.md"
     - REQUEST: "Get technical approach from technical-spec.md"
   PROCESS: Returned information
+  CACHE: For use across all task iterations
 </instructions>
-
 
 <context_gathering>
   <essential_docs>
@@ -65,9 +101,9 @@ Use the context-fetcher subagent to gather minimal context for task understandin
 
 </step>
 
-<step number="3" name="development_server_check">
+<step number="4" name="development_server_check">
 
-### Step 3: Check for Development Server
+### Step 4: Check for Development Server
 
 Check for any running development server and ask user permission to shut it down if found to prevent port conflicts.
 
@@ -94,9 +130,9 @@ Check for any running development server and ask user permission to shut it down
 
 </step>
 
-<step number="4" subagent="git-workflow" name="git_branch_management">
+<step number="5" subagent="git-workflow" name="git_branch_management">
 
-### Step 4: Git Branch Management
+### Step 5: Git Branch Management
 
 Use the git-workflow subagent to manage git branches to ensure proper isolation by creating or switching to the appropriate branch for the spec.
 
@@ -120,9 +156,9 @@ Use the git-workflow subagent to manage git branches to ensure proper isolation 
 
 </step>
 
-<step number="5" name="task_execution_loop">
+<step number="6" name="task_execution_loop">
 
-### Step 5: Task Execution Loop
+### Step 6: Task Execution Loop with Cached Specifications
 
 Execute all assigned parent tasks and their subtasks using @.agent-os/instructions/core/execute-task.md instructions, continuing until all tasks are complete.
 
@@ -133,10 +169,18 @@ Execute all assigned parent tasks and their subtasks using @.agent-os/instructio
     EXECUTE instructions from execute-task.md with:
       - parent_task_number
       - all associated subtasks
+      - spec_cache from Step 2
+      - context_cache from Step 3
     WAIT for task completion
     UPDATE tasks.md status
   END FOR
 </execution_flow>
+
+<optimization_note>
+  IMPORTANT: Pass spec_cache to each task iteration
+  BENEFIT: Eliminates redundant specification discovery
+  RESULT: Significant performance improvement per task
+</optimization_note>
 
 <loop_logic>
   <continue_conditions>
@@ -170,9 +214,9 @@ Execute all assigned parent tasks and their subtasks using @.agent-os/instructio
 
 </step>
 
-<step number="6" name="complete_tasks">
+<step number="7" name="complete_tasks">
 
-### Step 6: Run the task completion steps
+### Step 7: Run the task completion steps
 
 After all tasks in tasks.md have been implemented, use @.agent-os/instructions/core/complete-tasks.md to run our series of steps we always run when finishing and delivering a new feature.
 
