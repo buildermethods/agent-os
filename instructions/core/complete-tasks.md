@@ -47,9 +47,51 @@ Use the test-runner subagent to run the ALL tests in the application's test suit
 
 </step>
 
-<step number="2" subagent="git-workflow" name="git_workflow">
+<step number="2" name="specification_compliance_verification">
 
-### Step 2: Git Workflow
+### Step 2: Specification Compliance Verification
+
+Before running tests, validate that the implemented features comply with the original specifications to catch requirement violations early.
+
+<instructions>
+  ACTION: Load original specifications for the current feature
+  SEARCH: Specification files in [SPEC_FOLDER_PATH] and related spec directories
+  VALIDATE: Implementation matches specification requirements
+  CHECK: All specified functionality is present and correct
+  VERIFY: No specification requirements were missed or incorrectly implemented
+  DOCUMENT: Any deviations from specifications with justification
+</instructions>
+
+<compliance_checklist>
+  <specification_adherence>
+    ✓ All specified features are implemented
+    ✓ API contracts match specification definitions
+    ✓ User interface matches design specifications
+    ✓ Business rules are correctly enforced
+    ✓ Error handling covers specified scenarios
+  </specification_adherence>
+  <requirement_coverage>
+    ✓ Functional requirements are met
+    ✓ Non-functional requirements are addressed
+    ✓ Edge cases from specifications are handled
+    ✓ Integration points work as specified
+  </requirement_coverage>
+</compliance_checklist>
+
+<validation_failure_handling>
+  IF specification violations found:
+    HALT: Do not proceed to testing
+    FIX: Address specification compliance issues
+    RETRY: Re-validate compliance before continuing
+  ELSE:
+    PROCEED: To test suite execution
+</validation_failure_handling>
+
+</step>
+
+<step number="3" subagent="git-workflow" name="git_workflow">
+
+### Step 3: Git Workflow
 
 Use the git-workflow subagent to create git commit, push to GitHub, and create pull request for the implemented features.
 
@@ -81,9 +123,9 @@ Use the git-workflow subagent to create git commit, push to GitHub, and create p
 
 </step>
 
-<step number="3" subagent="project-manager" name="tasks_list_check">
+<step number="4" subagent="project-manager" name="tasks_list_check">
 
-### Step 3: Tasks Completion Verification
+### Step 4: Tasks Completion Verification
 
 Use the project-manager subagent to read the current spec's tasks.md file and verify that all tasks have been properly marked as complete with [x] or documented with blockers.
 
@@ -126,9 +168,9 @@ Use the project-manager subagent to read the current spec's tasks.md file and ve
 
 </step>
 
-<step number="4" subagent="project-manager" name="roadmap_progress_check">
+<step number="5" subagent="project-manager" name="roadmap_progress_check">
 
-### Step 4: Roadmap Progress Update (conditional)
+### Step 5: Roadmap Progress Update (conditional)
 
 Use the project-manager subagent to read @.agent-os/product/roadmap.md and mark roadmap items as complete with [x] ONLY IF the executed tasks have completed any roadmap item(s) and the spec completes that item.
 
@@ -137,7 +179,7 @@ Use the project-manager subagent to read @.agent-os/product/roadmap.md and mark 
     EVALUATE: Did executed tasks complete any roadmap item(s)?
     IF NO:
       SKIP this entire step
-      PROCEED to step 6
+      PROCEED to step 7
     IF YES:
       CONTINUE with roadmap check
   </preliminary_check>
@@ -161,9 +203,9 @@ Use the project-manager subagent to read @.agent-os/product/roadmap.md and mark 
 
 </step>
 
-<step number="5" subagent="project-manager" name="document_recap">
+<step number="6" subagent="project-manager" name="document_recap">
 
-### Step 5: Create Recap Document
+### Step 6: Create Recap Document
 
 Use the project-manager subagent to create a recap document in .agent-os/recaps/ folder that summarizes what was built for this spec.
 

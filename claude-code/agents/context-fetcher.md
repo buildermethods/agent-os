@@ -78,6 +78,44 @@ Format for codebase references:
 [Extracted signatures/imports]
 ```
 
+## Intelligent Section Filtering
+
+### Task-Type Awareness
+Based on the current task context, prioritize relevant sections:
+
+**Authentication Tasks:**
+- Focus on auth-related functions, security standards
+- Prioritize authentication specs and security requirements
+- Load relevant auth module codebase references
+
+**UI/Component Tasks:**
+- Focus on component patterns, CSS standards
+- Prioritize UI specifications and design requirements  
+- Load component-related codebase references
+
+**API/Backend Tasks:**
+- Focus on API standards, database schemas
+- Prioritize technical specs and API requirements
+- Load backend module codebase references
+
+**Data/Database Tasks:**
+- Focus on schema definitions, data flow specs
+- Prioritize database specs and data requirements
+- Load database-related function signatures
+
+### Specification-Aware Filtering
+When specifications are available:
+1. **Spec-Guided Context**: Load only spec sections relevant to current task domain
+2. **Requirement Mapping**: Connect task requirements to specific spec sections  
+3. **Context Optimization**: Filter out unrelated spec content to reduce noise
+4. **Compliance Focus**: Prioritize spec sections that define validation criteria
+
+### Smart Context Management
+- **Size Limiting**: Keep total context under 50,000 characters
+- **Relevance Scoring**: Prioritize most relevant sections first
+- **Incremental Loading**: Load additional context only when needed
+- **Context Freshness**: Check for stale references and refresh if needed
+
 ## Important Constraints
 
 - Never return information already visible in current context

@@ -55,3 +55,61 @@ When adding third-party dependencies:
   - Number of stars/downloads
   - Clear documentation
 </conditional-block>
+
+<conditional-block context-check="spec-awareness" task-condition="implementing-from-spec">
+IF current task involves implementing from specifications:
+  IF Specification Awareness section already read in current context:
+    SKIP: Re-reading this section
+    NOTE: "Using Specification Awareness guidelines already in context"
+  ELSE:
+    READ: The following spec-driven practices
+
+## Specification Awareness Practices
+
+### Spec-First Development
+- Always identify and load relevant specifications before coding
+- Map each implementation decision to specific specification requirements
+- Reference spec sections in code comments (e.g., `// Implements: auth-spec.md:2.1`)
+- Validate implementation against specification constraints during development
+
+### Specification Compliance
+- Include specification references in error messages and validation
+- Test edge cases and requirements explicitly defined in specifications
+- Document any deviations from specifications with justification
+- Use spec-defined data structures, interfaces, and contracts exactly as specified
+
+### Requirement Traceability  
+- Maintain clear mapping between code and specification requirements
+- Update specifications when requirements change during implementation
+- Ensure all specified functionality is implemented and tested
+- Review spec compliance before marking tasks complete
+</conditional-block>
+
+<conditional-block context-check="codebase-references" task-condition="using-existing-code">
+IF current task involves using existing codebase functions or patterns:
+  IF Codebase Reference section already read in current context:
+    SKIP: Re-reading this section
+    NOTE: "Using Codebase Reference guidelines already in context"  
+  ELSE:
+    READ: The following reference-aware practices
+
+## Codebase Reference Practices
+
+### Anti-Hallucination Development
+- Always check functions.md for existing function signatures before creating new ones
+- Verify import paths in imports.md before importing modules
+- Use exact function names and signatures from codebase references  
+- Confirm API contracts match existing patterns in schemas.md
+
+### Reference-Driven Implementation
+- Load relevant codebase sections using context-fetcher before implementation
+- Follow established patterns and conventions from existing codebase
+- Reuse existing utilities instead of duplicating functionality
+- Maintain consistency with existing error handling and validation patterns
+
+### Codebase Integration
+- Update codebase references (functions.md, imports.md) when adding new code
+- Verify integration points work with existing system architecture
+- Test interactions with existing functions and modules
+- Document new functions using established reference documentation patterns
+</conditional-block>

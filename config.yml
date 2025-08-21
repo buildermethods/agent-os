@@ -26,9 +26,26 @@ project_types:
 
 default_project_type: default
 
+# Specification awareness configuration
+specification_discovery:
+  enabled: true
+  search_paths: 
+    - ".agent-os/specs/"
+    - "specs/"
+    - "docs/"
+    - "requirements/"
+    - "architecture/"
+    - "design/"
+  auto_load_relevant: true  # Automatically load specs relevant to current task
+  compliance_checking: true  # Enable specification compliance validation
+
+# Enhanced codebase indexing configuration  
 codebase_indexing:
   enabled: true
   incremental: true  # Only update changed files during task execution
+  context_aware: true  # Filter references based on task context
+  max_context_size: 50000  # Maximum characters for reference context
+  spec_compliance: true  # Include spec compliance checking during indexing
   patterns:
     js: ["function", "export", "class", "const.*=.*=>"]
     ts: ["function", "export", "class", "interface", "type", "const.*=.*=>"]
@@ -38,3 +55,10 @@ codebase_indexing:
     rs: ["fn ", "struct ", "impl ", "trait "]
     java: ["public ", "private ", "protected ", "class ", "interface "]
     cs: ["public ", "private ", "protected ", "class ", "interface "]
+
+# Intelligent workflow defaults
+workflow_intelligence:
+  auto_detect_project_type: true  # Automatically detect project characteristics
+  smart_spec_discovery: true      # Intelligently discover relevant specifications
+  context_aware_reference_loading: true  # Load only relevant codebase references
+  adaptive_standards_application: true   # Apply standards based on project type

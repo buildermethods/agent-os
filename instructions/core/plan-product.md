@@ -171,6 +171,24 @@ Use the file-creator subagent to create the file: .agent-os/product/mission.md a
   </constraints>
 </section>
 
+<codebase_reference_integration>
+  <conditional_check>
+    IF .agent-os/codebase/ exists AND project has existing code:
+      ANALYZE: Existing codebase patterns and architecture decisions
+      IDENTIFY: Current technology stack and implementation approaches
+      ALIGN: Product mission with established codebase patterns
+      INFORM: Key features based on existing functionality
+    ELSE:
+      PROCEED: With standard product planning (greenfield project)
+  </conditional_check>
+  <tech_stack_awareness>
+    - Review existing dependencies and frameworks
+    - Align mission statements with current architecture
+    - Ensure feature descriptions match existing patterns
+    - Consider technical constraints from current implementation
+  </tech_stack_awareness>
+</codebase_reference_integration>
+
 </step>
 
 <step number="4" subagent="file-creator" name="create_tech_stack_md">

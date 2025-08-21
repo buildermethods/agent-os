@@ -103,3 +103,48 @@ Output:
 - src/components/Button.jsx: 1 component
 Updated: functions.md, imports.md, index.md
 ```
+
+## Specification Compliance Integration
+
+### Basic Compliance Checking
+When indexing functions, perform basic validation against available specifications:
+
+**Function Signature Validation:**
+- Check if function signatures match API specifications
+- Flag functions that don't conform to documented contracts
+- Identify missing functions that are specified but not implemented
+
+**API Endpoint Compliance:**
+- Validate route handlers against API specification requirements
+- Check parameter types and response formats
+- Flag endpoints that don't match specification definitions
+
+**Interface Compliance:**
+- Validate component props against UI specifications
+- Check database schema alignment with schema specifications
+- Identify interface mismatches between spec and implementation
+
+### Compliance Tracking Format
+Add compliance indicators to reference entries:
+```markdown
+## src/api/auth.js
+login(email: string, password: string): Promise<AuthResult> ::line:15 ::spec:auth-spec.md:2.1 ✓
+logout(): void ::line:42 ::spec:auth-spec.md:2.3 ⚠️ (missing error handling)
+getCurrentUser(): Promise<User> ::line:67 ::no-spec ❓
+::exports: login, logout, getCurrentUser
+::compliance: 2/3 functions match specifications
+```
+
+### Compliance Indicators
+- **✓** Function matches specification requirements
+- **⚠️** Function exists but doesn't fully comply (with reason)
+- **❓** Function has no specification coverage
+- **❌** Function violates specification requirements
+
+### Workflow Integration
+1. **During Indexing**: Check for related specification files
+2. **Cross-Reference**: Match function signatures against spec requirements
+3. **Flag Issues**: Identify compliance problems for review
+4. **Update References**: Include compliance status in reference documentation
+
+This provides early detection of specification drift during development.

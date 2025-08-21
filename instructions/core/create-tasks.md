@@ -65,6 +65,24 @@ Use the file-creator subagent to create file: tasks.md inside of the current fea
   - Build incrementally
 </ordering_principles>
 
+<codebase_reference_integration>
+  <conditional_analysis>
+    IF .agent-os/codebase/ exists:
+      ANALYZE: Existing function signatures and patterns relevant to spec requirements
+      IDENTIFY: Reusable components and established integration points
+      ESTIMATE: Task complexity based on existing implementations vs new development
+      REFERENCE: Existing functions that can be extended or integrated
+    ELSE:
+      PROCEED: With standard task breakdown for greenfield development
+  </conditional_analysis>
+  <task_enhancement>
+    - Reference existing functions in implementation steps
+    - Adjust complexity estimates based on code reuse opportunities
+    - Include integration tasks for existing components
+    - Consider refactoring needs for legacy code integration
+  </task_enhancement>
+</codebase_reference_integration>
+
 </step>
 
 <step number="2" name="execution_readiness">

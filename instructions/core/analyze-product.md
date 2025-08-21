@@ -44,6 +44,12 @@ Perform a deep codebase analysis of the current codebase to understand current s
     - API endpoints
     - Database schema
   </implementation_progress>
+  <specification_discovery>
+    - Existing specification files in .agent-os/specs/, specs/, docs/, requirements/
+    - Technical documentation and API specs
+    - Design documents and architectural decisions
+    - Specification coverage vs actual implementation
+  </specification_discovery>
   <code_patterns>
     - Coding style in use
     - Naming conventions
@@ -53,10 +59,12 @@ Perform a deep codebase analysis of the current codebase to understand current s
 </analysis_areas>
 
 <instructions>
-  ACTION: Thoroughly analyze the existing codebase
-  DOCUMENT: Current technologies, features, and patterns
-  IDENTIFY: Architectural decisions already made
-  NOTE: Development progress and completed work
+  ACTION: Thoroughly analyze the existing codebase and specifications
+  SEARCH: For existing specifications in .agent-os/specs/, specs/, docs/, requirements/ directories
+  DOCUMENT: Current technologies, features, patterns, and available specifications
+  IDENTIFY: Architectural decisions already made and specification coverage
+  NOTE: Development progress, completed work, and spec-to-implementation alignment
+  CATALOG: Any gaps between specifications and current implementation
 </instructions>
 
 </step>
