@@ -178,7 +178,7 @@ ELSE:
 - RESTful by default
 - Database-driven development
 - Use `config()` for initialization, NOT `init()`
-- Framework methods prefixed with `$` are internal
+- Framework methods prefixed with `$` are internal, they should not be used in app code
 - Always use CLI for generating code and migrations
 
 ### Common Commands
