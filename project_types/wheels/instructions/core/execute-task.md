@@ -257,3 +257,7 @@ IMPORTANT: In the tasks.md file, mark this task and its sub-tasks complete by up
 </step>
 
 </process_flow>
+
+<post_flight_check>
+  EXECUTE: @.agent-os/instructions/meta/post-flight.md
+</post_flight_check>

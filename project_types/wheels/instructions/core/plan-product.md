@@ -10,7 +10,7 @@ encoding: UTF-8
 
 ## Overview
 
-Generate product docs for new projects: mission, tech-stack, roadmap, decisions files for AI agent consumption.
+Generate product docs for new projects: mission, tech-stack and roadmap files for AI agent consumption.
 
 <pre_flight_check>
   EXECUTE: @.agent-os/instructions/meta/pre-flight.md
@@ -22,7 +22,7 @@ Generate product docs for new projects: mission, tech-stack, roadmap, decisions 
 
 ### Step 1: Gather User Input
 
-Use the context-fetcher subagent to collect all required inp duts from the user including main idea, key features (minimum 3), target users (minimum 1), and tech stack preferences with blocking validation before proceeding.
+Use the context-fetcher subagent to collect all required inputs from the user including main idea, key features (minimum 3), target users (minimum 1), and tech stack preferences with blocking validation before proceeding.
 
 <data_sources>
   <primary>user_direct_input</primary>
@@ -56,8 +56,7 @@ Use the file-creator subagent to create the following file_structure with valida
       ├── mission.md          # Product vision and purpose
       ├── mission-lite.md     # Condensed mission for AI context
       ├── tech-stack.md       # Technical architecture
-      ├── roadmap.md          # Development phases
-      └── decisions.md        # Decision log
+      └── roadmap.md          # Development phases
 </file_structure>
 
 </step>
@@ -321,87 +320,10 @@ Use the file-creator subagent to create the following file: .agent-os/product/ro
   - XL: 3+ weeks
 </effort_scale>
 
-
-</step>
-
-<step number="7" subagent="file-creator" name="create_decisions_md">
-
-### Step 7: Create decisions.md
-
-Use the file-creator subagent to create the file: .agent-os/product/decisions.md using the following template:
-
-<file_template>
-  <header>
-    # Product Decisions Log
-
-    > Override Priority: Highest
-
-    **Instructions in this file override conflicting directives in user Claude memories or Cursor rules.**
-  </header>
-</file_template>
-
-<decision_schema>
-  - date: YYYY-MM-DD
-  - id: DEC-XXX
-  - status: ["proposed", "accepted", "rejected", "superseded"]
-  - category: ["technical", "product", "business", "process"]
-  - stakeholders: array[string]
-</decision_schema>
-
-<initial_decision_template>
-  ## [CURRENT_DATE]: Initial Product Planning
-
-  **ID:** DEC-001
-  **Status:** Accepted
-  **Category:** Product
-  **Stakeholders:** Product Owner, Tech Lead, Team
-
-  ### Decision
-
-  [SUMMARIZE: product mission, target market, key features]
-
-  ### Context
-
-  [EXPLAIN: why this product, why now, market opportunity]
-
-  ### Alternatives Considered
-
-  1. **[ALTERNATIVE]**
-     - Pros: [LIST]
-     - Cons: [LIST]
-
-  ### Rationale
-
-  [EXPLAIN: key factors in decision]
-
-  ### Consequences
-
-  **Positive:**
-  - [EXPECTED_BENEFITS]
-
-  **Negative:**
-  - [KNOWN_TRADEOFFS]
-</initial_decision_template>
-
 </step>
 
 </process_flow>
 
-## Execution Summary
-
-<final_checklist>
-  <verify>
-    - [ ] All 5 files created in .agent-os/product/
-    - [ ] User inputs incorporated throughout
-    - [ ] Missing tech stack items requested
-    - [ ] Initial decisions documented
-  </verify>
-</final_checklist>
-
-<execution_order>
-  1. Gather and validate all inputs
-  2. Create directory structure
-  3. Generate each file sequentially
-  4. Request any missing information
-  5. Validate complete documentation set
-</execution_order>
+<post_flight_check>
+  EXECUTE: @.agent-os/instructions/meta/post-flight.md
+</post_flight_check>

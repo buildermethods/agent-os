@@ -12,4 +12,8 @@ encoding: UTF-8
 
 - Process XML blocks sequentially
 
+- Read and execute every numbered step in the process_flow EXACTLY as the instructions specify.
+
+- If you need clarification on any details of your current task, stop and ask the user specific numbered questions and then continue once you have all of the information you need.
+
 - Use exact templates as provided

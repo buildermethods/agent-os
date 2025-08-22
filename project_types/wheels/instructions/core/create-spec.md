@@ -406,7 +406,7 @@ Use the file-creator subagent to create file: sub-specs/api-spec.md ONLY IF API 
 
 ### Step 11: User Review
 
-Request user review of spec.md and all sub-specs files, waiting for approval or revision requests before proceeding to task creation.
+Request user review of spec.md and all sub-specs files, waiting for approval or revision requests.
 
 <review_request>
   I've created the spec documentation:
@@ -416,207 +416,15 @@ Request user review of spec.md and all sub-specs files, waiting for approval or 
   - Technical Spec: @.agent-os/specs/YYYY-MM-DD-spec-name/sub-specs/technical-spec.md
   [LIST_OTHER_CREATED_SPECS]
 
-  Please review and let me know if any changes are needed before I create the task breakdown.
+  Please review and let me know if any changes are needed.
+
+  When you're ready, run the /create-tasks command to have me build the tasks checklist from this spec.
 </review_request>
-
-</step>
-
-<step number="12" subagent="file-creator" name="create_tasks">
-
-### Step 12: Create tasks.md
-
-Use the file-creator subagent to await user approval from step 11 and then create file: tasks.md
-
-<file_template>
-  <header>
-    # Spec Tasks
-  </header>
-</file_template>
-
-<task_structure>
-  <major_tasks>
-    - count: 1-5
-    - format: numbered checklist
-    - grouping: by feature or component
-  </major_tasks>
-  <subtasks>
-    - count: up to 8 per major task
-    - format: decimal notation (1.1, 1.2)
-    - first_subtask: typically write tests
-    - last_subtask: verify all tests pass
-  </subtasks>
-</task_structure>
-
-<task_template>
-  ## Tasks
-
-  - [ ] 1. [MAJOR_TASK_DESCRIPTION]
-    - [ ] 1.1 Write tests for [COMPONENT]
-    - [ ] 1.2 [IMPLEMENTATION_STEP]
-    - [ ] 1.3 [IMPLEMENTATION_STEP]
-    - [ ] 1.4 Verify all tests pass
-
-  - [ ] 2. [MAJOR_TASK_DESCRIPTION]
-    - [ ] 2.1 Write tests for [COMPONENT]
-    - [ ] 2.2 [IMPLEMENTATION_STEP]
-</task_template>
-
-<ordering_principles>
-  - Consider technical dependencies
-  - Follow TDD approach
-  - Group related functionality
-  - Build incrementally
-</ordering_principles>
-
-</step>
-
-<step number="13" name="decision_documentation">
-
-### Step 13: Decision Documentation (Conditional)
-
-Evaluate strategic impact without loading decisions.md and update it only if there's significant deviation from mission/roadmap and user approves.
-
-<conditional_reads>
-  IF mission-lite.md NOT in context:
-    USE: context-fetcher subagent
-    REQUEST: "Get product pitch from mission-lite.md"
-  IF roadmap.md NOT in context:
-    USE: context-fetcher subagent
-    REQUEST: "Get current development phase from roadmap.md"
-
-  <manual_reads>
-    <mission_lite>
-      - IF NOT already in context: READ @.agent-os/product/mission-lite.md
-      - IF already in context: SKIP reading
-    </mission_lite>
-    <roadmap>
-      - IF NOT already in context: READ @.agent-os/product/roadmap.md
-      - IF already in context: SKIP reading
-    </roadmap>
-    <decisions>
-      - NEVER load decisions.md into context
-    </decisions>
-  </manual_reads>
-</conditional_reads>
-
-<decision_analysis>
-  <review_against>
-    - @.agent-os/product/mission-lite.md (conditional)
-    - @.agent-os/product/roadmap.md (conditional)
-  </review_against>
-  <criteria>
-    - significantly deviates from mission in mission-lite.md
-    - significantly changes or conflicts with roadmap.md
-  </criteria>
-</decision_analysis>
-
-<decision_tree>
-  IF spec_does_NOT_significantly_deviate:
-    SKIP this entire step
-    STATE "Spec aligns with mission and roadmap"
-    PROCEED to step 13
-  ELSE IF spec_significantly_deviates:
-    EXPLAIN the significant deviation
-    ASK user: "This spec significantly deviates from our mission/roadmap. Should I draft a decision entry?"
-    IF user_approves:
-      DRAFT decision entry
-      UPDATE decisions.md
-    ELSE:
-      SKIP updating decisions.md
-      PROCEED to step 13
-</decision_tree>
-
-<decision_template>
-  ## [CURRENT_DATE]: [DECISION_TITLE]
-
-  **ID:** DEC-[NEXT_NUMBER]
-  **Status:** Accepted
-  **Category:** [technical/product/business/process]
-  **Related Spec:** @.agent-os/specs/YYYY-MM-DD-spec-name/
-
-  ### Decision
-
-  [DECISION_SUMMARY]
-
-  ### Context
-
-  [WHY_THIS_DECISION_WAS_NEEDED]
-
-  ### Deviation
-
-  [SPECIFIC_DEVIATION_FROM_MISSION_OR_ROADMAP]
-</decision_template>
-
-</step>
-
-<step number="14" name="execution_readiness">
-
-### Step 14: Execution Readiness Check
-
-Evaluate readiness to begin implementation after completing all previous steps, presenting the first task summary and requesting user confirmation to proceed.
-
-<readiness_summary>
-  <present_to_user>
-    - Spec name and description
-    - First task summary from tasks.md
-    - Estimated complexity/scope
-    - Key deliverables for task 1
-  </present_to_user>
-</readiness_summary>
-
-<execution_prompt>
-  PROMPT: "The spec planning is complete. The first task is:
-
-  **Task 1:** [FIRST_TASK_TITLE]
-  [BRIEF_DESCRIPTION_OF_TASK_1_AND_SUBTASKS]
-
-  Would you like me to proceed with implementing Task 1? I will focus only on this first task and its subtasks unless you specify otherwise.
-
-  Type 'yes' to proceed with Task 1, or let me know if you'd like to review or modify the plan first."
-</execution_prompt>
-
-<execution_flow>
-  IF user_confirms_yes:
-    REFERENCE: @.agent-os/instructions/core/execute-tasks.md
-    FOCUS: Only Task 1 and its subtasks
-    CONSTRAINT: Do not proceed to additional tasks without explicit user request
-  ELSE:
-    WAIT: For user clarification or modifications
-</execution_flow>
 
 </step>
 
 </process_flow>
 
-## Execution Standards
-
-<standards>
-  <follow>
-    - @.agent-os/product/code-style.md
-    - @.agent-os/product/dev-best-practices.md
-    - @.agent-os/product/tech-stack.md
-  </follow>
-  <maintain>
-    - Consistency with product mission
-    - Alignment with roadmap
-    - Technical coherence
-  </maintain>
-  <create>
-    - Comprehensive documentation
-    - Clear implementation path
-    - Testable outcomes
-  </create>
-</standards>
-
-<final_checklist>
-  <verify>
-    - [ ] Accurate date determined via file system
-    - [ ] Spec folder created with correct date prefix
-    - [ ] spec.md contains all required sections
-    - [ ] All applicable sub-specs created
-    - [ ] User approved documentation
-    - [ ] tasks.md created with TDD approach
-    - [ ] Cross-references added to spec.md
-    - [ ] Strategic decisions evaluated
-  </verify>
-</final_checklist>
+<post_flight_check>
+  EXECUTE: @.agent-os/instructions/meta/post-flight.md
+</post_flight_check>

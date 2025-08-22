@@ -65,7 +65,7 @@ Use the context-fetcher subagent to load minimal but sufficient context based on
 <conditional_loading>
   <if_wheels_framework>
     LOAD relevant sections from:
-    - @.agent-os/standards/wheels-framework/wheels-framework.md (dispatcher)
+    - @.agent-os/project_types/wheels/standards/wheels-framework/wheels-framework.md (dispatcher)
     - Task-specific pattern files
   </if_wheels_framework>
   <if_other_framework>
@@ -351,51 +351,6 @@ Provide a concise summary of what was done.
 
 </process_flow>
 
-## Error Handling
-
-<error_protocols>
-  <test_failures>
-    - Debug and fix immediately
-    - Never commit with failing tests
-  </test_failures>
-  <implementation_blocks>
-    - Try up to 3 different approaches
-    - Consult documentation/patterns
-    - Ask user for guidance if blocked
-  </implementation_blocks>
-  <unclear_requirements>
-    - Stop and ask for clarification
-    - Don't make assumptions
-  </unclear_requirements>
-</error_protocols>
-
-## Key Differences from Full Spec Execution
-
-<adhoc_characteristics>
-  <no_spec_required>
-    - No tasks.md file needed
-    - No formal spec documentation
-    - Direct task execution
-  </no_spec_required>
-  <lighter_process>
-    - Focused context loading
-    - Optional PR creation
-    - Simpler branch naming
-  </lighter_process>
-  <same_quality>
-    - Still follows TDD when applicable
-    - Still uses Agent OS patterns
-    - Still ensures tests pass
-    - Still follows code standards
-  </same_quality>
-</adhoc_characteristics>
-
-## Success Criteria
-
-<verification>
-  - [ ] Task requirements met
-  - [ ] Tests written and passing (if applicable)
-  - [ ] Code follows project standards
-  - [ ] Changes committed with clear message
-  - [ ] User informed of completion
-</verification>
+<post_flight_check>
+  EXECUTE: @.agent-os/instructions/meta/post-flight.md
+</post_flight_check>

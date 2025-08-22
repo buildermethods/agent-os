@@ -78,9 +78,7 @@ Use the context-fetcher subagent to supplement codebase analysis with business c
 
   3. **Roadmap**: What features are planned next? Any major refactoring planned?
 
-  4. **Decisions**: Are there important technical or product decisions I should document?
-
-  5. **Team Preferences**: Any coding standards or practices the team follows that I should capture?
+  4. **Team Preferences**: Any coding standards or practices the team follows that I should capture?
 </context_questions>
 
 <instructions>
@@ -220,31 +218,6 @@ Verify installation completeness and provide clear next steps for the user to st
 
 </process_flow>
 
-## Error Handling
-
-<error_scenarios>
-  <scenario name="no_clear_structure">
-    <condition>Cannot determine project type or structure</condition>
-    <action>Ask user for clarification about project</action>
-  </scenario>
-  <scenario name="conflicting_patterns">
-    <condition>Multiple coding styles detected</condition>
-    <action>Ask user which pattern to document</action>
-  </scenario>
-  <scenario name="missing_dependencies">
-    <condition>Cannot determine full tech stack</condition>
-    <action>List detected technologies and ask for missing pieces</action>
-  </scenario>
-</error_scenarios>
-
-## Execution Summary
-
-<final_checklist>
-  <verify>
-    - [ ] Codebase analyzed thoroughly
-    - [ ] User context gathered
-    - [ ] plan-product.md executed with proper context
-    - [ ] Documentation customized for existing product
-    - [ ] Team can adopt Agent OS workflow
-  </verify>
-</final_checklist>
+<post_flight_check>
+  EXECUTE: @.agent-os/instructions/meta/post-flight.md
+</post_flight_check>
