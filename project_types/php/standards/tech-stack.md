@@ -5,7 +5,7 @@
 PHP-specific tech stack for Agent OS projects, overridable in project-specific `.agent-os/product/tech-stack.md`.
 
 ### Core Platform
-- **Language**: PHP 8.2+
+- **Language**: PHP 8.4+
 - **Web Server**: Apache 2.4+ or Nginx 1.20+
 - **Database**: MySQL 8.0+ or PostgreSQL 15+
 - **Cache**: Redis 7.0+ for session and object caching
