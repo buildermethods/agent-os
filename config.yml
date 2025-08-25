@@ -13,24 +13,24 @@ agents:
 
 project_types:
   default:
-    instructions: C:\Users\Steve\.agent-os\instructions
-    standards: C:\Users\Steve\.agent-os\standards
+    instructions: /mnt/c/Users/Steve/.agent-os/instructions
+    standards: /mnt/c/Users/Steve/.agent-os/standards
 
   php:
-    instructions: C:\Users\Steve\.agent-os\project_types\php\instructions
-    standards: C:\Users\Steve\.agent-os\project_types\php\standards
+    instructions: /mnt/c/Users/Steve/.agent-os/project_types/php/instructions
+    standards: /mnt/c/Users/Steve/.agent-os/project_types/php/standards
 
   wordpress:
-    instructions: C:\Users\Steve\.agent-os\project_types\wordpress\instructions
-    standards: C:\Users\Steve\.agent-os\project_types\wordpress\standards
+    instructions: /mnt/c/Users/Steve/.agent-os/project_types/wordpress/instructions
+    standards: /mnt/c/Users/Steve/.agent-os/project_types/wordpress/standards
 
   reactjs:
-      instructions: C:\Users\Steve\.agent-os\project_types\reactjs\instructions
-      standards: C:\Users\Steve\.agent-os\project_types\reactjs\standards
+      instructions: /mnt/c/Users/Steve/.agent-os/project_types/reactjs/instructions
+      standards: /mnt/c/Users/Steve/.agent-os/project_types/reactjs/standards
 
   nextjs:
-    instructions: C:\Users\Steve\.agent-os\project_types\nextjs\instructions
-    standards: C:\Users\Steve\.agent-os\project_types\nextjs\standards
+    instructions: /mnt/c/Users/Steve/.agent-os/project_types/nextjs/instructions
+    standards: /mnt/c/Users/Steve/.agent-os/project_types/nextjs/standards
 
   
 
