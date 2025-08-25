@@ -16,6 +16,10 @@ project_types:
     instructions: ~/.agent-os/instructions
     standards: ~/.agent-os/standards
 
+  wheels:
+    instructions: ~/.agent-os/project_types/wheels/instructions
+    standards: ~/.agent-os/project_types/wheels/standards
+
   # type_a:
   #   instructions: ~/.agent-os/project_types/type_a/instructions
   #   standards: ~/.agent-os/project_types/type_a/standards
