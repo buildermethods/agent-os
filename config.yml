@@ -13,15 +13,25 @@ agents:
 
 project_types:
   default:
-    instructions: ~/.agent-os/instructions
-    standards: ~/.agent-os/standards
+    instructions: C:\Users\Steve\.agent-os\instructions
+    standards: C:\Users\Steve\.agent-os\standards
 
-  # type_a:
-  #   instructions: ~/.agent-os/project_types/type_a/instructions
-  #   standards: ~/.agent-os/project_types/type_a/standards
+  php:
+    instructions: C:\Users\Steve\.agent-os\project_types\php\instructions
+    standards: C:\Users\Steve\.agent-os\project_types\php\standards
 
-  # type_b:
-  #   instructions: ~/.agent-os/project_types/type_b/instructions
-  #   standards: ~/.agent-os/project_types/type_b/standards
+  wordpress:
+    instructions: C:\Users\Steve\.agent-os\project_types\wordpress\instructions
+    standards: C:\Users\Steve\.agent-os\project_types\wordpress\standards
+
+  reactjs:
+      instructions: C:\Users\Steve\.agent-os\project_types\reactjs\instructions
+      standards: C:\Users\Steve\.agent-os\project_types\reactjs\standards
+
+  nextjs:
+    instructions: C:\Users\Steve\.agent-os\project_types\nextjs\instructions
+    standards: C:\Users\Steve\.agent-os\project_types\nextjs\standards
+
+  
 
 default_project_type: default
