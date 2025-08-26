@@ -1,0 +1,43 @@
+name: Shell CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck shfmt
+
+      - name: Run shellcheck
+        run: |
+          # Lint all shell scripts (skip workflow folder)
+          find . -name '*.sh' -not -path './.github/*' -print0 | xargs -0 shellcheck -x || true
+
+      - name: Check formatting with shfmt
+        run: |
+          # shfmt -l lists unformatted files; fail if any
+          unformatted=$(shfmt -l . || true)
+          if [ -n "$unformatted" ]; then
+            echo "shfmt: the following files need formatting:" >&2
+            echo "$unformatted" >&2
+            exit 1
+          fi
+
+      - name: Run smoke script
+        run: |
+          if [ -f scripts/ci-smoke.sh ]; then
+            chmod +x scripts/ci-smoke.sh
+            ./scripts/ci-smoke.sh
+          else
+            echo "No smoke script found; skipping"
+          fi
