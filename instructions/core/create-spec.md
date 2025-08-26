@@ -18,6 +18,51 @@ Generate detailed feature specifications aligned with product roadmap and missio
 
 <process_flow>
 
+<step number="0" subagent="smart-spec-generator" name="intelligent_spec_generation">
+
+### Step 0: Intelligent Spec Generation (Optional)
+
+Use the smart-spec-generator subagent to analyze user input and determine if smart generation would be beneficial for this spec creation request.
+
+<intelligence_check>
+  IF smart-spec-generator agent is available AND config allows spec generation:
+    IF user input is minimal or high-level (e.g., "add user profiles", "improve checkout"):
+      ACTION: Use smart-spec-generator subagent
+      REQUEST: "Analyze input and generate comprehensive spec with context awareness"
+      PROCESS: Present generated spec for user review and customization
+      ALLOW: User to accept, modify, or decline generated content
+    ELSE IF user input is detailed and specific:
+      SKIP: Smart generation (user has provided sufficient detail)
+      PROCEED: to traditional spec creation flow
+  ELSE:
+    SKIP: Continue with manual spec creation
+</intelligence_check>
+
+<smart_generation_workflow>
+  <analysis_phase>
+    1. Parse user input for intent and scope
+    2. Analyze project context and existing patterns
+    3. Apply learned user preferences and standards
+    4. Match to relevant pattern library templates
+  </analysis_phase>
+  
+  <generation_phase>
+    1. Generate comprehensive spec sections
+    2. Include customized implementation approach
+    3. Add task breakdown based on user's workflow patterns
+    4. Apply quality standards from user's history
+  </generation_phase>
+  
+  <review_phase>
+    1. Present generated spec with explanations
+    2. Highlight applied patterns and preferences
+    3. Allow section-by-section customization
+    4. Proceed with accepted spec or fall back to manual creation
+  </review_phase>
+</smart_generation_workflow>
+
+</step>
+
 <step number="1" subagent="context-fetcher" name="spec_initiation">
 
 ### Step 1: Spec Initiation
@@ -420,6 +465,52 @@ Request user review of spec.md and all sub-specs files, waiting for approval or 
 
   When you're ready, run the /create-tasks command to have me build the tasks checklist from this spec.
 </review_request>
+
+</step>
+
+<step number="12" subagent="adaptive-learner" name="learning_feedback">
+
+### Step 12: Adaptive Learning Update (Optional)
+
+Use the adaptive-learner subagent to record spec creation decisions and patterns for future personalization improvements.
+
+<learning_integration>
+  IF adaptive-learner agent is available AND config allows learning:
+    ACTION: Use adaptive-learner subagent
+    REQUEST: "Record spec creation session for preference learning:
+             - Spec generation approach used (smart vs manual)
+             - User modifications to generated content
+             - Preferred spec detail level and sections
+             - Technical choices and architectural decisions
+             - Section customizations and additions"
+    PROCESS: Update user preference profile based on spec creation patterns
+    BENEFIT: Future spec generation will be more personalized and accurate
+  ELSE:
+    SKIP: Continue without learning updates
+</learning_integration>
+
+<learning_data_capture>
+  <spec_preferences>
+    - Detail level: comprehensive vs minimal
+    - Section preferences: which sections user focuses on most
+    - Technical approach: preferred architectures and patterns
+    - Quality standards: testing, documentation, security requirements
+  </spec_preferences>
+  
+  <decision_patterns>
+    - Generated vs manual content acceptance rates
+    - Common customizations and modifications
+    - Rejected suggestions and reasons
+    - Successful spec patterns for future reuse
+  </decision_patterns>
+  
+  <workflow_insights>
+    - Time spent on different spec sections
+    - Preferred creation flow and sequence
+    - Integration preferences with existing codebase
+    - Team collaboration patterns and standards
+  </workflow_insights>
+</learning_data_capture>
 
 </step>
 

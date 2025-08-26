@@ -11,17 +11,518 @@ agents:
   cursor:
     enabled: false
 
+# Context Intelligence Features (Phase A Enhancement)
+context_intelligence:
+  # Intelligence mode: off, guided, auto
+  # - off: No intelligent features, traditional Agent OS behavior
+  # - guided: Recommendations with explanations (recommended for new users)  
+  # - auto: Apply safe optimizations with notifications (for experienced users)
+  mode: guided
+  
+  # How frequently to show optimization suggestions
+  # - never: No suggestions
+  # - occasional: Only major opportunities
+  # - adaptive: Learns from user preferences (recommended)
+  # - always: Show all available optimizations
+  suggestion_frequency: adaptive
+  
+  # Learn and adapt to user preferences over time
+  learn_preferences: true
+  
+  # Show metrics and optimization feedback
+  show_metrics: true
+  
+  # Context optimization features
+  context_optimization:
+    # Enable compression for large files (>2000 tokens)
+    compression_enabled: true
+    
+    # Enable deduplication to avoid re-fetching same content
+    deduplication_enabled: true
+    
+    # Enable caching of frequently accessed content
+    caching_enabled: true
+    
+    # Enable context warmup for large projects
+    warmup_enabled: false  # Will be suggested based on project size
+  
+  # Advanced features (will be suggested based on usage patterns)
+  advanced_features:
+    # Predictive content loading
+    predictive_loading: false
+    
+    # Auto-apply learned optimizations
+    auto_optimization: false
+    
+    # Team-wide pattern sharing
+    team_learning: false
+
+# Adaptive Learning & Personalization (Phase 2 Enhancement)
+adaptive_learning:
+  # Enable/disable learning system entirely
+  enabled: true
+  
+  # Learning modes: passive, active, guided
+  # - passive: Learn from user actions without asking
+  # - active: Ask for confirmation on learned patterns
+  # - guided: Provide explanations with learning suggestions
+  mode: guided
+  
+  # Learning categories to track
+  categories:
+    # Code style preferences (indentation, quotes, naming)
+    code_style: true
+    
+    # Architectural decisions (frameworks, patterns, libraries)  
+    architecture: true
+    
+    # Quality standards (testing, documentation, coverage)
+    quality_standards: true
+    
+    # Workflow patterns (task breakdown, spec detail)
+    workflow: true
+    
+    # Team collaboration preferences
+    team_patterns: false  # Enable for team environments
+  
+  # Confidence thresholds for applying learned preferences
+  confidence_thresholds:
+    # Apply automatically without asking (high confidence)
+    auto_apply: 0.85
+    
+    # Suggest with explanation (medium confidence)  
+    suggest: 0.65
+    
+    # Collect data only, no application (low confidence)
+    observe_only: 0.30
+  
+  # Learning data management
+  data_management:
+    # Retain decision history for learning (months)
+    retention_period: 12
+    
+    # Maximum storage for learning data (MB)
+    storage_limit: 50
+    
+    # Auto-cleanup old decision data
+    auto_cleanup: true
+    
+    # Export learning data capability
+    export_enabled: true
+
+# Smart Spec Generation (Phase 2 Enhancement)  
+smart_spec_generation:
+  # Enable intelligent spec generation from minimal input
+  enabled: true
+  
+  # Generation modes: template, pattern_based, fully_adaptive
+  # - template: Use predefined templates with customization
+  # - pattern_based: Generate from pattern library matches
+  # - fully_adaptive: Create specs based on learned user patterns
+  mode: pattern_based
+  
+  # Default detail level: minimal, standard, comprehensive
+  default_detail_level: standard
+  
+  # Auto-apply user preferences to generated specs
+  apply_learned_preferences: true
+  
+  # Pattern library usage
+  pattern_library:
+    # Use common feature patterns for spec generation
+    common_features: true
+    
+    # Use architectural patterns for technical decisions
+    architectural_patterns: true
+    
+    # Use implementation templates for code examples
+    implementation_templates: true
+    
+    # Use learned personal patterns (requires adaptive_learning.enabled)
+    personal_patterns: true
+  
+  # Spec customization options
+  customization:
+    # Allow section-by-section editing of generated specs
+    section_editing: true
+    
+    # Provide spec generation explanations
+    show_explanations: true
+    
+    # Enable spec regeneration with different parameters
+    regeneration: true
+    
+    # Save successful specs as personal templates
+    learn_from_success: true
+
+# Natural Language Processing (Phase 2 Enhancement)
+natural_language:
+  # Enable conversational command interface
+  enabled: true
+  
+  # Language processing modes: simple, advanced
+  # - simple: Basic keyword matching and intent detection
+  # - advanced: Context-aware natural language understanding
+  processing_mode: simple
+  
+  # Supported input types
+  input_types:
+    # Direct feature requests ("add user authentication")
+    feature_requests: true
+    
+    # Problem statements ("users can't reset passwords")
+    problem_statements: true
+    
+    # Conversational queries ("we should probably add...")
+    conversational: true
+    
+    # Business requirements ("need to track analytics")
+    business_requirements: true
+  
+  # Response customization
+  responses:
+    # Provide clarifying questions for ambiguous input
+    clarifying_questions: true
+    
+    # Explain interpretation of natural language input
+    interpretation_feedback: true
+    
+    # Suggest alternative interpretations
+    alternative_suggestions: true
+    
+    # Learn from user corrections and feedback
+    learn_from_corrections: true
+
+# Performance & Resource Management
+performance:
+  # Learning system performance settings
+  learning:
+    # Batch size for processing decision data
+    batch_size: 100
+    
+    # Maximum concurrent learning operations
+    max_concurrent: 3
+    
+    # Learning data processing priority (low, normal, high)
+    processing_priority: low
+  
+  # Spec generation performance settings  
+  spec_generation:
+    # Timeout for spec generation (seconds)
+    generation_timeout: 30
+    
+    # Cache generated specs for reuse
+    cache_enabled: true
+    
+    # Cache expiration time (minutes)
+    cache_expiry: 60
+    
+    # Background pattern library updates
+    background_updates: true
+
+# Project type configurations
 project_types:
   default:
     instructions: ~/.agent-os/instructions
     standards: ~/.agent-os/standards
+    
+    # Intelligence settings can be overridden per project type
+    context_intelligence:
+      # Inherit from global settings by default
+      inherit_global: true
 
-  # type_a:
-  #   instructions: ~/.agent-os/project_types/type_a/instructions
-  #   standards: ~/.agent-os/project_types/type_a/standards
+  # Example: Frontend project type with optimized settings
+  # frontend_react:
+  #   instructions: ~/.agent-os/project_types/frontend/instructions
+  #   standards: ~/.agent-os/project_types/frontend/standards
+  #   context_intelligence:
+  #     mode: auto
+  #     compression_enabled: true
+  #     javascript_focus: true
 
-  # type_b:
-  #   instructions: ~/.agent-os/project_types/type_b/instructions
-  #   standards: ~/.agent-os/project_types/type_b/standards
+  # Example: Team project type with shared learning
+  # team_project:
+  #   instructions: ~/.agent-os/project_types/team/instructions
+  #   standards: ~/.agent-os/project_types/team/standards
+  #   context_intelligence:
+  #     team_learning: true
+  #     shared_patterns: true
 
 default_project_type: default
+
+# Intelligent Agent Coordination (Phase 3 Enhancement)
+workflow_orchestration:
+  # Enable intelligent multi-agent coordination
+  enabled: true
+  
+  # Orchestration modes: guided, intelligent, transparent, off
+  # - guided: Show workflow plans with explanations and user confirmation
+  # - intelligent: Provide recommendations with automatic routing for accepted patterns
+  # - transparent: Execute optimal workflows with real-time progress updates
+  # - off: Use traditional sequential execution without orchestration
+  mode: intelligent
+  
+  # Coordination strategy: sequential, parallel, hybrid, adaptive
+  # - sequential: Execute agents one after another with validation
+  # - parallel: Maximum parallelization with synchronization points  
+  # - hybrid: Mixed approach based on workflow complexity
+  # - adaptive: Automatically select best strategy per workflow
+  coordination_strategy: adaptive
+  
+  # Parallel execution settings
+  parallel_execution:
+    # Enable parallel agent execution when possible
+    enabled: true
+    
+    # Maximum number of agents running concurrently
+    max_concurrent_agents: 4
+    
+    # Resource management strategy: strict, balanced, intelligent
+    # - strict: Conservative resource allocation with safety margins
+    # - balanced: Balance performance with resource constraints
+    # - intelligent: Dynamic resource allocation based on monitoring
+    resource_management: intelligent
+    
+    # Enable real-time progress monitoring during parallel execution
+    progress_monitoring: true
+  
+  # Security and policy validation
+  security_validation:
+    # Policy guardian integration: off, advisory, mandatory
+    # - off: Skip policy validation (not recommended for production)
+    # - advisory: Run policy checks but allow override
+    # - mandatory: Block execution on policy violations
+    policy_guardian: mandatory
+    
+    # Risk threshold for automatic execution: low, medium, high
+    # Changes above this threshold require manual approval
+    risk_threshold: medium
+    
+    # Approval workflow: automatic, risk_based, manual
+    # - automatic: Approve low-risk changes automatically
+    # - risk_based: Require approval based on risk assessment
+    # - manual: Require manual approval for all changes
+    approval_workflow: risk_based
+  
+  # Dependency resolution settings
+  dependency_resolution:
+    # Enable automatic dependency analysis and resolution
+    enabled: true
+    
+    # Conflict resolution approach: manual, guided, intelligent
+    # - manual: Require manual resolution of dependency conflicts
+    # - guided: Provide guidance and suggestions for conflict resolution
+    # - intelligent: Automatically resolve conflicts using proven strategies
+    conflict_resolution: intelligent
+    
+    # Analysis depth: speed, balanced, thorough
+    # - speed: Fast analysis focusing on obvious dependencies
+    # - balanced: Comprehensive analysis with good performance
+    # - thorough: Deep analysis including inferred relationships
+    optimization_level: balanced
+
+# Advanced Intelligence Features (Phase 4 Enhancement)
+advanced_intelligence:
+  # Context memory and persistence
+  context_memory:
+    # Enable persistent project memory across sessions
+    enabled: true
+    
+    # Memory indexing strategy: incremental, full, adaptive
+    # - incremental: Update memory incrementally as project changes
+    # - full: Rebuild complete memory index periodically
+    # - adaptive: Choose strategy based on project size and change rate
+    indexing_strategy: adaptive
+    
+    # Context retrieval optimization
+    retrieval_optimization:
+      # Enable semantic search for context retrieval
+      semantic_search: true
+      
+      # Enable context compression for large projects
+      compression: true
+      
+      # Enable context caching for frequently accessed items
+      caching: true
+      
+      # Enable predictive context pre-loading
+      predictive_loading: false  # Enable for large, active projects
+  
+  # Specless "vibe mode" development
+  vibe_mode:
+    # Enable vibe mode for code-first development
+    enabled: true
+    
+    # Automatic detection of vibe mode requests
+    auto_detection: true
+    
+    # Spec synthesis quality: fast, balanced, comprehensive
+    # - fast: Quick spec generation focusing on key requirements
+    # - balanced: Good coverage with reasonable generation time
+    # - comprehensive: Thorough spec generation with detailed analysis
+    synthesis_quality: balanced
+    
+    # Generate documentation during vibe mode sessions
+    generate_docs: true
+  
+  # Automated test generation
+  test_synthesis:
+    # Enable automatic test generation from code
+    enabled: true
+    
+    # Test generation modes: conservative, balanced, aggressive
+    # - conservative: Generate tests for critical paths only
+    # - balanced: Generate tests for main functionality and edge cases
+    # - aggressive: Generate comprehensive test suites with high coverage
+    generation_mode: balanced
+    
+    # Test types to generate
+    test_types:
+      unit_tests: true
+      integration_tests: true
+      end_to_end_tests: false  # Enable for critical user journeys
+      performance_tests: false  # Enable for performance-critical applications
+      security_tests: true
+    
+    # Mutation testing for test quality validation
+    mutation_testing:
+      enabled: false  # Enable to validate test effectiveness
+      scope: changed_code  # Run mutation testing only on changed code
+  
+  # Style DNA and consistency
+  style_learning:
+    # Enable automatic learning of project coding style
+    enabled: true
+    
+    # Style analysis depth: surface, detailed, comprehensive
+    # - surface: Basic formatting and naming conventions
+    # - detailed: Include architectural patterns and code organization
+    # - comprehensive: Deep analysis including communication styles
+    analysis_depth: detailed
+    
+    # Apply learned styles to generated content
+    apply_learned_styles: true
+    
+    # Track style evolution over time
+    evolution_tracking: true
+  
+  # Real-time execution monitoring
+  execution_monitoring:
+    # Enable real-time workflow execution monitoring
+    enabled: true
+    
+    # Monitoring detail level: basic, detailed, comprehensive
+    # - basic: Track overall progress and completion
+    # - detailed: Include performance metrics and bottleneck detection
+    # - comprehensive: Full analytics with predictive insights
+    detail_level: detailed
+    
+    # Enable predictive completion estimates
+    predictive_estimates: true
+    
+    # Enable automatic bottleneck detection and resolution
+    bottleneck_detection: true
+    
+    # Performance optimization recommendations
+    optimization_recommendations: true
+
+# Capability providers (Phase 4 Enhancement)
+capabilities:
+  # Enable declarative capability system
+  enabled: false  # Enable when ready to use advanced capabilities
+  
+  # Capability execution mode: simulation_only, guided, automatic
+  # - simulation_only: Only run simulations, never execute actual capabilities
+  # - guided: Simulate first, require approval for execution
+  # - automatic: Execute capabilities automatically after simulation validation
+  execution_mode: guided
+  
+  # Available capability categories
+  categories:
+    # Database operations (migrations, backups, etc.)
+    database_operations: false
+    
+    # Deployment and infrastructure operations
+    deployment_operations: false
+    
+    # Integration and API management
+    integration_operations: false
+    
+    # Monitoring and observability setup
+    monitoring_operations: false
+  
+  # Safety and approval settings
+  safety:
+    # Always simulate before execution
+    require_simulation: true
+    
+    # Require manual approval for high-risk operations
+    approval_required_for_high_risk: true
+    
+    # Enable comprehensive rollback procedures
+    rollback_enabled: true
+    
+    # Maximum execution time for capabilities (minutes)
+    max_execution_time: 30
+
+# Performance & Resource Management (Enhanced)
+performance:
+  # Learning system performance settings
+  learning:
+    # Batch size for processing decision data
+    batch_size: 100
+    
+    # Maximum concurrent learning operations
+    max_concurrent: 3
+    
+    # Learning data processing priority (low, normal, high)
+    processing_priority: low
+  
+  # Spec generation performance settings  
+  spec_generation:
+    # Timeout for spec generation (seconds)
+    generation_timeout: 30
+    
+    # Cache generated specs for reuse
+    cache_enabled: true
+    
+    # Cache expiration time (minutes)
+    cache_expiry: 60
+    
+    # Background pattern library updates
+    background_updates: true
+  
+  # Advanced intelligence performance settings
+  advanced_intelligence:
+    # Memory indexing performance
+    memory_indexing:
+      # Background indexing to avoid blocking operations
+      background_indexing: true
+      
+      # Maximum memory usage for indexing (MB)
+      max_memory_usage: 512
+      
+      # Index update frequency: real_time, batched, scheduled
+      update_frequency: batched
+    
+    # Execution monitoring performance
+    execution_monitoring:
+      # Monitoring update frequency (seconds)
+      update_interval: 5
+      
+      # Maximum number of concurrent monitoring operations
+      max_concurrent_monitoring: 2
+      
+      # Historical data retention period (days)
+      history_retention: 30
+
+# User preferences (learned and adapted over time)
+user_preferences:
+  # These will be populated automatically by the config-assistant agent
+  # as it learns from user interactions and choices
+  
+  # Example learned preferences:
+  # compression_acceptance_rate: 0.85
+  # preferred_detail_level: medium
+  # suggestion_timing_preference: end_of_workflow
+  # feature_adoption_rate: high
