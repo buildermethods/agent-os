@@ -33,7 +33,7 @@ Perform a deep codebase analysis of the current codebase to understand current s
   </project_structure>
   <technology_stack>
     - Frameworks in use
-    - Dependencies (package.json, Gemfile, requirements.txt, etc.)
+    - Dependencies (package.json, Gemfile, composer.json, requirements.txt, etc.)
     - Database systems
     - Infrastructure configuration
   </technology_stack>
