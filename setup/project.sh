@@ -189,17 +189,21 @@ fi
 
 # Handle Claude Code installation for project
 if [ "$CLAUDE_CODE" = true ]; then
+    CLAUDE_PROJ_PATH="./.claude"
+    CLAUDE_CMNDS_PATH="$CLAUDE_PROJ_PATH/commands/os"
+    CLAUDE_AGENTS_PATH="$CLAUDE_PROJ_PATH/agents"
+
     echo ""
-    echo "📥 Installing Claude Code support..."
-    mkdir -p "./.claude/commands"
-    mkdir -p "./.claude/agents"
+    echo "📥 Installing Claude Code support to $CLAUDE_PROJ_PATH/"
+    mkdir -p "$CLAUDE_CMNDS_PATH"
+    mkdir -p "$CLAUDE_AGENTS_PATH"
 
     if [ "$IS_FROM_BASE" = true ]; then
         # Copy from base installation
         echo "  📂 Commands:"
         for cmd in plan-product create-spec create-tasks execute-tasks analyze-product; do
             if [ -f "$BASE_AGENT_OS/commands/${cmd}.md" ]; then
-                copy_file "$BASE_AGENT_OS/commands/${cmd}.md" "./.claude/commands/${cmd}.md" "false" "commands/${cmd}.md"
+                copy_file "$BASE_AGENT_OS/commands/${cmd}.md" "$CLAUDE_CMNDS_PATH/${cmd}.md" "false" "commands/os/${cmd}.md"
             else
                 echo "  ⚠️  Warning: ${cmd}.md not found in base installation"
             fi
@@ -209,7 +213,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         echo "  📂 Agents:"
         for agent in context-fetcher date-checker file-creator git-workflow project-manager test-runner; do
             if [ -f "$BASE_AGENT_OS/claude-code/agents/${agent}.md" ]; then
-                copy_file "$BASE_AGENT_OS/claude-code/agents/${agent}.md" "./.claude/agents/${agent}.md" "false" "agents/${agent}.md"
+                copy_file "$BASE_AGENT_OS/claude-code/agents/${agent}.md" "$CLAUDE_AGENTS_PATH/${agent}.md" "false" "agents/${agent}.md"
             else
                 echo "  ⚠️  Warning: ${agent}.md not found in base installation"
             fi
@@ -221,7 +225,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         echo "  📂 Commands:"
         for cmd in plan-product create-spec create-tasks execute-tasks analyze-product; do
             download_file "${BASE_URL}/commands/${cmd}.md" \
-                "./.claude/commands/${cmd}.md" \
+                "$CLAUDE_CMNDS_PATH/${cmd}.md" \
                 "false" \
                 "commands/${cmd}.md"
         done
@@ -230,7 +234,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         echo "  📂 Agents:"
         for agent in context-fetcher date-checker file-creator git-workflow project-manager test-runner; do
             download_file "${BASE_URL}/claude-code/agents/${agent}.md" \
-                "./.claude/agents/${agent}.md" \
+                "$CLAUDE_AGENTS_PATH/${agent}.md" \
                 "false" \
                 "agents/${agent}.md"
         done
@@ -277,7 +281,7 @@ echo "   .agent-os/instructions/    - Agent OS instructions"
 echo "   .agent-os/standards/       - Development standards"
 
 if [ "$CLAUDE_CODE" = true ]; then
-    echo "   .claude/commands/          - Claude Code commands"
+    echo "   .claude/commands/os        - Claude Code commands"
     echo "   .claude/agents/            - Claude Code specialized agents"
 fi
 
@@ -293,10 +297,10 @@ echo ""
 
 if [ "$CLAUDE_CODE" = true ]; then
     echo "Claude Code useage:"
-    echo "  /plan-product    - Set the mission & roadmap for a new product"
-    echo "  /analyze-product - Set up the mission and roadmap for an existing product"
-    echo "  /create-spec     - Create a spec for a new feature"
-    echo "  /execute-tasks   - Build and ship code for a new feature"
+    echo "  /os:plan-product    - Set the mission & roadmap for a new product"
+    echo "  /os:analyze-product - Set up the mission and roadmap for an existing product"
+    echo "  /os:create-spec     - Create a spec for a new feature"
+    echo "  /os:execute-tasks   - Build and ship code for a new feature"
     echo ""
 fi
 
