@@ -12,13 +12,13 @@ PHP-specific tech stack for Agent OS projects, overridable in project-specific `
 - **PHP Extensions**: OPcache, Imagick, GD, cURL, XML, JSON, OpenSSL
 
 ### Frameworks
-- **Primary Framework**: Laravel 10+ or Symfony 6+
+- **Primary Framework**: Symfony 6+ or custom MVC
 - **Alternative Frameworks**: Slim, CakePHP, or custom MVC
-- **Microservices**: Lumen for lightweight microservices
-- **API Framework**: Laravel API Resources or custom REST API
+- **Microservices**: Symfony Microservices for lightweight microservices
+- **API Framework**: API Resources or custom REST API
 
 ### Development Environment
-- **Local Development**: Laravel Sail, Docker, or Valet
+- **Local Development**: Docker or Valet
 - **Version Control**: Git with branching strategy
 - **Code Quality**: PHP_CodeSniffer with PSR-12 standards
 - **Static Analysis**: PHPStan with level 8 strictness
@@ -28,29 +28,29 @@ PHP-specific tech stack for Agent OS projects, overridable in project-specific `
 ### Frontend Technologies
 - **CSS Framework**: TailwindCSS 4.0+ or Bootstrap 5
 - **JavaScript Framework**: Vue 3+ or React 18+
-- **Build Tool**: Vite or Laravel Mix
+- **Build Tool**: Vite or Webpack
 - **Package Manager**: npm or yarn
 - **Node Version**: 18 LTS or 20 LTS
 - **TypeScript**: 5.0+ for type-safe JavaScript
 
 ### Database & ORM
 - **Primary Database**: MySQL 8.0+ or PostgreSQL 15+
-- **ORM**: Eloquent (Laravel) or Doctrine ORM
-- **Database Migrations**: Laravel Migrations or Doctrine Migrations
+- **ORM**: Doctrine ORM or custom ORM
+- **Database Migrations**: Doctrine Migrations or custom migrations
 - **Seeding**: Database seeding with Faker for test data
-- **Database Tools**: Laravel Telescope, phpMyAdmin, or pgAdmin
+- **Database Tools**: phpMyAdmin, pgAdmin, or custom database tools
 
 ### Authentication & Security
-- **Authentication**: Laravel Sanctum or Passport
-- **Authorization**: Laravel Gates and Policies
-- **Security**: Laravel Security features, CSRF protection
-- **Authentication Packages**: Socialite for OAuth
-- **Security Headers**: Laravel Security Headers middleware
-- **Rate Limiting**: Laravel Rate Limiting
+- **Authentication**: JWT, OAuth 2.0, or custom authentication
+- **Authorization**: RBAC, ABAC, or custom authorization
+- **Security**: CSRF protection, security middleware
+- **Authentication Packages**: OAuth libraries for authentication
+- **Security Headers**: Security headers middleware
+- **Rate Limiting**: Rate limiting middleware
 
 ### API Development
-- **REST API**: Laravel API Resources or custom REST API
-- **GraphQL**: Laravel GraphQL or custom GraphQL implementation
+- **REST API**: API Resources or custom REST API
+- **GraphQL**: GraphQL libraries or custom GraphQL implementation
 - **API Documentation**: Swagger/OpenAPI or custom documentation
 - **API Testing**: Postman, Insomnia, or Pest API tests
 - **API Versioning**: Versioned API endpoints
@@ -58,7 +58,7 @@ PHP-specific tech stack for Agent OS projects, overridable in project-specific `
 ### Performance Optimization
 - **Caching**: Redis, Memcached, or file-based caching
 - **CDN**: Cloudflare or AWS CloudFront
-- **Asset Optimization**: Laravel Mix, Vite, or Webpack
+- **Asset Optimization**: Vite or Webpack
 - **Database Optimization**: Query optimization, indexing
 - **Caching Strategies**: HTTP caching, browser caching
 - **Load Balancing**: Nginx load balancing or cloud load balancers
@@ -66,23 +66,23 @@ PHP-specific tech stack for Agent OS projects, overridable in project-specific `
 ### Deployment & DevOps
 - **Containerization**: Docker with Docker Compose
 - **CI/CD**: GitHub Actions, GitLab CI, or Jenkins
-- **Deployment**: Laravel Forge, Deployer, or custom scripts
+- **Deployment**: Deployer or custom scripts
 - **Server Management**: Ansible for server configuration
 - **Monitoring**: New Relic, Datadog, or custom monitoring
-- **Logging**: Laravel Telescope, Sentry, or custom logging
+- **Logging**: Sentry or custom logging
 
 ### Testing
 - **Unit Testing**: PHPUnit with Mockery
-- **Feature Testing**: Laravel Dusk or Pest
+- **Feature Testing**: Pest or custom feature testing
 - **Integration Testing**: API integration tests
 - **End-to-End Testing**: Cypress or Playwright
-- **Performance Testing**: Laravel Benchmark, PHPUnit performance
+- **Performance Testing**: PHPUnit performance or custom performance testing
 - **Code Coverage**: PHPUnit with coverage reports
 
 ### Development Tools
 - **IDE**: PhpStorm, VS Code with PHP extensions
 - **Code Quality**: PHPStan, PHP_CodeSniffer, PHPMD
-- **Debugging**: Xdebug, Laravel Telescope, Blackfire
+- **Debugging**: Xdebug, Blackfire, or custom debugging tools
 - **Profiling**: XHProf, Tideways, or New Relic
 - **Version Control**: Git with pre-commit hooks
 
@@ -94,25 +94,25 @@ PHP-specific tech stack for Agent OS projects, overridable in project-specific `
 - **Security Scanning**: Composer audit for security vulnerabilities
 
 ### Queue & Background Jobs
-- **Queue System**: Laravel Queue with Redis or Beanstalkd
-- **Job Processing**: Horizon for queue monitoring
-- **Background Jobs**: Laravel Queues, Symfony Messenger
-- **Scheduling**: Task scheduling with cron or Laravel Scheduler
+- **Queue System**: Queue systems with Redis or Beanstalkd
+- **Job Processing**: Queue monitoring tools
+- **Background Jobs**: Symfony Messenger or custom background jobs
+- **Scheduling**: Task scheduling with cron or custom scheduler
 - **Monitoring**: Queue monitoring and job tracking
 
 ### File Storage & Media
 - **Local Storage**: Local filesystem for development
 - **Cloud Storage**: AWS S3, Google Cloud Storage, or DigitalOcean Spaces
-- **File Upload**: Laravel Filesystem with validation
+- **File Upload**: Filesystem with validation
 - **Image Processing**: Intervention Image or GD/Imagick
 - **Media Management**: Custom media management system
 
 ### Email & Communication
-- **Email**: Laravel Mail with SMTP, SendGrid, or Mailgun
-- **Notifications**: Laravel Notifications with channels
+- **Email**: Mail with SMTP, SendGrid, or Mailgun
+- **Notifications**: Notifications with channels
 - **SMS**: Twilio or custom SMS integration
 - **Push Notifications**: Firebase Cloud Messaging or custom
-- **WebSockets**: Laravel WebSockets or custom WebSocket implementation
+- **WebSockets**: WebSocket libraries or custom WebSocket implementation
 
 ### Search & Analytics
 - **Search**: Algolia, Elasticsearch, or MySQL Full-Text Search
@@ -122,7 +122,7 @@ PHP-specific tech stack for Agent OS projects, overridable in project-specific `
 - **Error Tracking**: Sentry, Bugsnag, or custom error tracking
 
 ### Microservices & Architecture
-- **Microservices**: Laravel Lumen, Symfony Microservices
+- **Microservices**: Symfony Microservices or custom microservices
 - **Service Communication**: REST API, gRPC, or message queues
 - **API Gateway**: Custom API gateway or Kong
 - **Service Discovery**: Consul or custom service discovery
@@ -131,7 +131,7 @@ PHP-specific tech stack for Agent OS projects, overridable in project-specific `
 ### Security & Compliance
 - **Authentication**: JWT, OAuth 2.0, custom authentication
 - **Authorization**: RBAC, ABAC, custom authorization
-- **Data Encryption**: OpenSSL, Laravel Encryption
+- **Data Encryption**: OpenSSL or custom encryption
 - **Compliance**: GDPR, CCPA, SOC 2 compliance
 - **Security Testing**: OWASP ZAP, Burp Suite, custom security tests
 
