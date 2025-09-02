@@ -183,5 +183,17 @@ install_from_github() {
                 "$overwrite_std" \
                 "commands/${cmd}.md"
         done
+
+        # Download Claude Code agents
+        echo ""
+        echo "📥 Downloading Claude Code agent files to $target_dir/claude-code/agents/"
+        mkdir -p "$target_dir/claude-code/agents"
+
+        for agent in context-fetcher date-checker file-creator git-workflow project-manager test-runner; do
+            download_file "${BASE_URL}/claude-code/agents/${agent}.md" \
+                "$target_dir/claude-code/agents/${agent}.md" \
+                "$overwrite_std" \
+                "claude-code/agents/${agent}.md"
+        done
     fi
 }

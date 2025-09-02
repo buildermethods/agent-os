@@ -84,8 +84,8 @@ source "$INSTALL_DIR/setup/functions.sh"
 echo ""
 echo "📦 Installing the latest version of Agent OS from the Agent OS GitHub repository..."
 
-# Install /instructions, /standards, and /commands folders and files from GitHub
-install_from_github "$INSTALL_DIR" "$OVERWRITE_INSTRUCTIONS" "$OVERWRITE_STANDARDS"
+# Install /instructions, /standards, /commands, and /claude-code folders and files from GitHub
+install_from_github "$INSTALL_DIR" "$OVERWRITE_INSTRUCTIONS" "$OVERWRITE_STANDARDS" true
 
 # Download config.yml
 echo ""
@@ -104,24 +104,14 @@ download_file "${BASE_URL}/setup/project.sh" \
     "setup/project.sh"
 chmod +x "$INSTALL_DIR/setup/project.sh"
 
-# Handle Claude Code installation
+# Handle Claude Code enablement in config
 if [ "$CLAUDE_CODE" = true ]; then
     echo ""
-    echo "📥 Downloading Claude Code agent templates..."
-    mkdir -p "$INSTALL_DIR/claude-code/agents"
-
-    # Download agents to base installation for project use
-    echo "  📂 Agent templates:"
-    for agent in context-fetcher date-checker file-creator git-workflow project-manager test-runner; do
-        download_file "${BASE_URL}/claude-code/agents/${agent}.md" \
-            "$INSTALL_DIR/claude-code/agents/${agent}.md" \
-            "false" \
-            "claude-code/agents/${agent}.md"
-    done
-
+    echo "📥 Enabling Claude Code support..."
     # Update config to enable claude_code
     if [ -f "$INSTALL_DIR/config.yml" ]; then
         sed -i.bak '/claude_code:/,/enabled:/ s/enabled: false/enabled: true/' "$INSTALL_DIR/config.yml" && rm "$INSTALL_DIR/config.yml.bak"
+        echo "  ✓ Claude Code enabled in configuration"
     fi
 fi
 
@@ -157,12 +147,9 @@ echo "📍 Base installation files installed to:"
 echo "   $INSTALL_DIR/instructions/      - Agent OS instructions"
 echo "   $INSTALL_DIR/standards/         - Development standards"
 echo "   $INSTALL_DIR/commands/          - Command templates"
+echo "   $INSTALL_DIR/claude-code/agents/ - Claude Code agent templates"
 echo "   $INSTALL_DIR/config.yml         - Configuration"
 echo "   $INSTALL_DIR/setup/project.sh   - Project installation script"
-
-if [ "$CLAUDE_CODE" = true ]; then
-    echo "   $INSTALL_DIR/claude-code/agents/ - Claude Code agent templates"
-fi
 
 echo ""
 echo "--------------------------------"

@@ -139,31 +139,50 @@ if [ "$IS_FROM_BASE" = true ]; then
     # Determine source paths based on project type
     INSTRUCTIONS_SOURCE=""
     STANDARDS_SOURCE=""
+    COMMANDS_SOURCE=""
+    CLAUDE_CODE_AGENTS_SOURCE=""
 
     if [ "$PROJECT_TYPE" = "default" ]; then
         INSTRUCTIONS_SOURCE="$BASE_AGENT_OS/instructions"
         STANDARDS_SOURCE="$BASE_AGENT_OS/standards"
+        COMMANDS_SOURCE="$BASE_AGENT_OS/commands"
+        CLAUDE_CODE_AGENTS_SOURCE="$BASE_AGENT_OS/claude-code/agents"
     else
         # Look up project type in config
         if grep -q "^  $PROJECT_TYPE:" "$BASE_AGENT_OS/config.yml"; then
             # Extract paths for this project type
             INSTRUCTIONS_PATH=$(awk "/^  $PROJECT_TYPE:/{f=1} f&&/instructions:/{print \$2; exit}" "$BASE_AGENT_OS/config.yml")
             STANDARDS_PATH=$(awk "/^  $PROJECT_TYPE:/{f=1} f&&/standards:/{print \$2; exit}" "$BASE_AGENT_OS/config.yml")
+            COMMANDS_PATH=$(awk "/^  $PROJECT_TYPE:/{f=1} f&&/commands:/{print \$2; exit}" "$BASE_AGENT_OS/config.yml")
+            CLAUDE_CODE_AGENTS_PATH=$(awk "/^  $PROJECT_TYPE:/{f=1} f&&/claude_code_agents:/{print \$2; exit}" "$BASE_AGENT_OS/config.yml")
 
             # Expand tilde in paths
             INSTRUCTIONS_SOURCE=$(eval echo "$INSTRUCTIONS_PATH")
             STANDARDS_SOURCE=$(eval echo "$STANDARDS_PATH")
+            COMMANDS_SOURCE=$(eval echo "$COMMANDS_PATH")
+            CLAUDE_CODE_AGENTS_SOURCE=$(eval echo "$CLAUDE_CODE_AGENTS_PATH")
 
-            # Check if paths exist
-            if [ ! -d "$INSTRUCTIONS_SOURCE" ] || [ ! -d "$STANDARDS_SOURCE" ]; then
-                echo "  ⚠️  Project type '$PROJECT_TYPE' paths not found, falling back to default instructions and standards"
+            # Check if paths exist, use defaults for missing paths
+            if [ ! -d "$INSTRUCTIONS_SOURCE" ]; then
+                echo "  ⚠️  Instructions path for '$PROJECT_TYPE' not found, using default"
                 INSTRUCTIONS_SOURCE="$BASE_AGENT_OS/instructions"
+            fi
+            if [ ! -d "$STANDARDS_SOURCE" ]; then
+                echo "  ⚠️  Standards path for '$PROJECT_TYPE' not found, using default"
                 STANDARDS_SOURCE="$BASE_AGENT_OS/standards"
             fi
+            if [ -z "$COMMANDS_SOURCE" ] || [ ! -d "$COMMANDS_SOURCE" ]; then
+                COMMANDS_SOURCE="$BASE_AGENT_OS/commands"
+            fi
+            if [ -z "$CLAUDE_CODE_AGENTS_SOURCE" ] || [ ! -d "$CLAUDE_CODE_AGENTS_SOURCE" ]; then
+                CLAUDE_CODE_AGENTS_SOURCE="$BASE_AGENT_OS/claude-code/agents"
+            fi
         else
-            echo "  ⚠️  Project type '$PROJECT_TYPE' not found in config, using default instructions and standards"
+            echo "  ⚠️  Project type '$PROJECT_TYPE' not found in config, using defaults"
             INSTRUCTIONS_SOURCE="$BASE_AGENT_OS/instructions"
             STANDARDS_SOURCE="$BASE_AGENT_OS/standards"
+            COMMANDS_SOURCE="$BASE_AGENT_OS/commands"
+            CLAUDE_CODE_AGENTS_SOURCE="$BASE_AGENT_OS/claude-code/agents"
         fi
     fi
 
@@ -197,21 +216,37 @@ if [ "$CLAUDE_CODE" = true ]; then
     if [ "$IS_FROM_BASE" = true ]; then
         # Copy from base installation
         echo "  📂 Commands:"
+        # First, copy all commands from the project type directory
+        if [ -d "$COMMANDS_SOURCE" ]; then
+            for cmd_file in "$COMMANDS_SOURCE"/*.md; do
+                if [ -f "$cmd_file" ]; then
+                    cmd_name=$(basename "$cmd_file")
+                    copy_file "$cmd_file" "./.claude/commands/$cmd_name" "false" "commands/$cmd_name"
+                fi
+            done
+        fi
+        # Then, copy any missing default commands
         for cmd in plan-product create-spec create-tasks execute-tasks analyze-product; do
-            if [ -f "$BASE_AGENT_OS/commands/${cmd}.md" ]; then
-                copy_file "$BASE_AGENT_OS/commands/${cmd}.md" "./.claude/commands/${cmd}.md" "false" "commands/${cmd}.md"
-            else
-                echo "  ⚠️  Warning: ${cmd}.md not found in base installation"
+            if [ ! -f "./.claude/commands/${cmd}.md" ] && [ -f "$BASE_AGENT_OS/commands/${cmd}.md" ]; then
+                copy_file "$BASE_AGENT_OS/commands/${cmd}.md" "./.claude/commands/${cmd}.md" "false" "commands/${cmd}.md (default)"
             fi
         done
 
         echo ""
         echo "  📂 Agents:"
+        # First, copy all agents from the project type directory
+        if [ -d "$CLAUDE_CODE_AGENTS_SOURCE" ]; then
+            for agent_file in "$CLAUDE_CODE_AGENTS_SOURCE"/*.md; do
+                if [ -f "$agent_file" ]; then
+                    agent_name=$(basename "$agent_file")
+                    copy_file "$agent_file" "./.claude/agents/$agent_name" "false" "agents/$agent_name"
+                fi
+            done
+        fi
+        # Then, copy any missing default agents
         for agent in context-fetcher date-checker file-creator git-workflow project-manager test-runner; do
-            if [ -f "$BASE_AGENT_OS/claude-code/agents/${agent}.md" ]; then
-                copy_file "$BASE_AGENT_OS/claude-code/agents/${agent}.md" "./.claude/agents/${agent}.md" "false" "agents/${agent}.md"
-            else
-                echo "  ⚠️  Warning: ${agent}.md not found in base installation"
+            if [ ! -f "./.claude/agents/${agent}.md" ] && [ -f "$BASE_AGENT_OS/claude-code/agents/${agent}.md" ]; then
+                copy_file "$BASE_AGENT_OS/claude-code/agents/${agent}.md" "./.claude/agents/${agent}.md" "false" "agents/${agent}.md (default)"
             fi
         done
     else
@@ -246,12 +281,19 @@ if [ "$CURSOR" = true ]; then
     echo "  📂 Rules:"
 
     if [ "$IS_FROM_BASE" = true ]; then
-        # Convert commands from base installation to Cursor rules
+        # Convert all commands from project type directory to Cursor rules
+        if [ -d "$COMMANDS_SOURCE" ]; then
+            for cmd_file in "$COMMANDS_SOURCE"/*.md; do
+                if [ -f "$cmd_file" ]; then
+                    cmd_name=$(basename "$cmd_file" .md)
+                    convert_to_cursor_rule "$cmd_file" "./.cursor/rules/${cmd_name}.mdc"
+                fi
+            done
+        fi
+        # Then convert any missing default commands
         for cmd in plan-product create-spec create-tasks execute-tasks analyze-product; do
-            if [ -f "$BASE_AGENT_OS/commands/${cmd}.md" ]; then
+            if [ ! -f "./.cursor/rules/${cmd}.mdc" ] && [ -f "$BASE_AGENT_OS/commands/${cmd}.md" ]; then
                 convert_to_cursor_rule "$BASE_AGENT_OS/commands/${cmd}.md" "./.cursor/rules/${cmd}.mdc"
-            else
-                echo "  ⚠️  Warning: ${cmd}.md not found in base installation"
             fi
         done
     else
@@ -292,7 +334,7 @@ echo "Next steps:"
 echo ""
 
 if [ "$CLAUDE_CODE" = true ]; then
-    echo "Claude Code useage:"
+    echo "Claude Code usage:"
     echo "  /plan-product    - Set the mission & roadmap for a new product"
     echo "  /analyze-product - Set up the mission and roadmap for an existing product"
     echo "  /create-spec     - Create a spec for a new feature"
@@ -301,7 +343,7 @@ if [ "$CLAUDE_CODE" = true ]; then
 fi
 
 if [ "$CURSOR" = true ]; then
-    echo "Cursor useage:"
+    echo "Cursor usage:"
     echo "  @plan-product    - Set the mission & roadmap for a new product"
     echo "  @analyze-product - Set up the mission and roadmap for an existing product"
     echo "  @create-spec     - Create a spec for a new feature"
