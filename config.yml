@@ -18,12 +18,6 @@ project_types:
     commands: ~/.agent-os/commands
     claude_code_agents: ~/.agent-os/claude-code/agents
 
-  webapp:
-    instructions: ~/.agent-os/project_types/webapp/instructions
-    standards: ~/.agent-os/project_types/webapp/standards
-    commands: ~/.agent-os/project_types/webapp/commands
-    claude_code_agents: ~/.agent-os/project_types/webapp/claude-code/agents
-
   # type_a:
   #   instructions: ~/.agent-os/project_types/type_a/instructions
   #   standards: ~/.agent-os/project_types/type_a/standards
