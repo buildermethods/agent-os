@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Agent OS Project Installation Script
-# This script installs Agent OS in a project directory
+# This script installs Agent OS in a project directory with embedded instructions
 
 set -e  # Exit on error
 
@@ -12,6 +12,7 @@ OVERWRITE_STANDARDS=false
 CLAUDE_CODE=false
 CURSOR=false
 PROJECT_TYPE=""
+WITH_HOOKS=false
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -36,6 +37,10 @@ while [[ $# -gt 0 ]]; do
             CURSOR=true
             shift
             ;;
+        --with-hooks)
+            WITH_HOOKS=true
+            shift
+            ;;
         --project-type=*)
             PROJECT_TYPE="${1#*=}"
             shift
@@ -47,8 +52,9 @@ while [[ $# -gt 0 ]]; do
             echo "  --no-base                   Install from GitHub (not from a base Agent OSinstallation on your system)"
             echo "  --overwrite-instructions    Overwrite existing instruction files"
             echo "  --overwrite-standards       Overwrite existing standards files"
-            echo "  --claude-code               Add Claude Code support"
+            echo "  --claude-code               Add Claude Code support (with embedded instructions)"
             echo "  --cursor                    Add Cursor support"
+            echo "  --with-hooks                Add optional validation hooks for state management"
             echo "  --project-type=TYPE         Use specific project type for installation"
             echo "  -h, --help                  Show this help message"
             echo ""
@@ -100,6 +106,8 @@ echo ""
 echo "📁 Creating project directories..."
 echo ""
 mkdir -p "$INSTALL_DIR"
+mkdir -p "$INSTALL_DIR/state/recovery"
+mkdir -p "$INSTALL_DIR/standards"
 
 # Configure tools and project type based on installation type
 if [ "$IS_FROM_BASE" = true ]; then
@@ -167,14 +175,12 @@ if [ "$IS_FROM_BASE" = true ]; then
         fi
     fi
 
-    # Copy instructions and standards from determined sources
-    echo ""
-    echo "📥 Installing instruction files to $INSTALL_DIR/instructions/"
-    copy_directory "$INSTRUCTIONS_SOURCE" "$INSTALL_DIR/instructions" "$OVERWRITE_INSTRUCTIONS"
-
+    # Copy only standards from determined sources (instructions are now embedded in commands)
     echo ""
     echo "📥 Installing standards files to $INSTALL_DIR/standards/"
     copy_directory "$STANDARDS_SOURCE" "$INSTALL_DIR/standards" "$OVERWRITE_STANDARDS"
+    
+    # Note: Instructions are now embedded in commands, no need to copy separately
 else
     # Running directly from GitHub - download from GitHub
     if [ -z "$PROJECT_TYPE" ]; then
@@ -197,7 +203,7 @@ if [ "$CLAUDE_CODE" = true ]; then
     if [ "$IS_FROM_BASE" = true ]; then
         # Copy from base installation
         echo "  📂 Commands:"
-        for cmd in plan-product create-spec create-tasks execute-tasks analyze-product; do
+        for cmd in plan-product create-spec create-tasks execute-tasks analyze-product index-codebase debug; do
             if [ -f "$BASE_AGENT_OS/commands/${cmd}.md" ]; then
                 copy_file "$BASE_AGENT_OS/commands/${cmd}.md" "./.claude/commands/${cmd}.md" "false" "commands/${cmd}.md"
             else
@@ -207,7 +213,7 @@ if [ "$CLAUDE_CODE" = true ]; then
 
         echo ""
         echo "  📂 Agents:"
-        for agent in context-fetcher date-checker file-creator git-workflow project-manager test-runner; do
+        for agent in context-fetcher date-checker file-creator git-workflow project-manager test-runner spec-cache-manager codebase-indexer; do
             if [ -f "$BASE_AGENT_OS/claude-code/agents/${agent}.md" ]; then
                 copy_file "$BASE_AGENT_OS/claude-code/agents/${agent}.md" "./.claude/agents/${agent}.md" "false" "agents/${agent}.md"
             else
@@ -235,6 +241,80 @@ if [ "$CLAUDE_CODE" = true ]; then
                 "agents/${agent}.md"
         done
     fi
+fi
+
+# Initialize state management
+echo ""
+echo "📥 Initializing state management..."
+cat > "$INSTALL_DIR/state/workflow.json" << 'EOF'
+{
+  "state_version": "1.0.0",
+  "current_workflow": null,
+  "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+
+# Handle optional hooks installation
+if [ "$WITH_HOOKS" = true ]; then
+    echo ""
+    echo "📥 Installing validation hooks..."
+    mkdir -p "./.claude/hooks"
+    
+    # Pre-write hook for JSON validation
+    cat > "./.claude/hooks/pre-write.sh" << 'EOF'
+#!/bin/bash
+# Validates JSON state files before writing
+if [[ "$1" == *".agent-os/state/"*.json ]]; then
+    jq empty "$1" 2>/dev/null || {
+        echo "ERROR: Invalid JSON in state file"
+        exit 1
+    }
+fi
+EOF
+    
+    # Post-command hook for cache cleanup
+    cat > "./.claude/hooks/post-command.sh" << 'EOF'
+#!/bin/bash
+# Clean expired caches after command execution
+find .agent-os/state -name "session-cache.json" -mmin +60 \
+    -exec rm {} \; 2>/dev/null
+EOF
+    
+    chmod +x ./.claude/hooks/*.sh
+    echo "  ✓ Installed pre-write validation hook"
+    echo "  ✓ Installed post-command cleanup hook"
+fi
+
+# Update .gitignore for state and cache files
+if [ -f .gitignore ]; then
+    # Check if Agent-OS section already exists
+    if ! grep -q "# Agent-OS cache and state files" .gitignore; then
+        echo "" >> .gitignore
+        echo "# Agent-OS cache and state files" >> .gitignore
+        echo ".agent-os/state/session-cache.json" >> .gitignore
+        echo ".agent-os/state/command-state.json" >> .gitignore
+        echo ".agent-os/state/recovery/" >> .gitignore
+        echo ".agent-os/state/.lock" >> .gitignore
+        echo ".agent-os/cache/" >> .gitignore
+        echo ".agent-os/debugging/" >> .gitignore
+        echo ".agent-os/**/*.cache" >> .gitignore
+        echo ".agent-os/**/*.tmp" >> .gitignore
+        echo "  ✓ Updated .gitignore with state exclusions"
+    fi
+else
+    # Create new .gitignore with Agent-OS entries
+    cat > .gitignore << 'EOF'
+# Agent-OS cache and state files
+.agent-os/state/session-cache.json
+.agent-os/state/command-state.json
+.agent-os/state/recovery/
+.agent-os/state/.lock
+.agent-os/cache/
+.agent-os/debugging/
+.agent-os/**/*.cache
+.agent-os/**/*.tmp
+EOF
+    echo "  ✓ Created .gitignore with state exclusions"
 fi
 
 # Handle Cursor installation for project
@@ -273,12 +353,16 @@ echo ""
 echo "✅ Agent OS has been installed in your project ($PROJECT_NAME)!"
 echo ""
 echo "📍 Project-level files installed to:"
-echo "   .agent-os/instructions/    - Agent OS instructions"
 echo "   .agent-os/standards/       - Development standards"
+echo "   .agent-os/state/           - State management and caching"
 
 if [ "$CLAUDE_CODE" = true ]; then
-    echo "   .claude/commands/          - Claude Code commands"
-    echo "   .claude/agents/            - Claude Code specialized agents"
+    echo "   .claude/commands/          - Claude Code commands (with embedded instructions)"
+    echo "   .claude/agents/            - Claude Code specialized subagents"
+fi
+
+if [ "$WITH_HOOKS" = true ]; then
+    echo "   .claude/hooks/             - Validation and cleanup hooks"
 fi
 
 if [ "$CURSOR" = true ]; then
