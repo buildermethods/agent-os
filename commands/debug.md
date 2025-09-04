@@ -46,9 +46,10 @@ const todos = [
   { content: "Reproduce the issue", status: "pending", activeForm: "Reproducing the issue" },
   { content: "Implement context-aware fix", status: "pending", activeForm: "Implementing context-aware fix" },
   { content: "Verify fix with scoped tests", status: "pending", activeForm: "Verifying fix with scoped tests" },
+  { content: "Update codebase references if needed", status: "pending", activeForm: "Updating codebase references if needed" },
   { content: "Update project status", status: "pending", activeForm: "Updating project status" },
   { content: "Create debug documentation", status: "pending", activeForm: "Creating debug documentation" },
-  { content: "Commit with contextual message", status: "pending", activeForm: "Committing with contextual message" }
+  { content: "Complete git workflow", status: "pending", activeForm: "Completing git workflow" }
 ];
 // Update status to "in_progress" when starting each task
 // Mark as "completed" immediately after finishing
@@ -416,9 +417,52 @@ INCLUDE: Context-relevant information
 FOCUS: Lessons learned and prevention
 ```
 
-### Step 9: Commit with Context
+### Step 9: Update Codebase References (Conditional)
 
-Use the git-workflow subagent to commit with appropriate context.
+If any new functions, classes, or exports were created or modified during debugging, update the codebase references.
+
+**Smart Update Check:**
+```
+CHECK: Git diff for code changes
+IF only debug documentation changed:
+  SKIP: No code to index
+ELSE IF new functions/classes added OR signatures changed:
+  ACTION: Use codebase-indexer subagent
+  REQUEST: "Update codebase references for debug fixes:
+            - Files modified: [LIST_OF_MODIFIED_FILES]
+            - Extract new/updated signatures
+            - Update functions.md and imports.md
+            - Focus on fix-related changes"
+ELSE:
+  SKIP: No significant code structure changes
+```
+
+**Instructions:**
+```
+ACTION: Check if .agent-os/codebase/ exists
+IF exists AND code was modified:
+  USE: codebase-indexer for incremental update
+  UPDATE: Only changed file references
+  PRESERVE: Existing unchanged references
+ELSE:
+  SKIP: No reference updates needed
+```
+
+### Step 10: Complete Git Workflow
+
+Use the git-workflow subagent to commit, push, and optionally create a PR for the debug fix.
+
+**Workflow Decision:**
+```
+IF scope == "task" OR scope == "spec":
+  # Part of active implementation
+  ACTION: Commit to current feature branch
+  NO_PR: Continue with implementation
+ELSE IF scope == "general":
+  # Standalone fix
+  ACTION: Create dedicated fix branch
+  CREATE_PR: For review and merge
+```
 
 **Commit Message Format:**
 
@@ -426,26 +470,42 @@ Use the git-workflow subagent to commit with appropriate context.
 ```
 IF scope == "task":
   fix: [spec] resolve [issue] in task [number]
+  
+  - Fixed: [brief description]
+  - Cause: [root cause]
+  - Impact: Task [number] now functioning correctly
 ```
 
 **Spec Commit:**
 ```
 IF scope == "spec":
   fix: [spec] resolve integration issues
+  
+  - Fixed: [brief description]
+  - Affected tasks: [list of task numbers]
+  - Integration points corrected
 ```
 
 **General Commit:**
 ```
 IF scope == "general":
   fix: resolve [issue description]
+  
+  - Fixed: [brief description]
+  - Root cause: [explanation]
+  - Prevented similar issues by: [prevention measures]
 ```
 
 **Instructions:**
 ```
-ACTION: Use git-workflow subagent
-COMMIT: With context-appropriate message
-REFERENCE: Spec/task if applicable
-INCLUDE: Clear description of fix
+ACTION: Use git-workflow subagent via Task tool
+REQUEST: "Complete git workflow for debug fix:
+          - Scope: [task/spec/general]
+          - Changes: All modified files
+          - Commit message: [formatted as above]
+          - Branch strategy: [current/new based on scope]
+          - PR creation: [yes/no based on scope]"
+SAVE: PR URL if created for documentation
 ```
 
 <!-- END EMBEDDED CONTENT -->
@@ -528,7 +588,7 @@ debugState.errors_encountered = [];
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:
-- `debug-helper` for conducting targeted investigation based on detected scope
 - `test-runner` for running scope-appropriate test verification
+- `codebase-indexer` for updating code references after fixes
 - `file-creator` for creating debug documentation with proper context paths
-- `git-workflow` for committing fixes with context-appropriate commit messages
+- `git-workflow` for complete git workflow including commits, pushes, and PRs
