@@ -38,6 +38,7 @@ Execute one or more tasks from a specification, including all sub-tasks, testing
 const todos = [
   { content: "Load state and validate cache", status: "pending", activeForm: "Loading state and validating cache" },
   { content: "Identify tasks to execute", status: "pending", activeForm: "Identifying tasks to execute" },
+  { content: "Get current date for timestamps", status: "pending", activeForm: "Getting current date for timestamps" },
   { content: "Discover and cache specifications", status: "pending", activeForm: "Discovering and caching specifications" },
   { content: "Gather initial context", status: "pending", activeForm: "Gathering initial context" },
   { content: "Check for development server", status: "pending", activeForm: "Checking for development server" },
@@ -84,7 +85,18 @@ Identify which tasks to execute from the spec (using spec_srd_reference file pat
 2. DEFAULT: Select next uncompleted parent task if not specified
 3. CONFIRM: Task selection with user
 
-### Step 2: Specification Discovery and Caching
+### Step 2: Get Current Date and Initialize Cache
+Use the date-checker subagent to get the current date for timestamps and cache management.
+
+**Instructions:**
+```
+ACTION: Use date-checker subagent via Task tool
+REQUEST: "Determine today's date in YYYY-MM-DD format for 
+          workflow timestamps and cache management"
+STORE: Date for use in cache metadata and file naming
+```
+
+### Step 3: Specification Discovery and Caching
 Use the spec-cache-manager subagent to perform comprehensive specification discovery once and cache for entire session.
 
 **Instructions:**
@@ -112,7 +124,7 @@ NOTE: This happens ONCE for entire task session
 }
 ```
 
-### Step 3: Initial Context Analysis
+### Step 4: Initial Context Analysis
 Use the context-fetcher subagent to gather minimal context for task understanding by loading core documents.
 
 **Instructions:**
@@ -129,7 +141,7 @@ CACHE: In session-cache.json for use across all task iterations
 - **Essential**: tasks.md for task breakdown
 - **Conditional**: mission-lite.md, spec-lite.md, technical-spec.md
 
-### Step 4: Development Server Check
+### Step 5: Development Server Check
 Check for any running development server and ask user permission to shut it down if found to prevent port conflicts.
 
 **Server Check Flow:**
@@ -141,7 +153,7 @@ ELSE:
   PROCEED: Immediately to next step
 ```
 
-### Step 5: Git Branch Management
+### Step 6: Git Branch Management
 Use the git-workflow subagent to manage git branches to ensure proper isolation by creating or switching to the appropriate branch for the spec.
 
 **Instructions:**
@@ -161,7 +173,7 @@ WAIT: For branch setup completion
 
 ## Phase 2: Task Execution Loop
 
-### Step 6: Execute Tasks with Cached Specifications
+### Step 7: Execute Tasks with Cached Specifications
 Execute all assigned parent tasks and their subtasks, continuing until all tasks are complete.
 
 **Execution Flow:**
@@ -184,7 +196,7 @@ FOR each parent_task assigned in Step 1:
 END FOR
 ```
 
-### Step 6.1: Use Cached Specification Index
+### Step 7.1: Use Cached Specification Index
 Use the specification cache from Step 2 to quickly access relevant specifications without redundant discovery.
 
 **Cache Usage:**
@@ -198,7 +210,7 @@ ELSE:
   CACHE: Results for subsequent tasks
 ```
 
-### Step 6.2: Task Understanding with Specification Context
+### Step 7.2: Task Understanding with Specification Context
 Read and analyze tasks from tasks.md while mapping requirements to discovered specifications.
 
 **Task Analysis:**
@@ -214,7 +226,7 @@ Read and analyze tasks from tasks.md while mapping requirements to discovered sp
    - Note any requirements without spec coverage
    - Document spec-to-requirement relationships
 
-### Step 6.3: Batched Context Retrieval
+### Step 7.3: Batched Context Retrieval
 Use the context-fetcher subagent to retrieve ALL relevant context in a SINGLE batched request, reducing overhead and improving performance.
 
 **Batched Request:**
@@ -253,7 +265,7 @@ REQUEST: "Batch retrieve the following context for task execution:
 - AFTER: 1 batched subagent call (3-4 seconds)
 - SAVINGS: 9-12 seconds per task
 
-### Step 6.4: Approach Design and Specification Validation
+### Step 7.4: Approach Design and Specification Validation
 Document implementation approach and validate against specifications BEFORE coding.
 
 **Approach Documentation:**
@@ -284,7 +296,7 @@ Document implementation approach and validate against specifications BEFORE codi
 - ✓ Error handling covers specified scenarios
 - HALT if approach conflicts with specifications
 
-### Step 6.5: Task and Sub-task Execution with TDD
+### Step 7.5: Task and Sub-task Execution with TDD
 Execute the parent task and all sub-tasks in order using test-driven development (TDD) approach with specification compliance checks.
 
 **Typical Task Structure:**
@@ -320,7 +332,7 @@ IF final sub-task is "Verify all tests pass":
 - Ensure no regressions
 - Mark final sub-task complete
 
-### Step 6.6: Task-Specific Test Verification
+### Step 7.6: Task-Specific Test Verification
 Use the test-runner subagent to run and verify only the tests specific to this parent task.
 
 **Focused Test Execution:**
@@ -336,7 +348,7 @@ VERIFY: 100% pass rate for task-specific tests
 - Store: test files executed, pass/fail status, timestamp
 - Benefit: Avoid re-running same tests in complete-tasks
 
-### Step 6.7: Update Codebase References (Conditional)
+### Step 7.7: Update Codebase References (Conditional)
 If any new functions, classes, or exports were created during this task, update the codebase references incrementally.
 
 **Smart Skip Logic:**
@@ -356,7 +368,7 @@ ELSE:
             - Maintain existing unchanged references"
 ```
 
-### Step 6.8: Task Status Updates
+### Step 7.8: Task Status Updates
 Update task statuses in real-time as work progresses.
 
 **Update Format:**
@@ -364,7 +376,7 @@ Update task statuses in real-time as work progresses.
 - **Incomplete**: `- [ ] Task description`
 - **Blocked**: `- [ ] Task description ⚠️ Blocking issue: [DESCRIPTION]`
 
-### Step 6.9: Output Validation Against Specifications
+### Step 7.9: Output Validation Against Specifications
 Validate ALL outputs against specifications before marking tasks complete.
 
 **Validation Checklist:**
@@ -390,12 +402,12 @@ IF validation fails:
 3. Correct violations and re-validate
 4. Do not mark complete until all validations pass
 
-### Step 6.10: Mark Task Complete
+### Step 7.10: Mark Task Complete
 ONLY after output validation passes, mark this task and its sub-tasks complete by updating each task checkbox to [x] in tasks.md.
 
 ## Phase 3: Task Completion and Delivery
 
-### Step 7: Run All Tests
+### Step 8: Run All Tests
 Use the test-runner subagent to run ALL tests in the application's test suite to ensure no regressions.
 
 **Smart Test Execution:**
@@ -422,7 +434,7 @@ VERIFY: 100% pass rate
 FIX: Any failures before proceeding
 ```
 
-### Step 8: Quick Specification Compliance Check
+### Step 9: Quick Specification Compliance Check
 Verify that specification validation was completed during task execution.
 
 **Smart Skip Logic:**
@@ -436,7 +448,7 @@ ELSE IF validation was skipped or incomplete:
   FOCUS: New functionality added since last validation
 ```
 
-### Step 9: Git Workflow
+### Step 10: Git Workflow
 Use the git-workflow subagent to create git commit, push to GitHub, and create pull request.
 
 **Instructions:**
@@ -450,7 +462,7 @@ REQUEST: "Complete git workflow for [SPEC_NAME] feature:
 SAVE: PR URL for summary
 ```
 
-### Step 10: Tasks Completion Verification
+### Step 11: Tasks Completion Verification
 Use the project-manager subagent to verify all tasks are marked complete or have documented blockers.
 
 **Instructions:**
@@ -463,7 +475,7 @@ REQUEST: "Verify task completion in current spec:
           - Mark completed tasks as [x] if verification confirms completion"
 ```
 
-### Step 11: Roadmap Progress Update (Conditional)
+### Step 12: Roadmap Progress Update (Conditional)
 Use the project-manager subagent to update roadmap ONLY IF tasks completed roadmap items.
 
 **Smart Preliminary Check:**
@@ -479,7 +491,7 @@ ELSE IF partial match found:
     UPDATE: Mark roadmap items complete with [x]
 ```
 
-### Step 12: Create Documentation and Summary
+### Step 13: Create Documentation and Summary
 Use the project-manager subagent to create recap document and completion summary in a single batched request.
 
 **Batched Request:**
@@ -515,7 +527,7 @@ This recaps what was built for the spec documented at .agent-os/specs/[spec-fold
 [Copy the summary found in spec-lite.md to provide concise context]
 ```
 
-### Step 13: Task Completion Notification
+### Step 14: Task Completion Notification
 Use the project-manager subagent to play a system sound to alert the user that tasks are complete.
 
 **Instructions:**
@@ -549,14 +561,14 @@ const workflow = loadState(stateFile, {
 });
 
 // Create session cache for task execution
+// Note: [CURRENT_DATE] should be replaced with the date from date-checker agent
+// Note: Cache expiration is managed by file modification time, not JavaScript dates
 const sessionCache = {
   spec_cache: {},
   context_cache: {},
   metadata: {
-    timestamp: new Date().toISOString(),
-    expires: new Date(Date.now() + 5 * 60000).toISOString(),
-    workflow_id: `tasks-${Date.now()}`,
-    last_accessed: new Date().toISOString(),
+    created_date: "[CURRENT_DATE from date-checker]",
+    workflow_id: "tasks-[CURRENT_DATE]-[SESSION_NUMBER]",
     access_count: 1,
     auto_extend: true,
     extension_count: 0,
@@ -565,13 +577,13 @@ const sessionCache = {
   }
 };
 
-// Save with atomic operation
+// Save cache file with atomic operation
+// The file's modification time serves as the expiration mechanism
 saveState(cacheFile, sessionCache);
 
-// Auto-extend cache during long workflows
-if (checkAndExtendCache(sessionCache)) {
-  saveState(cacheFile, sessionCache);
-}
+// Check cache validity using file modification time
+// Cache expires after 5 minutes since last modification
+// Use: ls -la .agent-os/state/session-cache.json to check age
 ```
 
 ### Cache Persistence Between Task Iterations

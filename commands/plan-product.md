@@ -42,6 +42,7 @@ Plan a new product and install Agent OS in its codebase. This command creates co
 // Example todos for this command workflow
 const todos = [
   { content: "Gather and validate user input", status: "pending", activeForm: "Gathering and validating user input" },
+  { content: "Get current date for timestamps", status: "pending", activeForm: "Getting current date for timestamps" },
   { content: "Create documentation structure", status: "pending", activeForm: "Creating documentation structure" },
   { content: "Generate comprehensive mission document", status: "pending", activeForm: "Generating comprehensive mission document" },
   { content: "Build technical stack specification", status: "pending", activeForm: "Building technical stack specification" },
@@ -96,7 +97,19 @@ Please provide the following missing information:
 5. Has the new application been initialized yet and we're inside the project folder? (yes/no)
 ```
 
-### Step 2: Create Documentation Structure
+### Step 2: Get Current Date
+
+Use the date-checker subagent to determine the current date for documentation timestamps.
+
+**Instructions:**
+```
+ACTION: Use date-checker subagent via Task tool
+REQUEST: "Determine today's date in YYYY-MM-DD format for 
+          product documentation timestamps"
+STORE: Date for use in roadmap creation date
+```
+
+### Step 3: Create Documentation Structure
 
 Use the file-creator subagent to create the following file_structure with validation for write permissions and protection against overwriting existing files:
 
@@ -110,7 +123,7 @@ Use the file-creator subagent to create the following file_structure with valida
     └── roadmap.md          # Development phases
 ```
 
-### Step 3: Create mission.md
+### Step 4: Create mission.md
 
 Use the file-creator subagent to create the file: .agent-os/product/mission.md and use the following template:
 
@@ -225,7 +238,7 @@ ELSE:
 - Ensure feature descriptions match existing patterns
 - Consider technical constraints from current implementation
 
-### Step 4: Create tech-stack.md
+### Step 5: Create tech-stack.md
 
 Use the file-creator subagent to create the file: .agent-os/product/tech-stack.md and use the following template:
 
@@ -278,7 +291,7 @@ Please provide the following technical stack details:
 You can respond with the technology choice or "n/a" for each item.
 ```
 
-### Step 5: Create mission-lite.md
+### Step 6: Create mission-lite.md
 
 Use the file-creator subagent to create the file: .agent-os/product/mission-lite.md for the purpose of establishing a condensed mission for efficient AI context usage.
 
@@ -310,13 +323,15 @@ TaskFlow is a project management tool that helps remote teams coordinate work ef
 TaskFlow serves distributed software teams who need seamless task coordination across time zones. Unlike traditional project management tools, TaskFlow automatically syncs with development workflows and provides intelligent task prioritization based on team capacity and dependencies.
 ```
 
-### Step 6: Create roadmap.md
+### Step 7: Create roadmap.md
 
 Use the file-creator subagent to create the following file: .agent-os/product/roadmap.md using the following template:
 
 **File Template:**
 ```markdown
 # Product Roadmap
+
+Created: [CURRENT_DATE from date-checker]
 ```
 
 **Phase Structure:**

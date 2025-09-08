@@ -41,6 +41,7 @@ Initialize codebase reference documentation for an existing project. This is a o
 // Example todos for this command workflow
 const todos = [
   { content: "Check for existing references", status: "pending", activeForm: "Checking for existing references" },
+  { content: "Get current date for timestamps", status: "pending", activeForm: "Getting current date for timestamps" },
   { content: "Create reference structure", status: "pending", activeForm: "Creating reference structure" },
   { content: "Identify project files", status: "pending", activeForm: "Identifying project files" },
   { content: "Extract code signatures", status: "pending", activeForm: "Extracting code signatures" },
@@ -91,7 +92,19 @@ ELSE:
   CONTINUE: Create new references
 ```
 
-### Step 2: Create Reference Structure
+### Step 2: Get Current Date
+
+Use the date-checker subagent to determine the current date for timestamps.
+
+**Instructions:**
+```
+ACTION: Use date-checker subagent via Task tool
+REQUEST: "Determine today's date in YYYY-MM-DD format for 
+          codebase indexing timestamps"
+STORE: Date for use in index.md generation
+```
+
+### Step 3: Create Reference Structure
 
 Create the codebase reference directory and files.
 
@@ -108,8 +121,8 @@ CREATE: .agent-os/codebase/schemas.md
 ```markdown
 # Codebase Reference Index
 
-Generated: [DATE]
-Last Updated: [DATE]
+Generated: [CURRENT_DATE from date-checker]
+Last Updated: [CURRENT_DATE from date-checker]
 
 ## Reference Files
 - functions.md: Function and method signatures
@@ -120,7 +133,7 @@ Last Updated: [DATE]
 [Will be populated during scan]
 ```
 
-### Step 3: Identify Project Files
+### Step 4: Identify Project Files
 
 Scan the project to identify code files to index.
 
@@ -151,7 +164,7 @@ Scan the project to identify code files to index.
 - LIMIT: First 500 files for large projects
 - PRIORITIZE: src/, app/, lib/ directories
 
-### Step 4: Extract Code Signatures
+### Step 5: Extract Code Signatures
 
 Use the codebase-indexer subagent to extract function signatures, exports, and imports from identified files.
 
@@ -174,7 +187,7 @@ WAIT: For indexer to process batch
 REPEAT: For all file batches
 ```
 
-### Step 5: Extract Database and API Schemas
+### Step 6: Extract Database and API Schemas
 
 Identify and extract database schemas and API definitions.
 
@@ -205,7 +218,7 @@ ELSE:
   NOTE: "No schema files detected"
 ```
 
-### Step 6: Generate Import Map
+### Step 7: Generate Import Map
 
 Create a map of import aliases and module exports for quick reference.
 
@@ -233,7 +246,7 @@ src/utils/auth.js: { getCurrentUser, validateToken }
 src/components/Button.jsx: default Button
 ```
 
-### Step 7: Update Index File
+### Step 8: Update Index File
 
 Update the index.md file with scan statistics and directory list.
 
@@ -252,10 +265,10 @@ Update the index.md file with scan statistics and directory list.
 - Functions: [COUNT]
 - Classes: [COUNT]
 - Exports: [COUNT]
-- Last Updated: [DATE]
+- Last Updated: [CURRENT_DATE from date-checker]
 ```
 
-### Step 8: Configure Auto-Update
+### Step 9: Configure Auto-Update
 
 Ensure config.yml is set up for incremental updates during task execution.
 
@@ -277,7 +290,7 @@ ELSE:
 - VERIFY: Auto-update is enabled
 - NOTE: Future updates will be automatic
 
-### Step 9: Generate Summary Report
+### Step 10: Generate Summary Report
 
 Provide a summary of the indexing operation.
 

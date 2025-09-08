@@ -41,6 +41,7 @@ Debug and fix issues with automatic context detection for the appropriate scope 
 // Example todos for this command workflow
 const todos = [
   { content: "Detect debugging context and scope", status: "pending", activeForm: "Detecting debugging context and scope" },
+  { content: "Get current date for timestamps", status: "pending", activeForm: "Getting current date for timestamps" },
   { content: "Gather issue information", status: "pending", activeForm: "Gathering issue information" },
   { content: "Conduct targeted investigation", status: "pending", activeForm: "Conducting targeted investigation" },
   { content: "Reproduce the issue", status: "pending", activeForm: "Reproducing the issue" },
@@ -122,7 +123,19 @@ IF context_unclear:
 - DETERMINE: Appropriate scope (task, spec, or general)
 - PROCEED: With context-appropriate workflow
 
-### Step 2: Issue Information Gathering
+### Step 2: Get Current Date and Time
+
+Use the date-checker subagent to determine the current date for timestamps in debug reports.
+
+**Instructions:**
+```
+ACTION: Use date-checker subagent via Task tool
+REQUEST: "Determine today's date in YYYY-MM-DD format for 
+          debug report timestamps and file naming"
+STORE: Date for use in debug report generation
+```
+
+### Step 3: Issue Information Gathering
 
 Gather issue details appropriate to the detected context.
 
@@ -160,7 +173,7 @@ IF scope == "general":
 - LOAD: Relevant documentation based on scope
 - DOCUMENT: Issue details and affected areas
 
-### Step 3: Targeted Investigation
+### Step 4: Targeted Investigation
 
 Use the debug-helper subagent to investigate based on detected scope.
 
@@ -203,7 +216,7 @@ ANALYZE: Returned findings
 IDENTIFY: Root cause
 ```
 
-### Step 4: Issue Reproduction
+### Step 5: Issue Reproduction
 
 Attempt to reproduce the issue with scope-appropriate methods.
 
@@ -239,7 +252,7 @@ IF scope == "general":
 - CAPTURE: All error output
 - CONFIRM: Issue is reproducible
 
-### Step 5: Context-Aware Fix Implementation
+### Step 6: Context-Aware Fix Implementation
 
 Implement fix with appropriate scope constraints.
 
@@ -285,7 +298,7 @@ IF scope == "general":
 - MAINTAIN: Appropriate boundaries
 - VERIFY: No regressions introduced
 
-### Step 6: Scoped Test Verification
+### Step 7: Scoped Test Verification
 
 Use the test-runner subagent to verify fix at appropriate level.
 
@@ -323,7 +336,7 @@ VERIFY: All relevant tests pass
 CONFIRM: Issue resolved
 ```
 
-### Step 7: Context-Appropriate Status Updates
+### Step 8: Context-Appropriate Status Updates
 
 Update project status based on debugging scope.
 
@@ -358,7 +371,7 @@ IF scope == "general":
 - DOCUMENT: Debug work completed
 - MAINTAIN: Project consistency
 
-### Step 8: Create Debug Documentation
+### Step 9: Create Debug Documentation
 
 Use the file-creator subagent to document debugging based on scope.
 
@@ -367,21 +380,21 @@ Use the file-creator subagent to document debugging based on scope.
 **Task Documentation:**
 ```
 IF scope == "task":
-  PATH: .agent-os/debugging/tasks/[SPEC]-[TASK]-[TIMESTAMP].md
+  PATH: .agent-os/debugging/tasks/[SPEC]-[TASK]-[CURRENT_DATE from date-checker].md
   INCLUDE: Task context, issue, fix
 ```
 
 **Spec Documentation:**
 ```
 IF scope == "spec":
-  PATH: .agent-os/debugging/specs/[SPEC]-[TIMESTAMP].md
+  PATH: .agent-os/debugging/specs/[SPEC]-[CURRENT_DATE from date-checker].md
   INCLUDE: Integration issues, cross-task fixes
 ```
 
 **General Documentation:**
 ```
 IF scope == "general":
-  PATH: .agent-os/debugging/[TIMESTAMP]-[ISSUE].md
+  PATH: .agent-os/debugging/[CURRENT_DATE from date-checker]-[ISSUE].md
   INCLUDE: Full investigation and fix
 ```
 
@@ -391,7 +404,7 @@ IF scope == "general":
 
 **Scope:** [task/spec/general]
 **Context:** [Implementation/Production]
-**Date:** [TIMESTAMP]
+**Date:** [CURRENT_DATE from date-checker]
 
 ## Issue
 [Description of the problem]
@@ -417,7 +430,7 @@ INCLUDE: Context-relevant information
 FOCUS: Lessons learned and prevention
 ```
 
-### Step 9: Update Codebase References (Conditional)
+### Step 10: Update Codebase References (Conditional)
 
 If any new functions, classes, or exports were created or modified during debugging, update the codebase references.
 
@@ -448,7 +461,7 @@ ELSE:
   SKIP: No reference updates needed
 ```
 
-### Step 10: Complete Git Workflow
+### Step 11: Complete Git Workflow
 
 Use the git-workflow subagent to commit, push, and optionally create a PR for the debug fix.
 

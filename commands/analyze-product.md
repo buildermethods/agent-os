@@ -41,6 +41,7 @@ Analyze your product's codebase and install Agent OS. This command performs deep
 const todos = [
   { content: "Analyze existing codebase structure", status: "pending", activeForm: "Analyzing existing codebase structure" },
   { content: "Discover existing specifications", status: "pending", activeForm: "Discovering existing specifications" },
+  { content: "Get current date for timestamps", status: "pending", activeForm: "Getting current date for timestamps" },
   { content: "Gather product context from user", status: "pending", activeForm: "Gathering product context from user" },
   { content: "Execute plan-product with analysis", status: "pending", activeForm: "Executing plan-product with analysis" },
   { content: "Customize generated documentation", status: "pending", activeForm: "Customizing generated documentation" },
@@ -118,7 +119,19 @@ Perform a deep codebase analysis of the current codebase to understand current s
 - NOTE: Development progress, completed work, and spec-to-implementation alignment
 - CATALOG: Any gaps between specifications and current implementation
 
-### Step 2: Gather Product Context
+### Step 2: Get Current Date
+
+Use the date-checker subagent to determine the current date for analysis timestamps.
+
+**Instructions:**
+```
+ACTION: Use date-checker subagent via Task tool
+REQUEST: "Determine today's date in YYYY-MM-DD format for 
+          product analysis timestamps"
+STORE: Date for use in analysis documentation
+```
+
+### Step 3: Gather Product Context
 
 Use the context-fetcher subagent to supplement codebase analysis with business context and future plans.
 
@@ -142,7 +155,7 @@ To properly set up Agent OS, I need to understand:
 - COMBINE: Merge user input with codebase analysis
 - PREPARE: Information for plan-product.md execution
 
-### Step 3: Execute Plan-Product with Context
+### Step 4: Execute Plan-Product with Context
 
 Execute our standard flow for installing Agent OS in existing products
 
@@ -174,7 +187,7 @@ I'm installing Agent OS into an existing product. Here's what I've gathered:
 - PROVIDE: All context as structured input
 - ALLOW: plan-product.md to create .agent-os/product/ structure
 
-### Step 4: Customize Generated Documentation
+### Step 5: Customize Generated Documentation
 
 Refine the generated documentation to ensure accuracy for the existing product by updating roadmap, tech stack, and decisions based on actual implementation.
 
@@ -194,6 +207,8 @@ Refine the generated documentation to ensure accuracy for the existing product b
 ```markdown
 ## Phase 0: Already Completed
 
+_Analysis Date: [CURRENT_DATE from date-checker]_
+
 The following features have been implemented:
 
 - [x] [FEATURE_1] - [DESCRIPTION_FROM_CODE]
@@ -207,7 +222,7 @@ The following features have been implemented:
 [CONTINUE_WITH_STANDARD_PHASES]
 ```
 
-### Step 5: Final Verification and Summary
+### Step 6: Final Verification and Summary
 
 Verify installation completeness and provide clear next steps for the user to start using Agent OS with their existing codebase.
 
