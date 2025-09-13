@@ -292,7 +292,7 @@ echo "Next steps:"
 echo ""
 
 if [ "$CLAUDE_CODE" = true ]; then
-    echo "Claude Code useage:"
+    echo "Claude Code usage:"
     echo "  /plan-product    - Set the mission & roadmap for a new product"
     echo "  /analyze-product - Set up the mission and roadmap for an existing product"
     echo "  /create-spec     - Create a spec for a new feature"
@@ -301,7 +301,7 @@ if [ "$CLAUDE_CODE" = true ]; then
 fi
 
 if [ "$CURSOR" = true ]; then
-    echo "Cursor useage:"
+    echo "Cursor usage:"
     echo "  @plan-product    - Set the mission & roadmap for a new product"
     echo "  @analyze-product - Set up the mission and roadmap for an existing product"
     echo "  @create-spec     - Create a spec for a new feature"
