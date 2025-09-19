@@ -2,19 +2,38 @@
 description: Audit claimed-complete work vs codebase; propose and apply spec/task updates
 globs:
 alwaysApply: false
-version: 1.0
+version: 1.1
 encoding: UTF-8
 ---
 
-# /audit-missing - Audit and Fix Missing Implementations
+# /audit-missing - Audit and Fix Missing Implementations (Generalized)
 
 ## Overview
 
-Analyzes claimed-complete work against the actual codebase, identifies missing or incorrect functionality, and proposes concrete changes to specs and tasks for immediate re-execution.
+Analyzes claimed-complete work against the actual codebase, identifies missing or incorrect functionality, and proposes concrete changes to specs and tasks for immediate re-execution. Works with any programming language and project structure.
 
 <pre_flight_check>
   EXECUTE: @.agent-os/instructions/meta/pre-flight.md
 </pre_flight_check>
+
+<project_detection>
+  <auto_detect>
+    CHECK: package.json → nodejs/typescript
+    CHECK: requirements.txt OR pyproject.toml → python
+    CHECK: Cargo.toml → rust
+    CHECK: go.mod → golang
+    CHECK: pom.xml OR build.gradle → java
+    CHECK: composer.json → php
+    CHECK: *.sln OR *.csproj → dotnet
+    DEFAULT: generic
+  </auto_detect>
+  
+  <custom_config>
+    READ: .agent-os/config/audit-patterns.yml
+    IF exists: Use custom patterns
+    ELSE: Use detected project type patterns
+  </custom_config>
+</project_detection>
 
 <process_flow>
 
@@ -75,19 +94,37 @@ Build comprehensive expectation graph from specifications and tasks.
 </expectation_sources>
 
 <extraction_targets>
-  - Database tables and columns
-  - RLS policies and indexes
-  - API endpoints and middleware
-  - Functions and classes
-  - Test coverage requirements
-  - UI components and states
-  - Configuration and settings
+  <universal_components>
+    - Functions and methods
+    - Classes and structs
+    - Modules and packages
+    - Configuration files
+    - Test coverage requirements
+    - Documentation files
+  </universal_components>
+  
+  <conditional_components>
+    IF database_project:
+      - Database tables and columns
+      - Migrations and schema changes
+      - Indexes and constraints
+    
+    IF web_api_project:
+      - API endpoints and routes
+      - Middleware and handlers
+      - Authentication and authorization
+    
+    IF frontend_project:
+      - UI components and states
+      - Stylesheets and assets
+      - Client-side routing
+  </conditional_components>
 </extraction_targets>
 
 <instructions>
   ACTION: Parse all specification documents
   BUILD: Comprehensive list of expected components
-  ORGANIZE: By category (database, API, tests, etc.)
+  ORGANIZE: By category (functions, classes, config, etc.)
   TRACK: Which tasks claimed to implement each component
 </instructions>
 
@@ -130,67 +167,171 @@ Use git-workflow subagent to analyze recent commits and current codebase state.
 
 <step number="4" name="codebase_analysis">
 
-### Step 4: Deep Codebase Analysis
+### Step 4: Technology-Aware Codebase Analysis
 
-Systematically verify each expected component exists and works correctly.
-
-<verification_matrix>
-  <database_verification>
-    FOR each expected table:
-      CHECK: Table exists in schema
-      VERIFY: All columns present
-      CONFIRM: RLS policies enabled
-      TEST: Indexes created
-    
-    FOR each migration:
-      CHECK: Migration file exists
-      VERIFY: Applied successfully
-      CONFIRM: Rollback capability
-  </database_verification>
-  
-  <api_verification>
-    FOR each expected endpoint:
-      CHECK: Route definition exists
-      VERIFY: Handler implemented
-      CONFIRM: Middleware applied
-      TEST: Error handling present
-    
-    FOR each middleware:
-      CHECK: Implementation exists
-      VERIFY: Properly registered
-      CONFIRM: Test coverage
-  </api_verification>
-  
-  <test_verification>
-    FOR each component:
-      CHECK: Test file exists
-      VERIFY: Test coverage adequate
-      CONFIRM: Tests passing
-      NOTE: Missing test cases
-  </test_verification>
-</verification_matrix>
+Systematically verify each expected component exists using language-specific patterns.
 
 <file_patterns>
-  DATABASE:
-    - database/migrations/versions/*.py
-    - backend/models/*.py
-    - config/database.py
+  <nodejs_typescript>
+    SOURCE:
+      - src/**/*.{js,ts,jsx,tsx}
+      - lib/**/*.{js,ts}
+      - app/**/*.{js,ts}
+      - routes/**/*.{js,ts}
+    CONFIG:
+      - package.json
+      - *.config.{js,ts}
+      - tsconfig.json
+    TESTS:
+      - test/**/*.{js,ts}
+      - tests/**/*.{js,ts}
+      - **/*.test.{js,ts}
+      - **/*.spec.{js,ts}
+    DATABASE:
+      - migrations/**/*
+      - prisma/**/*
+      - models/**/*.{js,ts}
+  </nodejs_typescript>
   
-  API:
-    - backend/api/*.py
-    - backend/middleware/*.py
-    - backend/app.py
+  <python>
+    SOURCE:
+      - src/**/*.py
+      - app/**/*.py
+      - backend/**/*.py
+      - api/**/*.py
+    CONFIG:
+      - requirements.txt
+      - pyproject.toml
+      - setup.py
+      - config/**/*.py
+    TESTS:
+      - test/**/*.py
+      - tests/**/*.py
+      - **/*_test.py
+      - **/test_*.py
+    DATABASE:
+      - migrations/**/*.py
+      - models/**/*.py
+      - database/**/*.py
+  </python>
   
-  TESTS:
-    - tests/backend/test_*.py
-    - tests/integration/*.py
+  <rust>
+    SOURCE:
+      - src/**/*.rs
+      - lib/**/*.rs
+    CONFIG:
+      - Cargo.toml
+      - Cargo.lock
+    TESTS:
+      - tests/**/*.rs
+      - **/*_test.rs
+    DATABASE:
+      - migrations/**/*.rs
+      - src/models/**/*.rs
+  </rust>
+  
+  <golang>
+    SOURCE:
+      - **/*.go
+      - cmd/**/*.go
+      - internal/**/*.go
+    CONFIG:
+      - go.mod
+      - go.sum
+    TESTS:
+      - **/*_test.go
+    DATABASE:
+      - migrations/**/*.go
+      - models/**/*.go
+  </golang>
+  
+  <java>
+    SOURCE:
+      - src/main/java/**/*.java
+      - src/main/kotlin/**/*.kt
+    CONFIG:
+      - pom.xml
+      - build.gradle
+      - application.properties
+    TESTS:
+      - src/test/java/**/*.java
+      - src/test/kotlin/**/*.kt
+    DATABASE:
+      - src/main/resources/db/migration/**/*
+      - src/main/java/**/entity/**/*.java
+  </java>
+  
+  <generic>
+    SOURCE:
+      - src/**/*
+      - lib/**/*
+      - app/**/*
+    CONFIG:
+      - config/**/*
+      - *.config.*
+      - *.json
+      - *.yml
+      - *.yaml
+    TESTS:
+      - test/**/*
+      - tests/**/*
+    DATABASE:
+      - migrations/**/*
+      - models/**/*
+      - database/**/*
+      - db/**/*
+  </generic>
 </file_patterns>
 
+<verification_patterns>
+  <nodejs_typescript>
+    FUNCTIONS: "function [NAME]|const [NAME] =|export.*[NAME]"
+    CLASSES: "class [NAME]|interface [NAME]|type [NAME]"
+    EXPORTS: "export.*[NAME]|module.exports.*[NAME]"
+    ROUTES: "app\.(get|post|put|delete)|router\.|@[A-Z].*\("
+  </nodejs_typescript>
+  
+  <python>
+    FUNCTIONS: "def [NAME]"
+    CLASSES: "class [NAME]"
+    IMPORTS: "from.*import.*[NAME]|import.*[NAME]"
+    ROUTES: "@app\.route|@api\.|def.*endpoint"
+  </python>
+  
+  <rust>
+    FUNCTIONS: "fn [NAME]|pub fn [NAME]"
+    STRUCTS: "struct [NAME]|pub struct [NAME]"
+    TRAITS: "trait [NAME]|impl.*[NAME]"
+    MODULES: "mod [NAME]|pub mod [NAME]"
+  </rust>
+  
+  <golang>
+    FUNCTIONS: "func [NAME]|func \([^)]*\) [NAME]"
+    STRUCTS: "type [NAME] struct"
+    INTERFACES: "type [NAME] interface"
+    METHODS: "func \([^)]*\) [NAME]"
+  </golang>
+  
+  <java>
+    CLASSES: "class [NAME]|interface [NAME]|enum [NAME]"
+    METHODS: "public.*[NAME]\(|private.*[NAME]\("
+    ANNOTATIONS: "@[A-Z][a-zA-Z]*"
+    IMPORTS: "import.*[NAME]"
+  </java>
+  
+  <generic>
+    GENERAL: "[NAME]"
+    DEFINITIONS: "def.*[NAME]|function.*[NAME]|class.*[NAME]"
+    REFERENCES: "[NAME]\s*[=:(]"
+  </generic>
+</verification_patterns>
+
 <instructions>
-  ACTION: Scan codebase for each expected component
-  VERIFY: Implementation matches specification
+  ACTION: Auto-detect project type and load appropriate patterns
+  SCAN: Codebase using technology-specific verification patterns
+  VERIFY: Implementation matches specification requirements
   DOCUMENT: Missing, partial, or incorrect implementations
-  COLLECT: Evidence of what actually exists
+  COLLECT: Evidence of what actually exists vs what's claimed
 </instructions>
 
 </step>
@@ -199,37 +340,42 @@ Systematically verify each expected component exists and works correctly.
 
 ### Step 5: Analyze Discrepancies
 
-Compare expectations vs reality to identify all gaps.
+Compare expectations vs reality to identify all gaps using language-agnostic analysis.
 
 <discrepancy_types>
   <missing_entirely>
     DEFINITION: Specified but not implemented at all
     SEVERITY: Critical
     ACTION: Full implementation needed
+    DETECTION: No matching patterns found in codebase
   </missing_entirely>
   
   <partial_implementation>
     DEFINITION: Started but incomplete
     SEVERITY: High
     ACTION: Complete missing parts
+    DETECTION: Some but not all expected patterns found
   </partial_implementation>
   
   <incorrect_implementation>
     DEFINITION: Exists but doesn't match spec
     SEVERITY: High
     ACTION: Fix implementation
+    DETECTION: Pattern found but behavior/structure wrong
   </incorrect_implementation>
   
   <missing_tests>
     DEFINITION: Implementation exists but no tests
     SEVERITY: Medium
     ACTION: Add test coverage
+    DETECTION: Source patterns found, test patterns missing
   </missing_tests>
   
   <false_completion>
     DEFINITION: Marked complete but not done
     SEVERITY: Critical
     ACTION: Reopen task and implement
+    DETECTION: Task marked [x] but implementation missing
   </false_completion>
 </discrepancy_types>
 
@@ -238,17 +384,17 @@ Compare expectations vs reality to identify all gaps.
     TYPE: [discrepancy_type]
     COMPONENT: [component_name]
     EXPECTED: [from_spec]
-    ACTUAL: [from_code]
+    ACTUAL: [from_code_analysis]
     TASK: [original_task_number]
-    EVIDENCE: [files_checked]
-    FIX_REQUIRED: [specific_action]
+    EVIDENCE: [files_searched_and_patterns_used]
+    FIX_REQUIRED: [specific_language_appropriate_action]
 </analysis_output>
 
 <instructions>
   ACTION: Compare expectation graph with evidence graph
-  CATEGORIZE: Each discrepancy by type
-  PRIORITIZE: By severity and dependencies
-  DOCUMENT: Clear gap analysis
+  CATEGORIZE: Each discrepancy by type and severity
+  PRIORITIZE: By impact and dependencies
+  DOCUMENT: Clear gap analysis with technology-specific details
 </instructions>
 
 </step>
@@ -265,26 +411,29 @@ Use file-creator subagent to generate updated specs and tasks.
       ADD: Clarifications section
       UPDATE: Acceptance criteria
       DOCUMENT: Edge cases discovered
+      SPECIFY: Technology-specific requirements
   </srd_updates>
   
   <technical_spec_updates>
     IF implementation details missing:
-      ADD: Specific implementation requirements
-      UPDATE: API signatures
-      CLARIFY: Data models
-      SPECIFY: Error handling
+      ADD: Language-specific implementation requirements
+      UPDATE: Function/method signatures
+      CLARIFY: Data models and structures
+      SPECIFY: Error handling patterns
+      NOTE: Testing requirements
   </technical_spec_updates>
   
   <task_updates>
     FOR each false completion:
       REOPEN: Change [x] to [ ]
       ADD: "REOPENED: [reason]" comment
-      CLARIFY: Acceptance criteria
+      CLARIFY: Technology-specific acceptance criteria
     
     FOR each missing component:
-      ADD: New subtask with clear requirements
-      SPECIFY: Test requirements
+      ADD: New subtask with clear implementation requirements
+      SPECIFY: Language-appropriate test requirements
       LINK: To specific files to create/modify
+      NOTE: Dependencies and prerequisites
   </task_updates>
 </spec_updates>
 
@@ -292,22 +441,26 @@ Use file-creator subagent to generate updated specs and tasks.
   ## AUDIT UPDATE - [TIMESTAMP]
   ### Missing Implementations Detected
   
-  #### Database Components
-  - [ ] Table: [table_name] - Missing entirely
-    - Required columns: [list]
-    - RLS policies needed
-    - Indexes: [list]
+  #### Core Components ([PROJECT_TYPE])
+  - [ ] Function: [function_name] - Missing entirely
+    - Expected in: [file_path]
+    - Signature: [expected_signature]
+    - Tests: [test_requirements]
   
-  #### API Components  
-  - [ ] Endpoint: [method] [path] - Not implemented
-    - Handler: [file_path]
-    - Middleware: [requirements]
-    - Tests: [test_file]
+  #### Configuration
+  - [ ] Config: [config_item] - Not implemented
+    - File: [config_file]
+    - Format: [format_requirements]
+  
+  #### Tests
+  - [ ] Test: [test_name] - Missing coverage
+    - Component: [component_tested]
+    - Coverage: [requirements]
   
   #### Reopened Tasks
-  - [ ] Task 3.2 - REOPENED: RLS policies not created
-    - Evidence: No policies found in pg_policies
-    - Fix: Run create_rls_policies() for all tables
+  - [ ] Task 3.2 - REOPENED: [specific_reason]
+    - Evidence: [what_was_missing]
+    - Fix: [language_specific_action]
   
   ### Re-execution Command
   Run: `/execute-task spec=[spec_folder] task=3.2`
@@ -316,8 +469,9 @@ Use file-creator subagent to generate updated specs and tasks.
 <instructions>
   ACTION: Use file-creator subagent
   REQUEST: "Update [spec_file] with audit findings"
-  GENERATE: Clear, actionable updates
+  GENERATE: Technology-appropriate, actionable updates
   PRESERVE: Original content (append only)
+  ADAPT: Language and framework conventions
 </instructions>
 
 </step>
@@ -333,20 +487,25 @@ Use file-creator subagent to document the audit findings in recaps.
   
   This corrects the recap at .agent-os/recaps/[original_recap].md
   
+  ## Project Context
+  - Language/Framework: [detected_project_type]
+  - Patterns Used: [verification_patterns_applied]
+  - Files Analyzed: [number_of_files_checked]
+  
   ## Audit Findings
   
   The following components were marked complete but found missing or incorrect:
   
   ### Missing Implementations
-  - [Component 1]: Expected in [file], not found
-  - [Component 2]: Partially implemented, missing [details]
+  - [Component 1]: Expected in [file], pattern "[pattern]" not found
+  - [Component 2]: Partially implemented, missing [specific_language_details]
   
   ### False Completions
-  - Task [X.Y]: Marked complete but [specific_issue]
+  - Task [X.Y]: Marked complete but [specific_technology_issue]
   
   ### Required Fixes
-  1. [Specific action 1]
-  2. [Specific action 2]
+  1. [Technology-specific action 1]
+  2. [Language-appropriate action 2]
   
   ## Updated Status
   - Components verified: X/Y
@@ -361,8 +520,8 @@ Use file-creator subagent to document the audit findings in recaps.
 <instructions>
   ACTION: Use file-creator subagent
   CREATE: .agent-os/recaps/[date]-audit-[feature].md
-  DOCUMENT: All corrections and findings
-  LINK: To updated specs
+  DOCUMENT: All corrections and findings with technology context
+  LINK: To updated specs and specific implementation requirements
 </instructions>
 
 </step>
@@ -371,44 +530,51 @@ Use file-creator subagent to document the audit findings in recaps.
 
 ### Step 8: Generate Ready-to-Run Execution Plan
 
-Create ordered list of tasks ready for immediate execution.
+Create ordered list of tasks ready for immediate execution, adapted to project technology.
 
 <execution_plan>
   <task_queue>
     PRIORITY 1 - Critical Missing:
     - [ ] Task X.Y: [description]
       Command: `/execute-task spec=[folder] task=X.Y`
-      Files: [list_of_files_to_create]
-      Tests: [required_tests]
+      Files: [technology_appropriate_files_to_create]
+      Tests: [language_specific_test_requirements]
+      Dependencies: [framework_specific_dependencies]
     
     PRIORITY 2 - Fix Incorrect:
     - [ ] Task A.B: [description]
       Command: `/execute-task spec=[folder] task=A.B`
-      Fix: [specific_correction]
+      Fix: [technology_specific_correction]
     
     PRIORITY 3 - Add Tests:
     - [ ] Task M.N: [description]
       Command: `/execute-task spec=[folder] task=M.N`
-      Tests: [test_requirements]
+      Tests: [language_appropriate_test_patterns]
   </task_queue>
   
   <dependencies>
-    IDENTIFY: Task dependencies
-    ORDER: By execution sequence
-    NOTE: Blockers and prerequisites
+    IDENTIFY: Task dependencies and language-specific prerequisites
+    ORDER: By execution sequence and build requirements
+    NOTE: Blockers, missing dependencies, and setup requirements
   </dependencies>
 </execution_plan>
 
 <final_output>
   ## Audit Summary
+  - Project Type: [detected_language_framework]
   - Scope: [spec_folders_audited]
   - User prompt: "[original_prompt]"
   - Verdict: X verified / Y missing / Z partial / W incorrect
   
   ## Key Findings
-  1. [Most critical missing component]
-  2. [Second critical issue]
-  3. [Third issue]
+  1. [Most critical missing component with technology context]
+  2. [Second critical issue with implementation details]
+  3. [Third issue with language-specific requirements]
+  
+  ## Files Analyzed
+  - Source: [source_patterns] ([number] files)
+  - Tests: [test_patterns] ([number] files)
+  - Config: [config_patterns] ([number] files)
   
   ## Proposed Spec Changes
   - Updated: .agent-os/specs/[folder]/tasks.md
@@ -430,16 +596,16 @@ Create ordered list of tasks ready for immediate execution.
   ### Verification:
   After execution, run:
   ```
-  /reconcile scope=database
+  /reconcile scope=[appropriate_scope]
   /audit-missing
   ```
 </final_output>
 
 <instructions>
-  ACTION: Generate clear execution plan
-  PRIORITIZE: By severity and dependencies
-  FORMAT: Ready-to-copy commands
-  INCLUDE: Verification steps
+  ACTION: Generate technology-aware execution plan
+  PRIORITIZE: By severity, dependencies, and build order
+  FORMAT: Ready-to-copy commands with language-specific context
+  INCLUDE: Technology-appropriate verification steps
 </instructions>
 
 </step>
@@ -451,10 +617,11 @@ Create ordered list of tasks ready for immediate execution.
   - ALWAYS append audit markers with timestamps
   - PRESERVE original specifications
   - MAINTAIN clear audit trail
-  - FOCUS on actionable fixes
+  - FOCUS on actionable fixes appropriate to detected technology
   - GENERATE immediately runnable commands
-  - LINK evidence to findings
-  - RESPECT task dependencies
+  - LINK evidence to findings with file paths and patterns
+  - RESPECT task dependencies and build requirements
+  - ADAPT analysis to project language and framework conventions
 </critical_behaviors>
 
 <error_handling>
@@ -462,18 +629,42 @@ Create ordered list of tasks ready for immediate execution.
     PROMPT: "Which spec would you like to audit?"
     LIST: Available specs in .agent-os/specs/
   
+  IF project type unclear:
+    USE: Generic patterns
+    NOTE: "Project type auto-detection failed, using generic analysis"
+  
   IF no git history:
     FALLBACK: Analyze current state only
     NOTE: "No git history available for timeline analysis"
   
-  IF database unreachable:
-    FOCUS: On code analysis only
-    NOTE: "Database verification skipped - connection unavailable"
+  IF language-specific tools unavailable:
+    FALLBACK: Text-based pattern matching
+    NOTE: "Language-specific analysis unavailable, using generic patterns"
 </error_handling>
+
+<custom_configuration>
+  FILE: .agent-os/config/audit-patterns.yml
+  PURPOSE: Override default patterns for custom project structures
+  
+  EXAMPLE:
+  ```yaml
+  project_type: "custom"
+  file_patterns:
+    source:
+      - "custom/src/**/*.ext"
+      - "special/lib/**/*.ext"
+    tests:
+      - "custom/test/**/*.ext"
+  verification_patterns:
+    functions: "mydef [NAME]"
+    classes: "myclass [NAME]"
+  ```
+</custom_configuration>
 
 <post_flight_check>
   EXECUTE: @.agent-os/instructions/meta/post-flight.md
   VERIFY: All spec updates are valid for /execute-task
-  CONFIRM: Recap correction created
-  CHECK: Execution commands are ready
+  CONFIRM: Recap correction created with technology context
+  CHECK: Execution commands are ready and appropriate for project type
+  VALIDATE: Pattern matching worked correctly for detected language
 </post_flight_check>
