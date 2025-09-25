@@ -2,7 +2,7 @@
 description: Rules to execute a task and its sub-tasks using Agent OS
 globs:
 alwaysApply: false
-version: 1.0
+version: 1.1
 encoding: UTF-8
 ---
 
@@ -24,6 +24,8 @@ Execute a specific task along with its sub-tasks systematically following a TDD 
 ### Step 1: Task Understanding
 
 Read and analyze the given parent task and all its sub-tasks from tasks.md to gain complete understanding of what needs to be built.
+
+**ENHANCED**: Reference any available sub-specs (technical-spec.md, database-schema.md, api-spec.md) for precise implementation details and technical specifications.
 
 <task_analysis>
   <read_from_tasks_md>

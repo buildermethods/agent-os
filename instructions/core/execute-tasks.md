@@ -2,7 +2,7 @@
 description: Rules to initiate execution of a set of tasks using Agent OS
 globs:
 alwaysApply: false
-version: 1.0
+version: 1.1
 encoding: UTF-8
 ---
 
@@ -48,13 +48,15 @@ Identify which tasks to execute from the spec (using spec_srd_reference file pat
 
 ### Step 2: Context Analysis
 
-Use the context-fetcher subagent to gather minimal context for task understanding by always loading spec tasks.md, and conditionally loading @.agent-os/product/mission-lite.md, spec-lite.md, and sub-specs/technical-spec.md if not already in context.
+Use the context-fetcher subagent to gather minimal context for task understanding by always loading spec tasks.md, and conditionally loading @.agent-os/product/mission-lite.md, spec-lite.md, and ALL available sub-specs (technical-spec.md, database-schema.md, api-spec.md) if not already in context.
 
 <instructions>
   ACTION: Use context-fetcher subagent to:
     - REQUEST: "Get product pitch from mission-lite.md"
     - REQUEST: "Get spec summary from spec-lite.md"
     - REQUEST: "Get technical approach from technical-spec.md"
+    - REQUEST: "Get database specifications from database-schema.md (if exists)"
+    - REQUEST: "Get API specifications from api-spec.md (if exists)"
   PROCESS: Returned information
 </instructions>
 
@@ -64,9 +66,11 @@ Use the context-fetcher subagent to gather minimal context for task understandin
     - tasks.md for task breakdown
   </essential_docs>
   <conditional_docs>
-    - mission-lite.md for product alignment
-    - spec-lite.md for feature summary
-    - technical-spec.md for implementation details
+    - mission-lite.md for product alignment (if not in context)
+    - spec-lite.md for feature summary (if not in context)
+    - technical-spec.md for implementation details (if not in context)
+    - database-schema.md for exact database specifications (if exists and not in context)
+    - api-spec.md for server action specifications (if exists and not in context)
   </conditional_docs>
 </context_gathering>
 

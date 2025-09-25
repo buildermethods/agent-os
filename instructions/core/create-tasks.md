@@ -2,7 +2,7 @@
 description: Create an Agent OS tasks list from an approved feature spec
 globs:
 alwaysApply: false
-version: 1.1
+version: 1.2
 encoding: UTF-8
 ---
 
@@ -23,6 +23,8 @@ With the user's approval, proceed to creating a tasks list based on the current 
 ### Step 1: Create tasks.md
 
 Use the file-creator subagent to create file: tasks.md inside of the current feature's spec folder.
+
+**ENHANCED**: Before creating tasks, read ALL existing sub-specs files (technical-spec.md, database-schema.md, api-spec.md) if they exist in the sub-specs/ directory to inform task creation with precise technical requirements and implementation details.
 
 <file_template>
   <header>
