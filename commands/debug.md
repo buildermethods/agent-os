@@ -252,6 +252,73 @@ IF scope == "general":
 - CAPTURE: All error output
 - CONFIRM: Issue is reproducible
 
+### Step 5.5: Verify Existing Names (MANDATORY Before Fix Implementation)
+
+Before implementing any code changes, verify existing function/variable/component names to prevent introducing naming errors during the fix.
+
+**Name Verification Check:**
+```
+ACTION: Check if .agent-os/codebase/ exists
+IF exists AND fix involves modifying existing code:
+  MANDATORY: Retrieve existing names via context-fetcher
+  REASON: Prevents incorrect names in debug fixes
+ELSE:
+  SKIP: Name verification (new code or no index)
+```
+
+**Retrieve Existing Names:**
+```
+IF name verification required:
+  ACTION: Use context-fetcher subagent via Task tool
+  REQUEST: "Retrieve codebase references for debug fix:
+
+    FROM .agent-os/codebase/:
+    - Function signatures in files to be modified: [FILE_LIST]
+    - Import paths for components/utilities referenced
+    - Existing variable/class names in target modules
+    - Related schemas if data operations involved
+
+    RETURN as 'Existing Names Reference' with:
+    - Exact function names with signatures and line numbers
+    - Exact import paths with component names
+    - Exact variable/class names with types"
+```
+
+**Create Reference Sheet:**
+```
+IF names retrieved:
+  EXTRACT AND NOTE:
+  1. Functions to call (exact spelling, casing, parameters)
+  2. Components to import (exact paths and names)
+  3. Variables to reference (exact names and types)
+  4. Schemas to use (exact table/column names)
+
+  VALIDATION GATE:
+  - ✓ Do NOT guess names during fix
+  - ✓ Do NOT write code until names verified
+  - ✓ Use exact names from reference sheet
+  - HALT if critical names missing
+```
+
+**Example Reference Sheet:**
+```markdown
+## Names to Use in Debug Fix
+
+Functions (from src/auth/service.js):
+- authenticateUser(email, password): Promise<User> ::line:23
+- validateSession(token): boolean ::line:45
+
+Imports:
+- import { logger } from '@/utils/logger'
+- import { AuthError } from '@/errors/auth'
+
+Variables (in src/auth/service.js):
+- currentSession: Session | null
+- authConfig: AuthConfig
+
+USE THESE EXACT NAMES IN FIX
+```
+
 ### Step 6: Context-Aware Fix Implementation
 
 Implement fix with appropriate scope constraints.
@@ -601,6 +668,8 @@ debugState.errors_encountered = [];
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:
+- `date-checker` for determining current date in proper format for timestamps
+- `context-fetcher` for retrieving existing codebase names before implementing fixes
 - `test-runner` for running scope-appropriate test verification
 - `codebase-indexer` for updating code references after fixes
 - `file-creator` for creating debug documentation with proper context paths

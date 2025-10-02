@@ -229,34 +229,51 @@ Read and analyze tasks from tasks.md while mapping requirements to discovered sp
 ### Step 7.3: Batched Context Retrieval
 Use the context-fetcher subagent to retrieve ALL relevant context in a SINGLE batched request, reducing overhead and improving performance.
 
+**Codebase Reference Check:**
+```
+ACTION: Check if .agent-os/codebase/ exists
+IF exists:
+  MANDATORY: Include codebase references in batched request
+  REASON: Prevents incorrect function/variable/component names
+ELSE:
+  SKIP: Codebase reference section
+```
+
 **Batched Request:**
 ```
 ACTION: Use context-fetcher subagent via Task tool
 REQUEST: "Batch retrieve the following context for task execution:
-  
+
   FROM technical-spec.md:
   - Sections related to [CURRENT_TASK_FUNCTIONALITY]
   - Implementation approach for this feature
   - Integration requirements
   - Performance criteria
-  
+
   FROM @.agent-os/standards/best-practices.md:
   - Best practices for [TASK_TECH_STACK]
   - Patterns for [FEATURE_TYPE]
   - Testing approaches
   - Code organization patterns
-  
+
   FROM @.agent-os/standards/code-style.md:
   - Style rules for [LANGUAGES_IN_TASK]
   - Formatting for [FILE_TYPES]
   - Component patterns
   - Testing style guidelines
-  
-  FROM .agent-os/codebase/ (if exists and needed):
-  - Function signatures in [RELEVANT_MODULES]
-  - Import paths for [NEEDED_COMPONENTS]
-  - Related schemas if data operations
-  
+
+  FROM .agent-os/codebase/ (REQUIRED if directory exists):
+  - Function signatures in modules related to [CURRENT_TASK]
+  - Import paths for components/utilities mentioned in task
+  - Existing variable/class names in files to be modified
+  - Related schemas if data operations involved
+
+  IMPORTANT: For codebase references, return:
+  - Exact function names with signatures and line numbers
+  - Exact import paths with component names
+  - Exact variable/class names with types
+  - Format as 'Existing Names Reference' for easy lookup
+
   Return as structured summary with clear section markers"
 ```
 
@@ -264,6 +281,75 @@ REQUEST: "Batch retrieve the following context for task execution:
 - BEFORE: 4 sequential subagent calls (12-16 seconds)
 - AFTER: 1 batched subagent call (3-4 seconds)
 - SAVINGS: 9-12 seconds per task
+
+### Step 7.3.5: Verify Existing Names (MANDATORY Pre-Implementation Gate)
+If codebase references were retrieved, create a "reference sheet" of exact names to use BEFORE writing any code.
+
+**Name Verification Protocol:**
+```
+IF .agent-os/codebase/ exists AND references were retrieved:
+
+  ACTION: Create reference sheet from retrieved context
+
+  EXTRACT AND NOTE:
+  1. Function names to call:
+     - Exact spelling and casing
+     - Expected parameters
+     - Return types
+     - Line numbers for verification
+
+  2. Components/modules to import:
+     - Exact import paths
+     - Exact component names
+     - Named vs default exports
+
+  3. Variables/classes to reference:
+     - Exact names in files being modified
+     - Types and interfaces
+     - Existing patterns to follow
+
+  4. Schemas/models to use:
+     - Table names and column names
+     - API endpoint paths
+     - Data structure field names
+
+  VALIDATION GATE:
+  - ✓ Do NOT guess or approximate names
+  - ✓ Do NOT write code until names are verified
+  - ✓ If unsure, use context-fetcher to grep specifically
+  - ✓ Create mental checklist or brief comment with correct names
+  - HALT if critical names are missing or ambiguous
+```
+
+**Example Reference Sheet:**
+```markdown
+## Names to Use in Implementation
+
+Functions (from src/auth/utils.js):
+- validateUser(email, password): Promise<User> ::line:15
+- hashPassword(plaintext): string ::line:42
+- generateToken(userId): string ::line:67
+
+Imports:
+- import { Button } from '@/components/Button'
+- import { useAuth } from '@/hooks/useAuth'
+- import { db } from '@/lib/database'
+
+Variables (in src/auth/service.js):
+- currentUser: User | null
+- authConfig: AuthConfig
+
+USE THESE EXACT NAMES - DO NOT DEVIATE
+```
+
+**Missing Name Handling:**
+```
+IF a needed name is not in retrieved references:
+  ACTION: Use context-fetcher to grep for it specifically
+  REQUEST: "Search functions.md for [specific-function-name]"
+  OR: "Find import path for [component-name] in imports.md"
+  WAIT: For confirmation before proceeding
+```
 
 ### Step 7.4: Approach Design and Specification Validation
 Document implementation approach and validate against specifications BEFORE coding.
@@ -294,7 +380,9 @@ Document implementation approach and validate against specifications BEFORE codi
 - ✓ Expected outputs match specification requirements
 - ✓ Dependencies and interfaces follow defined contracts
 - ✓ Error handling covers specified scenarios
-- HALT if approach conflicts with specifications
+- ✓ Reference sheet created with exact names from codebase (if applicable)
+- ✓ All required function/component/variable names verified
+- HALT if approach conflicts with specifications OR critical names are missing
 
 ### Step 7.5: Task and Sub-task Execution with TDD
 Execute the parent task and all sub-tasks in order using test-driven development (TDD) approach with specification compliance checks.
