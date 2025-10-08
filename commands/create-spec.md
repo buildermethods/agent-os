@@ -47,6 +47,7 @@ const todos = [
   { content: "Build technical specification", status: "pending", activeForm: "Building technical specification" },
   { content: "Generate database schema if needed", status: "pending", activeForm: "Generating database schema if needed" },
   { content: "Create API specification if needed", status: "pending", activeForm: "Creating API specification if needed" },
+  { content: "Create content mapping if needed", status: "pending", activeForm: "Creating content mapping if needed" },
   { content: "Request user review and approval", status: "pending", activeForm: "Requesting user review and approval" }
 ];
 // Update status to "in_progress" when starting each task
@@ -380,6 +381,156 @@ This is the API specification for the spec detailed in @.agent-os/specs/YYYY-MM-
 **Errors:** [POSSIBLE_ERRORS]
 ```
 
+### Step 10.5: Create Content Mapping (Conditional)
+
+Use the file-creator subagent to create file: sub-specs/content-mapping.md ONLY IF external content is referenced.
+
+**Decision Tree:**
+```
+IF spec_references_external_content:
+  CREATE sub-specs/content-mapping.md
+ELSE:
+  SKIP this_step
+```
+
+**Content Detection:**
+Check if the spec requires external content such as:
+- **Static Content**: Images, videos, audio, documents, PDFs
+- **Data Files**: JSON, CSV, XML, YAML, datasets
+- **Templates**: Email templates, document templates, content structures
+- **External Resources**: Fonts, third-party assets, CMS content
+
+**Decision Logic:**
+```
+CHECK spec.md and technical-spec.md for mentions of:
+  - "image", "photo", "graphic", "icon", "logo"
+  - "data file", "JSON", "CSV", "dataset"
+  - "document", "PDF", "template"
+  - "video", "audio", "media"
+  - "content", "copy", "assets"
+
+IF any_content_mentioned OR user_provides_content_files:
+  ASK: "This feature references external content. Please provide:
+        1. List of content files or directories with paths
+        2. Purpose of each content item
+        3. Current location of content (if it exists)
+
+        Or reply 'none' if no external content is needed."
+
+  WAIT: For user response
+
+  IF user_provides_content_details:
+    ACTION: Use file-creator subagent
+    CREATE: sub-specs/content-mapping.md
+    NOTE: Add reference to content-mapping.md in spec.md
+  ELSE:
+    SKIP: Content mapping creation
+ELSE:
+  SKIP: This entire step
+```
+
+**File Template:**
+```markdown
+# Content Mapping
+
+This document maps all external content referenced by the spec detailed in @.agent-os/specs/YYYY-MM-DD-spec-name/spec.md
+
+## Overview
+
+[Brief description of what content is needed and why]
+
+## Content Categories
+
+### [CATEGORY_NAME]
+
+#### Purpose
+[What this content is used for in the feature]
+
+#### Content Items
+
+**[ITEM_NAME]**
+- **Path**: `[EXACT_FILE_PATH]`
+- **Type**: [FILE_TYPE]
+- **Description**: [WHAT_IT_CONTAINS]
+- **Usage**: [HOW_TO_USE_IN_IMPLEMENTATION]
+- **Dimensions/Size**: [IF_APPLICABLE]
+- **Reference Name**: `[EXACT_NAME_TO_USE_IN_CODE]`
+
+[REPEAT_FOR_EACH_CONTENT_ITEM]
+
+## Implementation Guidelines
+
+### File Path References
+[Instructions on how to reference these files in code]
+
+Example:
+```typescript
+// Import pattern
+import [referenceName] from '[path]'
+```
+
+### Content Processing
+[Any transformations, optimizations, or processing needed]
+
+### Validation Rules
+[How to verify content is correctly integrated]
+
+## Content Checklist
+
+- [ ] All content files exist at specified paths
+- [ ] File formats match specifications
+- [ ] Content is optimized for production
+- [ ] References use exact names from this mapping
+```
+
+**Content Organization:**
+Organize content into logical categories such as:
+- **Images**: Hero images, product photos, icons, logos
+- **Data**: JSON datasets, CSV files, configuration files
+- **Documents**: PDFs, markdown files, text content
+- **Media**: Videos, audio files
+- **Templates**: Email templates, content structures
+
+**Key Requirements:**
+1. **Exact Paths**: Provide precise file paths relative to project root
+2. **Reference Names**: Define exact variable/constant names to use in code
+3. **Implementation Guidelines**: Include import patterns and usage examples
+4. **Validation**: Create checklist for verifying correct integration
+
+**Example Content Items:**
+
+For images:
+```markdown
+**Hero Background Image**
+- **Path**: `public/images/hero/main-background.jpg`
+- **Type**: JPEG image
+- **Description**: Full-width hero background showing product in use
+- **Usage**: Background image for hero section
+- **Dimensions**: 1920x1080px (16:9 aspect ratio)
+- **Reference Name**: `heroBackground`
+```
+
+For data files:
+```markdown
+**Product Data**
+- **Path**: `data/products.json`
+- **Type**: JSON dataset
+- **Description**: Array of product objects with id, name, price, description
+- **Usage**: Load and display in product listing page
+- **Schema**: `{ id: number, name: string, price: number, description: string }[]`
+- **Reference Name**: `productsData`
+```
+
+For documents:
+```markdown
+**Marketing Copy**
+- **Path**: `content/marketing/landing-page-copy.md`
+- **Type**: Markdown document
+- **Description**: Marketing text organized by section (hero, features, testimonials)
+- **Usage**: Import and display in respective page sections
+- **Reference Name**: `landingPageCopy`
+```
+
 ### Step 11: User Review
 
 Request user review of spec.md and all sub-specs files, waiting for approval or revision requests.
@@ -391,7 +542,12 @@ I've created the spec documentation:
 - Spec Requirements: @.agent-os/specs/YYYY-MM-DD-spec-name/spec.md
 - Spec Summary: @.agent-os/specs/YYYY-MM-DD-spec-name/spec-lite.md
 - Technical Spec: @.agent-os/specs/YYYY-MM-DD-spec-name/sub-specs/technical-spec.md
-[LIST_OTHER_CREATED_SPECS]
+[IF_DATABASE_SCHEMA_CREATED]
+- Database Schema: @.agent-os/specs/YYYY-MM-DD-spec-name/sub-specs/database-schema.md
+[IF_API_SPEC_CREATED]
+- API Specification: @.agent-os/specs/YYYY-MM-DD-spec-name/sub-specs/api-spec.md
+[IF_CONTENT_MAPPING_CREATED]
+- Content Mapping: @.agent-os/specs/YYYY-MM-DD-spec-name/sub-specs/content-mapping.md
 
 Please review and let me know if any changes are needed.
 

@@ -50,6 +50,7 @@ const todos = [
   { content: "Update codebase references if needed", status: "pending", activeForm: "Updating codebase references if needed" },
   { content: "Update project status", status: "pending", activeForm: "Updating project status" },
   { content: "Create debug documentation", status: "pending", activeForm: "Creating debug documentation" },
+  { content: "Verify build and diagnostics", status: "pending", activeForm: "Verifying build and diagnostics" },
   { content: "Complete git workflow", status: "pending", activeForm: "Completing git workflow" }
 ];
 // Update status to "in_progress" when starting each task
@@ -144,6 +145,7 @@ Gather issue details appropriate to the detected context.
 IF scope == "task":
   READ: .agent-os/tasks/[spec]/tasks.md for task details
   READ: .agent-os/specs/[spec]/technical-spec.md for requirements
+  CHECK: .agent-os/specs/[spec]/sub-specs/content-mapping.md (if exists)
   IDENTIFY: Current task implementation status
   NOTE: Specific subtask if applicable
 ```
@@ -153,6 +155,7 @@ IF scope == "task":
 IF scope == "spec":
   READ: Complete spec documentation
   ANALYZE: All task statuses in tasks.md
+  CHECK: .agent-os/specs/[spec]/sub-specs/content-mapping.md (if exists)
   IDENTIFY: Integration points between tasks
   MAP: Cross-task dependencies
 ```
@@ -168,9 +171,21 @@ IF scope == "general":
     - Recent changes
 ```
 
+**Content Reference Gathering (Conditional):**
+```
+IF scope == "task" OR scope == "spec":
+  CHECK: .agent-os/specs/[SPEC]/sub-specs/content-mapping.md
+
+  IF exists AND issue_involves_files:
+    READ: Content mapping
+    NOTE: Expected file paths and reference names
+    PURPOSE: Verify actual paths match content-mapping expectations
+```
+
 **Instructions:**
 - ACTION: Gather context-appropriate information
 - LOAD: Relevant documentation based on scope
+- CHECK: Content mapping if debugging file/content issues
 - DOCUMENT: Issue details and affected areas
 
 ### Step 4: Targeted Investigation
@@ -284,6 +299,24 @@ IF name verification required:
     - Exact variable/class names with types"
 ```
 
+**Retrieve Content References (if content-related fix):**
+```
+IF content-mapping.md exists AND fix_involves_content:
+  ACTION: Use context-fetcher subagent via Task tool
+  REQUEST: "Retrieve content references for debug fix:
+
+    FROM .agent-os/specs/[SPEC]/sub-specs/content-mapping.md:
+    - File paths for content items related to fix
+    - Reference names to use in code
+    - Implementation guidelines
+    - Validation rules
+
+    RETURN as 'Content References' with:
+    - Exact file paths relative to project root
+    - Exact reference names for imports
+    - Import patterns from guidelines"
+```
+
 **Create Reference Sheet:**
 ```
 IF names retrieved:
@@ -298,6 +331,22 @@ IF names retrieved:
   - ✓ Do NOT write code until names verified
   - ✓ Use exact names from reference sheet
   - HALT if critical names missing
+```
+
+**Create Content Reference Sheet:**
+```
+IF content references retrieved:
+  EXTRACT AND NOTE:
+  1. File paths (exact, relative to project root)
+  2. Reference names to use in imports
+  3. Import patterns from implementation guidelines
+  4. Content types and validation rules
+
+  VALIDATION GATE:
+  - ✓ Do NOT guess file paths during fix
+  - ✓ Do NOT write code until paths verified
+  - ✓ Use exact reference names from content-mapping
+  - HALT if critical content paths missing
 ```
 
 **Example Reference Sheet:**
@@ -528,21 +577,102 @@ ELSE:
   SKIP: No reference updates needed
 ```
 
+### Step 10.5: Build Verification and Diagnostics Check
+
+Use the build-checker subagent to verify build status and check for type/lint errors before committing the debug fix.
+
+**Instructions:**
+```
+ACTION: Get list of modified files from git
+COMMAND: git diff --name-only [BASE_BRANCH]...HEAD
+
+ACTION: Determine context for build check
+IF scope == "task" OR scope == "spec":
+  READ: .agent-os/tasks/[SPEC_FOLDER]/tasks.md
+  EXTRACT: Remaining uncompleted tasks
+  CONTEXT: spec
+ELSE:
+  CONTEXT: general
+  FUTURE_TASKS: none (standalone fix)
+
+ACTION: Use build-checker subagent via Task tool
+REQUEST: "Check build status before commit for debug fix:
+          - Context: [task/spec/general based on scope]
+          - Modified files: [LIST_OF_MODIFIED_FILES]
+          - Current fix: [DEBUG_FIX_DESCRIPTION]
+          - Spec path: [SPEC_FOLDER_PATH if applicable]
+          - Future tasks: [REMAINING_TASKS if applicable]"
+
+ANALYZE: Returned decision (COMMIT | FIX_REQUIRED | DOCUMENT_AND_COMMIT)
+```
+
+**Decision Handling:**
+
+**FIX_REQUIRED:**
+```
+IF decision == "FIX_REQUIRED":
+  DISPLAY: List of must-fix errors to user
+  ACTION: Fix each error (additional debugging)
+  VERIFY: Re-run build-checker until COMMIT decision
+  THEN: Proceed to git workflow
+```
+
+**DOCUMENT_AND_COMMIT:**
+```
+IF decision == "DOCUMENT_AND_COMMIT":
+  DISPLAY: Acceptable errors and reasoning
+  SAVE: Commit message addendum for git workflow
+  NOTE: These errors will be fixed by future tasks (if task/spec scope)
+  PROCEED: To git workflow with enhanced commit message
+```
+
+**COMMIT:**
+```
+IF decision == "COMMIT":
+  NOTE: All checks passed
+  PROCEED: To git workflow
+```
+
+**Build Check Benefits for Debugging:**
+- Ensures debug fixes don't introduce new type/lint errors
+- Prevents fixes from causing breaking changes
+- Verifies that the fix is complete and doesn't require additional work
+- Documents any acceptable build issues if debugging within active spec
+- Provides confidence that the fix is production-ready
+
 ### Step 11: Complete Git Workflow
 
 Use the git-workflow subagent to commit, push, and optionally create a PR for the debug fix.
 
-**Workflow Decision:**
+**MANDATORY Git Strategy:**
+
+The workflow is **automatic based on scope** - no user confirmation needed:
+
 ```
 IF scope == "task" OR scope == "spec":
-  # Part of active implementation
-  ACTION: Commit to current feature branch
-  NO_PR: Continue with implementation
+  # Debugging during active feature work
+  BRANCH: Stay on current feature branch
+  COMMIT: Add fix to existing branch
+  PUSH: Push to existing feature branch
+  PR: NO - fix will be included in feature PR
+  REASON: Part of ongoing implementation work
+
 ELSE IF scope == "general":
-  # Standalone fix
-  ACTION: Create dedicated fix branch
-  CREATE_PR: For review and merge
+  # Standalone bug fix (production, hotfix, general issue)
+  BRANCH: Create new fix branch (REQUIRED - NOT OPTIONAL)
+  BRANCH_NAME: "fix/[brief-description]" (or "hotfix/[brief-description]" for critical issues)
+  COMMIT: Add fix to new branch
+  PUSH: Push new branch to remote (REQUIRED)
+  PR: YES - Create pull request (REQUIRED - NOT OPTIONAL)
+  REASON: Standalone fix needs code review
+
+  ⚠️ NEVER commit directly to main/master for general scope
 ```
+
+**Branch Naming Convention:**
+- General fixes: `fix/[issue-description]` (e.g., fix/session-timeout)
+- Critical production: `hotfix/[issue-description]` (e.g., hotfix/payment-error)
+- Security issues: `security/[issue-description]` (e.g., security/xss-vulnerability)
 
 **Commit Message Format:**
 
@@ -583,10 +713,42 @@ REQUEST: "Complete git workflow for debug fix:
           - Scope: [task/spec/general]
           - Changes: All modified files
           - Commit message: [formatted as above]
-          - Branch strategy: [current/new based on scope]
-          - PR creation: [yes/no based on scope]"
+          - Commit addendum: [BUILD_CHECK_ADDENDUM if any from Step 10.5]
+
+          **MANDATORY Git Strategy:**
+          IF scope is 'general':
+            1. Create new branch named: fix/[brief-description]
+            2. Commit changes to new branch
+            3. Push new branch to remote
+            4. Create pull request (REQUIRED)
+            5. Use PR template for debug fixes
+            6. NEVER commit directly to main/master
+          ELSE IF scope is 'task' or 'spec':
+            1. Commit to current feature branch
+            2. Push to current branch
+            3. Do NOT create PR (fix part of feature work)"
 SAVE: PR URL if created for documentation
 ```
+
+**PR Template for Debug Fixes:**
+When creating PR for general scope, use this structure:
+```markdown
+## Debug Fix: [Issue Summary]
+
+**Scope:** general
+**Issue:** [What was broken]
+**Root Cause:** [Why it happened]
+**Solution:** [What was changed]
+
+**Testing:**
+- [How fix was verified]
+
+**Files Changed:**
+[Auto-populated by PR]
+```
+
+**Commit Message Enhancement:**
+If Step 10.5 returned DOCUMENT_AND_COMMIT, append the build check addendum to the commit message to document expected errors and their resolution plan.
 
 <!-- END EMBEDDED CONTENT -->
 
@@ -671,6 +833,7 @@ When the instructions mention agents, use the Task tool to invoke these subagent
 - `date-checker` for determining current date in proper format for timestamps
 - `context-fetcher` for retrieving existing codebase names before implementing fixes
 - `test-runner` for running scope-appropriate test verification
+- `build-checker` for build verification and diagnostics before commits
 - `codebase-indexer` for updating code references after fixes
 - `file-creator` for creating debug documentation with proper context paths
 - `git-workflow` for complete git workflow including commits, pushes, and PRs

@@ -45,6 +45,7 @@ const todos = [
   { content: "Setup git branch", status: "pending", activeForm: "Setting up git branch" },
   { content: "Execute assigned tasks", status: "pending", activeForm: "Executing assigned tasks" },
   { content: "Run test suite", status: "pending", activeForm: "Running test suite" },
+  { content: "Verify build and diagnostics", status: "pending", activeForm: "Verifying build and diagnostics" },
   { content: "Complete git workflow", status: "pending", activeForm: "Completing git workflow" },
   { content: "Generate documentation", status: "pending", activeForm: "Generating documentation" },
   { content: "Save state and cleanup", status: "pending", activeForm: "Saving state and cleanup" }
@@ -239,6 +240,16 @@ ELSE:
   SKIP: Codebase reference section
 ```
 
+**Content Mapping Check:**
+```
+ACTION: Check if .agent-os/specs/[SPEC]/sub-specs/content-mapping.md exists
+IF exists:
+  MANDATORY: Include content mapping in batched request
+  REASON: Prevents incorrect file paths and content references
+ELSE:
+  SKIP: Content mapping section
+```
+
 **Batched Request:**
 ```
 ACTION: Use context-fetcher subagent via Task tool
@@ -273,6 +284,18 @@ REQUEST: "Batch retrieve the following context for task execution:
   - Exact import paths with component names
   - Exact variable/class names with types
   - Format as 'Existing Names Reference' for easy lookup
+
+  FROM .agent-os/specs/[SPEC]/sub-specs/content-mapping.md (REQUIRED if file exists):
+  - All content item paths and reference names
+  - Implementation guidelines for file references
+  - Content types and usage instructions
+  - Validation rules
+
+  IMPORTANT: For content mapping, return:
+  - Exact file paths relative to project root
+  - Exact reference names to use in code
+  - Import patterns from implementation guidelines
+  - Format as 'Content References' for easy lookup
 
   Return as structured summary with clear section markers"
 ```
@@ -319,6 +342,63 @@ IF .agent-os/codebase/ exists AND references were retrieved:
   - ✓ If unsure, use context-fetcher to grep specifically
   - ✓ Create mental checklist or brief comment with correct names
   - HALT if critical names are missing or ambiguous
+```
+
+### Step 7.3.6: Verify Content References (MANDATORY if content-mapping exists)
+If content-mapping.md exists, create a "content reference sheet" of exact file paths and reference names to use BEFORE writing any code.
+
+**Content Reference Protocol:**
+```
+IF .agent-os/specs/[SPEC]/sub-specs/content-mapping.md exists:
+
+  ACTION: Create content reference sheet from retrieved mapping
+
+  EXTRACT AND NOTE:
+  1. File paths to reference:
+     - Exact paths relative to project root
+     - File types and formats
+     - Dimensions/sizes if applicable
+
+  2. Reference names to use in code:
+     - Exact variable/constant names from mapping
+     - Import patterns from implementation guidelines
+     - Named vs default import style
+
+  3. Content processing requirements:
+     - Optimization steps
+     - Transformations needed
+     - Validation rules
+
+  4. Usage instructions:
+     - How to integrate each content item
+     - Where content should be used
+     - Special handling requirements
+
+  VALIDATION GATE:
+  - ✓ Do NOT guess file paths or locations
+  - ✓ Do NOT write code until content paths verified
+  - ✓ Use exact reference names from content-mapping
+  - ✓ Follow import patterns from implementation guidelines
+  - HALT if critical content missing or paths ambiguous
+```
+
+**Example Content Reference Sheet:**
+```markdown
+## Content to Use in Implementation
+
+File Paths (from content-mapping.md):
+- public/images/hero/main-background.jpg → import as `heroBackground`
+- data/products.json → import as `productsData`
+- content/marketing/landing-page-copy.md → import as `landingPageCopy`
+
+Import Pattern:
+```typescript
+import heroBackground from '@/public/images/hero/main-background.jpg'
+import productsData from '@/data/products.json'
+import { landingPageCopy } from '@/content/marketing'
+```
+
+USE THESE EXACT PATHS AND NAMES - DO NOT DEVIATE
 ```
 
 **Example Reference Sheet:**
@@ -530,11 +610,68 @@ Verify that specification validation was completed during task execution.
 IF execute-task already validated specifications (Step 6.9):
   SKIP: Full validation (already completed)
   VERIFY: No new specification violations reported
-  PROCEED: To git workflow
+  PROCEED: To build verification
 ELSE IF validation was skipped or incomplete:
   PERFORM: Quick compliance check on changed files only
   FOCUS: New functionality added since last validation
 ```
+
+### Step 9.5: Build Verification and Diagnostics Check
+Use the build-checker subagent to verify build status and check for type/lint errors before committing.
+
+**Instructions:**
+```
+ACTION: Get list of modified files from git
+COMMAND: git diff --name-only [BASE_BRANCH]...HEAD
+
+ACTION: Get remaining tasks for context
+READ: .agent-os/tasks/[SPEC_FOLDER]/tasks.md
+EXTRACT: Uncompleted tasks that might fix build issues
+
+ACTION: Use build-checker subagent via Task tool
+REQUEST: "Check build status before commit for [SPEC_NAME]:
+          - Context: spec
+          - Modified files: [LIST_OF_MODIFIED_FILES]
+          - Current task: [COMPLETED_TASKS]
+          - Spec path: [SPEC_FOLDER_PATH]
+          - Future tasks: [REMAINING_UNCOMPLETED_TASKS]"
+
+ANALYZE: Returned decision (COMMIT | FIX_REQUIRED | DOCUMENT_AND_COMMIT)
+```
+
+**Decision Handling:**
+
+**FIX_REQUIRED:**
+```
+IF decision == "FIX_REQUIRED":
+  DISPLAY: List of must-fix errors to user
+  ACTION: Fix each error
+  VERIFY: Re-run build-checker until COMMIT decision
+  THEN: Proceed to git workflow
+```
+
+**DOCUMENT_AND_COMMIT:**
+```
+IF decision == "DOCUMENT_AND_COMMIT":
+  DISPLAY: Acceptable errors and reasoning
+  SAVE: Commit message addendum for git workflow
+  NOTE: These errors will be fixed by future tasks
+  PROCEED: To git workflow with enhanced commit message
+```
+
+**COMMIT:**
+```
+IF decision == "COMMIT":
+  NOTE: All checks passed
+  PROCEED: To git workflow
+```
+
+**Build Check Benefits:**
+- Catches type/lint errors before they reach CI/CD
+- Distinguishes "must fix" from "acceptable for now" failures
+- Documents expected build issues for future reference
+- Prevents breaking changes from being committed
+- Provides context about which future tasks will resolve issues
 
 ### Step 10: Git Workflow
 Use the git-workflow subagent to create git commit, push to GitHub, and create pull request.
@@ -546,9 +683,13 @@ REQUEST: "Complete git workflow for [SPEC_NAME] feature:
           - Spec: [SPEC_FOLDER_PATH]
           - Changes: All modified files
           - Target: main branch
-          - Description: [SUMMARY_OF_IMPLEMENTED_FEATURES]"
+          - Description: [SUMMARY_OF_IMPLEMENTED_FEATURES]
+          - Commit addendum: [BUILD_CHECK_ADDENDUM if any from Step 9.5]"
 SAVE: PR URL for summary
 ```
+
+**Commit Message Enhancement:**
+If Step 9.5 returned DOCUMENT_AND_COMMIT, append the build check addendum to the commit message to document expected errors and their resolution plan.
 
 ### Step 11: Tasks Completion Verification
 Use the project-manager subagent to verify all tasks are marked complete or have documented blockers.
@@ -732,5 +873,6 @@ When the instructions mention agents, use the Task tool to invoke these subagent
 - `context-fetcher` for batched context retrieval
 - `git-workflow` for branch and commit management
 - `test-runner` for test execution
+- `build-checker` for build verification and diagnostics before commits
 - `codebase-indexer` for code reference updates
 - `project-manager` for documentation and notifications
