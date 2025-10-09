@@ -768,7 +768,7 @@ process_workflows() {
     echo "$content"
 }
 
-# Process standards replacements
+# Process standards replacements - reads from PROJECT's local agent-os/standards folder
 process_standards() {
     local content=$1
     local base_dir=$2
@@ -785,19 +785,22 @@ process_standards() {
         local base_path=$(echo "$pattern" | sed 's/\*//')
 
         if [[ "$pattern" == *"*"* ]]; then
-            # Wildcard pattern - find all files
-            local search_dir="standards/$base_path"
-            get_profile_files "$profile" "$base_dir" "$search_dir" | while read file; do
-                if [[ "$file" == standards/* ]] && [[ "$file" == *.md ]]; then
-                    echo "@agent-os/$file"
-                fi
-            done
+            # Wildcard pattern - find all files in PROJECT's standards folder
+            local search_dir="$PROJECT_DIR/agent-os/standards/$base_path"
+
+            if [[ -d "$search_dir" ]]; then
+                find "$search_dir" -type f -name "*.md" 2>/dev/null | while read file; do
+                    # Convert to relative path from agent-os/
+                    local relative_path="${file#$PROJECT_DIR/agent-os/}"
+                    echo "@agent-os/$relative_path"
+                done
+            fi
         else
-            # Specific file
-            local file_path="standards/${pattern}.md"
-            local full_file=$(get_profile_file "$profile" "$file_path" "$base_dir")
-            if [[ -f "$full_file" ]]; then
-                echo "@agent-os/$file_path"
+            # Specific file - check in PROJECT's standards folder
+            local file_path="$PROJECT_DIR/agent-os/standards/${pattern}.md"
+            if [[ -f "$file_path" ]]; then
+                local relative_path="${file_path#$PROJECT_DIR/agent-os/}"
+                echo "@agent-os/$relative_path"
             fi
         fi
     done | sort -u
