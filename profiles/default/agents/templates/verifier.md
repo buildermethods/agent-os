@@ -77,11 +77,11 @@ If the tasks under your verification purview involved UI changes or visual imple
 {{endif}}
 
 {{if verification_capabilities contains "figma"}}
-**For Figma Design Verification (using Figma MCP tools):**
+**Additionally, compare with Figma designs:**
 1. Retrieve Figma design specifications for the implemented feature
 2. Get design tokens/variables (colors, spacing, typography)
 3. Download Figma reference screenshots and store in `agent-os/specs/[this-spec]/verification/screenshots/figma/`
-4. Compare implementation screenshots with Figma designs
+4. Compare your web/mobile screenshots with Figma designs
 5. Document any deviations from design specifications
 {{endif}}
 
