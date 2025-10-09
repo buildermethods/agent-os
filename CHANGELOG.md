@@ -5,6 +5,20 @@ All notable changes to Agent OS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Optional Local Standards** - New `--use-local-standards` flag for `project-update.sh` allows reading standards from project's local `agent-os/standards/` folder instead of profile standards. This enables per-project standards customization while maintaining backward compatibility with the default profile-based behavior.
+
+### Changed
+
+- **Tool-Agnostic Verifier Template** - Updated verifier template to support multiple verification platforms (web via Playwright, mobile apps via iOS Simulator/Android, and design verification via Figma MCP), making it flexible for different project types and available tools.
+
+### Fixed
+
+- **Agent Generation Placeholder Replacement** - Fixed delimiter-based format handling in `project-update.sh` for implementer and verifier agent generation. The script now correctly processes multi-line values using `<<<key>>>\nvalue\n<<<END>>>` format instead of the broken `key=value` format. Also added missing `example_areas_outside_of_responsibility` field processing.
+
 ## [2.0.1] - 2025-10-08
 
 ### Fixed
