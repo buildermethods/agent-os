@@ -623,31 +623,37 @@ update_claude_code_files() {
                     SKIPPED_FILES+=("$dest")
                     print_verbose "Skipped: $dest"
                 else
-                    # Build role data
+                    # Build role data with delimiter-based format for multi-line values
                     local role_data=""
-                    role_data="${role_data}id=$id"$'\n'
+                    role_data="${role_data}<<<id>>>"$'\n'"$id"$'\n'"<<<END>>>"$'\n'
 
                     local description=$(parse_role_yaml "$implementers_file" "implementers" "$id" "description")
-                    role_data="${role_data}description=$description"$'\n'
+                    role_data="${role_data}<<<description>>>"$'\n'"$description"$'\n'"<<<END>>>"$'\n'
 
                     local your_role=$(parse_role_yaml "$implementers_file" "implementers" "$id" "your_role")
-                    role_data="${role_data}your_role=$your_role"$'\n'
+                    role_data="${role_data}<<<your_role>>>"$'\n'"$your_role"$'\n'"<<<END>>>"$'\n'
 
                     local tools=$(parse_role_yaml "$implementers_file" "implementers" "$id" "tools")
-                    role_data="${role_data}tools=$tools"$'\n'
+                    role_data="${role_data}<<<tools>>>"$'\n'"$tools"$'\n'"<<<END>>>"$'\n'
 
                     local model=$(parse_role_yaml "$implementers_file" "implementers" "$id" "model")
-                    role_data="${role_data}model=$model"$'\n'
+                    role_data="${role_data}<<<model>>>"$'\n'"$model"$'\n'"<<<END>>>"$'\n'
 
                     local color=$(parse_role_yaml "$implementers_file" "implementers" "$id" "color")
-                    role_data="${role_data}color=$color"$'\n'
+                    role_data="${role_data}<<<color>>>"$'\n'"$color"$'\n'"<<<END>>>"$'\n'
 
-                    local areas=$(parse_role_yaml "$implementers_file" "implementers" "$id" "areas_of_responsibility" | tr '\n' ';')
-                    role_data="${role_data}areas_of_responsibility=$areas"$'\n'
+                    # Get areas of responsibility
+                    local areas=$(parse_role_yaml "$implementers_file" "implementers" "$id" "areas_of_responsibility")
+                    role_data="${role_data}<<<areas_of_responsibility>>>"$'\n'"$areas"$'\n'"<<<END>>>"$'\n'
 
+                    # Get example areas outside of responsibility
+                    local example_areas_outside=$(parse_role_yaml "$implementers_file" "implementers" "$id" "example_areas_outside_of_responsibility")
+                    role_data="${role_data}<<<example_areas_outside_of_responsibility>>>"$'\n'"$example_areas_outside"$'\n'"<<<END>>>"$'\n'
+
+                    # Get standards
                     local standards_patterns=$(get_role_standards "$implementers_file" "implementers" "$id")
                     local standards_list=$(process_standards "" "$BASE_DIR" "$PROJECT_PROFILE" "$standards_patterns")
-                    role_data="${role_data}implementer_standards=$standards_list"$'\n'
+                    role_data="${role_data}<<<implementer_standards>>>"$'\n'"$standards_list"$'\n'"<<<END>>>"$'\n'
 
                     if [[ -f "$dest" ]]; then
                         UPDATED_FILES+=("$dest")
@@ -681,31 +687,37 @@ update_claude_code_files() {
                     SKIPPED_FILES+=("$dest")
                     print_verbose "Skipped: $dest"
                 else
-                    # Build role data
+                    # Build role data with delimiter-based format for multi-line values
                     local role_data=""
-                    role_data="${role_data}id=$id"$'\n'
+                    role_data="${role_data}<<<id>>>"$'\n'"$id"$'\n'"<<<END>>>"$'\n'
 
                     local description=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "description")
-                    role_data="${role_data}description=$description"$'\n'
+                    role_data="${role_data}<<<description>>>"$'\n'"$description"$'\n'"<<<END>>>"$'\n'
 
                     local your_role=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "your_role")
-                    role_data="${role_data}your_role=$your_role"$'\n'
+                    role_data="${role_data}<<<your_role>>>"$'\n'"$your_role"$'\n'"<<<END>>>"$'\n'
 
                     local tools=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "tools")
-                    role_data="${role_data}tools=$tools"$'\n'
+                    role_data="${role_data}<<<tools>>>"$'\n'"$tools"$'\n'"<<<END>>>"$'\n'
 
                     local model=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "model")
-                    role_data="${role_data}model=$model"$'\n'
+                    role_data="${role_data}<<<model>>>"$'\n'"$model"$'\n'"<<<END>>>"$'\n'
 
                     local color=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "color")
-                    role_data="${role_data}color=$color"$'\n'
+                    role_data="${role_data}<<<color>>>"$'\n'"$color"$'\n'"<<<END>>>"$'\n'
 
-                    local areas=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "areas_of_responsibility" | tr '\n' ';')
-                    role_data="${role_data}areas_of_responsibility=$areas"$'\n'
+                    # Get areas of responsibility
+                    local areas=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "areas_of_responsibility")
+                    role_data="${role_data}<<<areas_of_responsibility>>>"$'\n'"$areas"$'\n'"<<<END>>>"$'\n'
 
+                    # Get example areas outside of responsibility
+                    local example_areas_outside=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "example_areas_outside_of_responsibility")
+                    role_data="${role_data}<<<example_areas_outside_of_responsibility>>>"$'\n'"$example_areas_outside"$'\n'"<<<END>>>"$'\n'
+
+                    # Get standards
                     local standards_patterns=$(get_role_standards "$verifiers_file" "verifiers" "$id")
                     local standards_list=$(process_standards "" "$BASE_DIR" "$PROJECT_PROFILE" "$standards_patterns")
-                    role_data="${role_data}verifier_standards=$standards_list"$'\n'
+                    role_data="${role_data}<<<verifier_standards>>>"$'\n'"$standards_list"$'\n'"<<<END>>>"$'\n'
 
                     if [[ -f "$dest" ]]; then
                         UPDATED_FILES+=("$dest")
