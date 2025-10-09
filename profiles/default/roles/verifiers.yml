@@ -5,6 +5,7 @@ verifiers:
     tools: Write, Read, Bash, WebFetch
     model: sonnet
     color: pink
+    verification_capabilities: []
     areas_of_responsibility:
       - Verify database migrations
       - Verify database models
@@ -30,6 +31,8 @@ verifiers:
     tools: Write, Read, Bash, WebFetch, Playwright
     model: sonnet
     color: cyan
+    verification_capabilities:
+      - web
     areas_of_responsibility:
       - Verify UI components
       - Verify views and templates

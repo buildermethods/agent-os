@@ -879,6 +879,69 @@ compile_agent() {
         rm -f "$temp_role_data"
     fi
 
+    # Process {{if}} conditional statements
+    # Syntax: {{if field contains "value"}} ... {{endif}}
+    if [[ -n "$role_data" ]]; then
+        local temp_content=$(mktemp)
+        local temp_role_data=$(mktemp)
+        echo "$content" > "$temp_content"
+        echo "$role_data" > "$temp_role_data"
+
+        content=$(perl -e '
+            use strict;
+            use warnings;
+
+            my $content_file = $ARGV[0];
+            my $role_data_file = $ARGV[1];
+
+            # Read content
+            open(my $fh, "<", $content_file) or die $!;
+            my $content = do { local $/; <$fh> };
+            close($fh);
+
+            # Read role data and parse into hash
+            open($fh, "<", $role_data_file) or die $!;
+            my %role_vars;
+            while (my $line = <$fh>) {
+                chomp $line;
+                if ($line =~ /^([^=]+)=(.*)$/) {
+                    $role_vars{$1} = $2;
+                }
+            }
+            close($fh);
+
+            # Process all {{if}} blocks
+            # Pattern: {{if field contains "value"}}content{{endif}}
+            while ($content =~ /\{\{if\s+(\w+)\s+contains\s+"([^"]+)"\}\}(.*?)\{\{endif\}\}/gs) {
+                my $field = $1;
+                my $search_value = $2;
+                my $block_content = $3;
+                my $full_match = $&;
+
+                # Check if field exists and contains the value
+                my $field_value = $role_vars{$field} || "";
+                my $include_block = 0;
+
+                # Split by commas to check array values
+                foreach my $item (split(/,/, $field_value)) {
+                    $item =~ s/^\s+|\s+$//g;  # trim whitespace
+                    if ($item eq $search_value) {
+                        $include_block = 1;
+                        last;
+                    }
+                }
+
+                # Replace the block: keep content if condition is true, remove if false
+                my $replacement = $include_block ? $block_content : "";
+                $content =~ s/\Q$full_match\E/$replacement/;
+            }
+
+            print $content;
+        ' "$temp_content" "$temp_role_data")
+
+        rm -f "$temp_content" "$temp_role_data"
+    fi
+
     # Process workflow replacements
     content=$(process_workflows "$content" "$base_dir" "$profile" "")
 

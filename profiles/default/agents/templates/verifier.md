@@ -58,30 +58,35 @@ If any are failing then note the failures, but DO NOT try to implement fixes.
 
 If the tasks under your verification purview involved UI changes or visual implementations, verify them using the appropriate tools available to you:
 
-**For Web UI (if you have Playwright tools):**
+{{if verification_capabilities contains "web"}}
+**For Web UI (using Playwright tools):**
 1. Open a browser using Playwright
 2. Navigate to the relevant page(s) where the implemented feature should appear
 3. Perform necessary user interactions to test the feature
 4. Verify functionality in both mobile-sized and desktop-sized viewports
 5. Take screenshot(s) (max 5) and store in `agent-os/specs/[this-spec]/verification/screenshots/web/`
+{{endif}}
 
-**For Mobile Apps (if you have iOS Simulator or Android tools):**
+{{if verification_capabilities contains "mobile"}}
+**For Mobile Apps (using iOS Simulator or Android tools):**
 1. Launch the appropriate simulator/emulator
 2. Open the app and navigate to the implemented features
 3. Test touch interactions, gestures, and navigation flows
 4. Verify on different device sizes (phone, tablet) if applicable
 5. Take screenshot(s) (max 5) and store in `agent-os/specs/[this-spec]/verification/screenshots/mobile/`
+{{endif}}
 
-**For Figma Design Verification (if you have Figma MCP tools):**
+{{if verification_capabilities contains "figma"}}
+**For Figma Design Verification (using Figma MCP tools):**
 1. Retrieve Figma design specifications for the implemented feature
 2. Get design tokens/variables (colors, spacing, typography)
 3. Download Figma reference screenshots and store in `agent-os/specs/[this-spec]/verification/screenshots/figma/`
 4. Compare implementation screenshots with Figma designs
 5. Document any deviations from design specifications
+{{endif}}
 
 **Skip this step if:**
 - Your verification purview doesn't involve visual/UI implementations
-- None of the above tools are available to you
 - The tasks are purely backend/API/database related
 
 ### Step 6: Verify tasks.md status has been updated
@@ -130,29 +135,47 @@ The content of your report should follow this template:
 
 **Analysis:** [Brief explanation of test failures and their significance]
 
-## Visual/UI Verification (if applicable)
+{{if verification_capabilities contains "web"}}
+## Web UI Verification
 
 **Web Pages/Features Verified (via browser):**
 - [Page/Feature Name]: ✅ Desktop | ✅ Mobile Viewport
 - [Page/Feature Name]: ✅ Desktop | ⚠️ Mobile Viewport (issues noted below)
 
+**Screenshots:** Located in `agent-os/specs/[this-spec]/verification/screenshots/web/`
+- `[screenshot-name].png` - [What it shows]
+
+**Visual/UX Issues:**
+- [Issue description and location]
+{{endif}}
+
+{{if verification_capabilities contains "mobile"}}
+## Mobile App Verification
+
 **Mobile App Screens Verified (via simulator/emulator):**
 - [Screen/Feature Name]: ✅ iPhone | ✅ iPad
 - [Screen/Feature Name]: ✅ Phone Size | ⚠️ Tablet Size (issues noted below)
 
-**Design Fidelity (vs Figma):**
-- [Component Name]: ✅ Matches Design | [Any deviations noted]
-- [Component Name]: ⚠️ Minor Deviations | [Details below]
-
-**Screenshots:** Located in `agent-os/specs/[this-spec]/verification/screenshots/`
-- `web/[screenshot-name].png` - [What it shows]
-- `mobile/[screenshot-name].png` - [What it shows]
-- `figma/[reference-name].png` - [Design reference]
+**Screenshots:** Located in `agent-os/specs/[this-spec]/verification/screenshots/mobile/`
+- `[screenshot-name].png` - [What it shows]
 
 **Visual/UX Issues:**
 - [Issue description and location]
+{{endif}}
 
-**Note:** Only include sections relevant to your verification (web, mobile, or Figma)
+{{if verification_capabilities contains "figma"}}
+## Design Fidelity Verification (vs Figma)
+
+**Components Verified:**
+- [Component Name]: ✅ Matches Design | [Any deviations noted]
+- [Component Name]: ⚠️ Minor Deviations | [Details below]
+
+**Screenshots:** Located in `agent-os/specs/[this-spec]/verification/screenshots/figma/`
+- `[reference-name].png` - [Design reference]
+
+**Design Deviations:**
+- [Issue description and location]
+{{endif}}
 
 ## Tasks.md Status
 

@@ -703,6 +703,10 @@ update_claude_code_files() {
                     local areas=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "areas_of_responsibility" | tr '\n' ';')
                     role_data="${role_data}areas_of_responsibility=$areas"$'\n'
 
+                    # Parse verification capabilities and join with commas
+                    local capabilities=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "verification_capabilities" | tr '\n' ',' | sed 's/,$//')
+                    role_data="${role_data}verification_capabilities=$capabilities"$'\n'
+
                     local standards_patterns=$(get_role_standards "$verifiers_file" "verifiers" "$id")
                     local standards_list=$(process_standards "" "$BASE_DIR" "$PROJECT_PROFILE" "$standards_patterns")
                     role_data="${role_data}verifier_standards=$standards_list"$'\n'
