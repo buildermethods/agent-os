@@ -768,7 +768,9 @@ process_workflows() {
     echo "$content"
 }
 
-# Process standards replacements - reads from PROJECT's local agent-os/standards folder
+# Process standards replacements
+# If USE_LOCAL_STANDARDS is true, reads from PROJECT's local agent-os/standards folder
+# Otherwise, reads from profile's standards folder (default behavior)
 process_standards() {
     local content=$1
     local base_dir=$2
@@ -777,33 +779,64 @@ process_standards() {
 
     local standards_list=""
 
-    echo "$standards_patterns" | while read pattern; do
-        if [[ -z "$pattern" ]]; then
-            continue
-        fi
+    if [[ "$USE_LOCAL_STANDARDS" == "true" ]]; then
+        # New behavior: read from PROJECT's local standards folder
+        echo "$standards_patterns" | while read pattern; do
+            if [[ -z "$pattern" ]]; then
+                continue
+            fi
 
-        local base_path=$(echo "$pattern" | sed 's/\*//')
+            local base_path=$(echo "$pattern" | sed 's/\*//')
 
-        if [[ "$pattern" == *"*"* ]]; then
-            # Wildcard pattern - find all files in PROJECT's standards folder
-            local search_dir="$PROJECT_DIR/agent-os/standards/$base_path"
+            if [[ "$pattern" == *"*"* ]]; then
+                # Wildcard pattern - find all files in PROJECT's standards folder
+                local search_dir="$PROJECT_DIR/agent-os/standards/$base_path"
 
-            if [[ -d "$search_dir" ]]; then
-                find "$search_dir" -type f -name "*.md" 2>/dev/null | while read file; do
-                    # Convert to relative path from agent-os/
-                    local relative_path="${file#$PROJECT_DIR/agent-os/}"
+                if [[ -d "$search_dir" ]]; then
+                    find "$search_dir" -type f -name "*.md" 2>/dev/null | while read file; do
+                        # Convert to relative path from agent-os/
+                        local relative_path="${file#$PROJECT_DIR/agent-os/}"
+                        echo "@agent-os/$relative_path"
+                    done
+                fi
+            else
+                # Specific file - check in PROJECT's standards folder
+                local file_path="$PROJECT_DIR/agent-os/standards/${pattern}.md"
+                if [[ -f "$file_path" ]]; then
+                    local relative_path="${file_path#$PROJECT_DIR/agent-os/}"
                     echo "@agent-os/$relative_path"
-                done
+                fi
             fi
-        else
-            # Specific file - check in PROJECT's standards folder
-            local file_path="$PROJECT_DIR/agent-os/standards/${pattern}.md"
-            if [[ -f "$file_path" ]]; then
-                local relative_path="${file_path#$PROJECT_DIR/agent-os/}"
-                echo "@agent-os/$relative_path"
+        done | sort -u
+    else
+        # Default behavior: read from profile's standards folder
+        echo "$standards_patterns" | while read pattern; do
+            if [[ -z "$pattern" ]]; then
+                continue
             fi
-        fi
-    done | sort -u
+
+            local base_path=$(echo "$pattern" | sed 's/\*//')
+
+            if [[ "$pattern" == *"*"* ]]; then
+                # Wildcard pattern - find all files matching pattern
+                local search_dir="$base_dir/profiles/$profile/standards/$base_path"
+
+                if [[ -d "$search_dir" ]]; then
+                    find "$search_dir" -type f -name "*.md" 2>/dev/null | while read file; do
+                        # Get relative path from profile standards dir
+                        local rel_path="${file#$base_dir/profiles/$profile/standards/}"
+                        echo "standards/$rel_path"
+                    done
+                fi
+            else
+                # Specific file - check in profile's standards folder
+                local file_path=$(get_profile_file "$profile" "standards/${pattern}.md" "$base_dir")
+                if [[ -f "$file_path" ]]; then
+                    echo "standards/${pattern}.md"
+                fi
+            fi
+        done | sort -u
+    fi
 }
 
 # Compile agent file with all replacements

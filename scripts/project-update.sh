@@ -31,9 +31,13 @@ OVERWRITE_ALL="false"
 OVERWRITE_AGENTS="false"
 OVERWRITE_COMMANDS="false"
 OVERWRITE_STANDARDS="false"
+USE_LOCAL_STANDARDS="false"
 SKIPPED_FILES=()
 UPDATED_FILES=()
 NEW_FILES=()
+
+# Export for use in common-functions.sh
+export USE_LOCAL_STANDARDS
 
 # -----------------------------------------------------------------------------
 # Help Function
@@ -56,6 +60,7 @@ Options:
     --overwrite-agents          Overwrite existing agent files
     --overwrite-commands        Overwrite existing command files
     --overwrite-standards       Overwrite existing standards files
+    --use-local-standards       Use project's local standards instead of profile standards
     --dry-run                   Show what would be done without doing it
     --verbose                   Show detailed output
     -h, --help                  Show this help message
@@ -115,6 +120,10 @@ parse_arguments() {
                 ;;
             --overwrite-standards)
                 OVERWRITE_STANDARDS="true"
+                shift
+                ;;
+            --use-local-standards)
+                USE_LOCAL_STANDARDS="true"
                 shift
                 ;;
             --dry-run)
