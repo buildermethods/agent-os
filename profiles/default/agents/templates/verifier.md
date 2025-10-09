@@ -54,17 +54,35 @@ IF the tasks under your verification purview involved writing of tests, then run
 
 If any are failing then note the failures, but DO NOT try to implement fixes.
 
-### Step 5: (if applicable) view and screenshot the implemented features in a browser
+### Step 5: (if applicable) View and verify the implementation
 
-If the tasks under your verification purview involved frontend changes or UI updates, AND if you have access to Playwright tools for viewing a browser, then:
+If the tasks under your verification purview involved UI changes or visual implementations, verify them using the appropriate tools available to you:
 
-1. Open a browser
-2. View the relevant page(s) where the implemented feature is expected to be seen by a user
-3. Perform necessary navigations or interactions as a user would when using this feature
-4. Verify you are able to use the feature fully
-  a. Verify in a mobile-sized browser
-  b. Verify in a desktop-sized browser
-5. Take screenshot(s) (max 5) and store them in `agent-os/specs/[this-spec]/verification/screenshots/` and give them descriptive names.
+**For Web UI (if you have Playwright tools):**
+1. Open a browser using Playwright
+2. Navigate to the relevant page(s) where the implemented feature should appear
+3. Perform necessary user interactions to test the feature
+4. Verify functionality in both mobile-sized and desktop-sized viewports
+5. Take screenshot(s) (max 5) and store in `agent-os/specs/[this-spec]/verification/screenshots/web/`
+
+**For Mobile Apps (if you have iOS Simulator or Android tools):**
+1. Launch the appropriate simulator/emulator
+2. Open the app and navigate to the implemented features
+3. Test touch interactions, gestures, and navigation flows
+4. Verify on different device sizes (phone, tablet) if applicable
+5. Take screenshot(s) (max 5) and store in `agent-os/specs/[this-spec]/verification/screenshots/mobile/`
+
+**For Figma Design Verification (if you have Figma MCP tools):**
+1. Retrieve Figma design specifications for the implemented feature
+2. Get design tokens/variables (colors, spacing, typography)
+3. Download Figma reference screenshots and store in `agent-os/specs/[this-spec]/verification/screenshots/figma/`
+4. Compare implementation screenshots with Figma designs
+5. Document any deviations from design specifications
+
+**Skip this step if:**
+- Your verification purview doesn't involve visual/UI implementations
+- None of the above tools are available to you
+- The tasks are purely backend/API/database related
 
 ### Step 6: Verify tasks.md status has been updated
 
@@ -112,17 +130,29 @@ The content of your report should follow this template:
 
 **Analysis:** [Brief explanation of test failures and their significance]
 
-## Browser Verification (if applicable)
+## Visual/UI Verification (if applicable)
 
-**Pages/Features Verified:**
-- [Page/Feature Name]: ✅ Desktop | ✅ Mobile
-- [Page/Feature Name]: ✅ Desktop | ⚠️ Mobile (issues noted below)
+**Web Pages/Features Verified (via browser):**
+- [Page/Feature Name]: ✅ Desktop | ✅ Mobile Viewport
+- [Page/Feature Name]: ✅ Desktop | ⚠️ Mobile Viewport (issues noted below)
+
+**Mobile App Screens Verified (via simulator/emulator):**
+- [Screen/Feature Name]: ✅ iPhone | ✅ iPad
+- [Screen/Feature Name]: ✅ Phone Size | ⚠️ Tablet Size (issues noted below)
+
+**Design Fidelity (vs Figma):**
+- [Component Name]: ✅ Matches Design | [Any deviations noted]
+- [Component Name]: ⚠️ Minor Deviations | [Details below]
 
 **Screenshots:** Located in `agent-os/specs/[this-spec]/verification/screenshots/`
-- `[screenshot-filename].png` - [What it shows]
+- `web/[screenshot-name].png` - [What it shows]
+- `mobile/[screenshot-name].png` - [What it shows]
+- `figma/[reference-name].png` - [Design reference]
 
-**User Experience Issues:**
+**Visual/UX Issues:**
 - [Issue description and location]
+
+**Note:** Only include sections relevant to your verification (web, mobile, or Figma)
 
 ## Tasks.md Status
 
