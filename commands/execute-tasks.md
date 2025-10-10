@@ -45,7 +45,7 @@ const todos = [
   { content: "Setup git branch", status: "pending", activeForm: "Setting up git branch" },
   { content: "Execute assigned tasks", status: "pending", activeForm: "Executing assigned tasks" },
   { content: "Run test suite", status: "pending", activeForm: "Running test suite" },
-  { content: "Verify build and diagnostics", status: "pending", activeForm: "Verifying build and diagnostics" },
+  { content: "Verify build with build-checker agent", status: "pending", activeForm: "Verifying build with build-checker agent" },
   { content: "Complete git workflow", status: "pending", activeForm: "Completing git workflow" },
   { content: "Generate documentation", status: "pending", activeForm: "Generating documentation" },
   { content: "Save state and cleanup", status: "pending", activeForm: "Saving state and cleanup" }
@@ -471,6 +471,17 @@ Execute the parent task and all sub-tasks in order using test-driven development
 1. **First subtask**: Write tests for [feature]
 2. **Middle subtasks**: Implementation steps
 3. **Final subtask**: Verify all tests pass
+
+**TodoWrite Example for Each Task:**
+```javascript
+// Create these todos for each parent task execution
+const taskTodos = [
+  { content: "Implement [feature/fix from task]", status: "pending", activeForm: "Implementing [feature/fix from task]" },
+  { content: "Write/update tests", status: "pending", activeForm: "Writing/updating tests" },
+  { content: "Verify build with build-checker agent", status: "pending", activeForm: "Verifying build with build-checker agent" },
+  { content: "Commit via git-workflow", status: "pending", activeForm: "Committing via git-workflow" }
+];
+```
 
 **Execution Order:**
 
