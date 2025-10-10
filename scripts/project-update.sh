@@ -31,6 +31,7 @@ OVERWRITE_ALL="false"
 OVERWRITE_AGENTS="false"
 OVERWRITE_COMMANDS="false"
 OVERWRITE_STANDARDS="false"
+PRO_USER="false"
 SKIPPED_FILES=()
 UPDATED_FILES=()
 NEW_FILES=()
@@ -56,6 +57,7 @@ Options:
     --overwrite-agents          Overwrite existing agent files
     --overwrite-commands        Overwrite existing command files
     --overwrite-standards       Overwrite existing standards files
+    --pro-user                  Replace "opus" with "sonnet" in specific agent files
     --dry-run                   Show what would be done without doing it
     --verbose                   Show detailed output
     -h, --help                  Show this help message
@@ -115,6 +117,10 @@ parse_arguments() {
                 ;;
             --overwrite-standards)
                 OVERWRITE_STANDARDS="true"
+                shift
+                ;;
+            --pro-user)
+                PRO_USER="true"
                 shift
                 ;;
             --dry-run)
@@ -637,6 +643,10 @@ update_claude_code_files() {
                     role_data="${role_data}<<<tools>>>"$'\n'"$tools"$'\n'"<<<END>>>"$'\n'
 
                     local model=$(parse_role_yaml "$implementers_file" "implementers" "$id" "model")
+                    # Override model if pro-user flag is enabled
+                    if [[ "$PRO_USER" == "true" ]]; then
+                        model="sonnet"
+                    fi
                     role_data="${role_data}<<<model>>>"$'\n'"$model"$'\n'"<<<END>>>"$'\n'
 
                     local color=$(parse_role_yaml "$implementers_file" "implementers" "$id" "color")

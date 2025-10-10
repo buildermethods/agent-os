@@ -31,6 +31,7 @@ OVERWRITE_ALL="false"
 OVERWRITE_STANDARDS="false"
 OVERWRITE_COMMANDS="false"
 OVERWRITE_AGENTS="false"
+PRO_USER="false"
 INSTALLED_FILES=()
 
 # -----------------------------------------------------------------------------
@@ -54,6 +55,7 @@ Options:
     --overwrite-standards       Overwrite existing standards during update
     --overwrite-commands        Overwrite existing commands during update
     --overwrite-agents          Overwrite existing agents during update
+    --pro-user                  Replace "opus" with "sonnet" in specific agent files
     --dry-run                   Show what would be done without doing it
     --verbose                   Show detailed output
     -h, --help                  Show this help message
@@ -113,6 +115,10 @@ parse_arguments() {
                 ;;
             --overwrite-agents)
                 OVERWRITE_AGENTS="true"
+                shift
+                ;;
+            --pro-user)
+                PRO_USER="true"
                 shift
                 ;;
             --dry-run)
@@ -373,6 +379,10 @@ install_claude_code_files() {
                 role_data="${role_data}<<<tools>>>"$'\n'"$tools"$'\n'"<<<END>>>"$'\n'
 
                 local model=$(parse_role_yaml "$implementers_file" "implementers" "$id" "model")
+                # Override model if pro-user flag is enabled
+                if [[ "$PRO_USER" == "true" ]]; then
+                    model="sonnet"
+                fi
                 role_data="${role_data}<<<model>>>"$'\n'"$model"$'\n'"<<<END>>>"$'\n'
 
                 local color=$(parse_role_yaml "$implementers_file" "implementers" "$id" "color")
@@ -506,6 +516,9 @@ perform_installation() {
     echo -e "  Single-agent mode: ${YELLOW}$EFFECTIVE_SINGLE_AGENT_MODE${NC}"
     if [[ "$EFFECTIVE_SINGLE_AGENT_MODE" == "true" ]]; then
         echo -e "  Single-agent tool: ${YELLOW}$EFFECTIVE_SINGLE_AGENT_TOOL${NC}"
+    fi
+    if [[ "$PRO_USER" == "true" ]]; then
+        echo -e "  Pro user mode: ${YELLOW}enabled (opus → sonnet)${NC}"
     fi
     echo ""
 

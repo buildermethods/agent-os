@@ -441,7 +441,7 @@ ensure_dir() {
     fi
 }
 
-# Copy file with dry-run support
+# Copy file with dry-run support and pro-user opus->sonnet replacement
 copy_file() {
     local source=$1
     local dest=$2
@@ -450,10 +450,35 @@ copy_file() {
         echo "$dest"
     else
         ensure_dir "$(dirname "$dest")"
-        cp "$source" "$dest"
-        print_verbose "Copied: $source -> $dest"
+        
+        # Check if this is a pro-user installation and file needs opus->sonnet replacement
+        if [[ "$PRO_USER" == "true" ]] && should_replace_opus_with_sonnet "$source"; then
+            # Replace opus with sonnet in the file content
+            sed 's/model: opus/model: sonnet/g' "$source" > "$dest"
+            print_verbose "Copied with pro-user replacement (opus→sonnet): $source -> $dest"
+        else
+            cp "$source" "$dest"
+            print_verbose "Copied: $source -> $dest"
+        fi
+        
         echo "$dest"
     fi
+}
+
+# Check if a file should have opus replaced with sonnet for pro users
+should_replace_opus_with_sonnet() {
+    local file=$1
+    local basename_file=$(basename "$file")
+    
+    # List of files that should have opus replaced with sonnet
+    case "$basename_file" in
+        "implementation-verifier.md"|"product-planner.md"|"spec-researcher.md"|"spec-writer.md"|"tasks-list-creator.md"|"implementers.yml")
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
 }
 
 # Write content to file with dry-run support
@@ -935,6 +960,11 @@ compile_agent() {
         local new_tools_line=$(replace_playwright_tools "$tools_line")
         # Simple replacement since this is a single line
         content=$(echo "$content" | sed "s|^tools:.*$|$new_tools_line|")
+    fi
+
+    # Apply pro-user opus->sonnet replacement if enabled
+    if [[ "$PRO_USER" == "true" ]] && should_replace_opus_with_sonnet "$dest_file"; then
+        content=$(echo "$content" | sed 's/model: opus/model: sonnet/g')
     fi
 
     if [[ "$DRY_RUN" == "true" ]]; then
