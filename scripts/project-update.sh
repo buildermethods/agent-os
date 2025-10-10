@@ -931,6 +931,9 @@ main() {
     # Validate installations
     validate_installations
 
+    # Check for base installation updates
+    check_for_base_updates
+
     # Load configurations
     load_configurations
 

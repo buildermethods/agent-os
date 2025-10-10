@@ -618,6 +618,9 @@ main() {
     # Validate base installation using common function
     validate_base_installation
 
+    # Check for base installation updates
+    check_for_base_updates
+
     # Load configuration
     load_configuration
 

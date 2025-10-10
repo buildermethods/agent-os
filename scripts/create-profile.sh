@@ -283,6 +283,9 @@ main() {
     # Validate installation
     validate_installation
 
+    # Check for base installation updates
+    check_for_base_updates
+
     # Get profile name
     get_profile_name
 

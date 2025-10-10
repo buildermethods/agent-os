@@ -637,6 +637,9 @@ main() {
     # Validate installation
     validate_installation
 
+    # Check for base installation updates
+    check_for_base_updates
+
     # Profile selection
     select_profile
 
