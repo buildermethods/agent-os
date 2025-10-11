@@ -1,0 +1,175 @@
+/**
+ * Project Update Flows
+ * High-level flows for updating project installations
+ */
+
+import * as clack from '@clack/prompts';
+import { colors, printSuccess, printError } from '../../utils/colors';
+import { joinPath, fileExists, removeDir } from '../../utils/files';
+import {
+  loadBaseConfig,
+  loadProjectConfig,
+  mergeConfig,
+  validateConfig,
+  saveProjectConfig,
+} from '../config/config';
+import { profileExists } from '../profiles/profiles';
+import { installStandards } from './standards';
+import { installRoles } from './roles';
+import { installSingleAgentCommands, installClaudeCodeCommands } from './commands';
+import { installAllClaudeCodeAgents } from './agents';
+import { ProgressSpinner, displayConfiguration } from '../ui/feedback';
+import type { ConfigOptions } from '../../types';
+
+interface UpdateOptions extends ConfigOptions {
+  verbose: boolean;
+}
+
+/**
+ * Perform project update
+ */
+export async function performUpdate(
+  baseDir: string,
+  projectDir: string,
+  options: UpdateOptions
+): Promise<void> {
+  // Load existing project config
+  const projectConfig = await loadProjectConfig(projectDir);
+  if (!projectConfig) {
+    throw new Error('Project config not found. Has Agent OS been installed?');
+  }
+
+  // Load base config
+  const baseConfig = await loadBaseConfig(baseDir);
+  if (!baseConfig) {
+    throw new Error('Base installation config not found');
+  }
+
+  // Merge configs (project config takes precedence, but we update version from base)
+  const mergedConfig = mergeConfig(baseConfig, {
+    ...options,
+    profile: projectConfig.profile,
+    multiAgentMode: projectConfig.multi_agent_mode,
+    multiAgentTool: projectConfig.multi_agent_tool,
+    singleAgentMode: projectConfig.single_agent_mode,
+    singleAgentTool: projectConfig.single_agent_tool,
+  });
+
+  // Validate configuration
+  const validation = validateConfig(mergedConfig, baseDir);
+  if (!validation.valid) {
+    throw new Error(validation.error);
+  }
+
+  // Check if profile exists
+  if (!(await profileExists(baseDir, mergedConfig.profile))) {
+    throw new Error(`Profile not found: ${mergedConfig.profile}`);
+  }
+
+  // Display configuration
+  console.log('');
+  clack.log.info(`Updating to version: ${colors.yellow(mergedConfig.version)}`);
+  displayConfiguration({
+    profile: mergedConfig.profile,
+    multiAgentMode: mergedConfig.multiAgentMode,
+    multiAgentTool: mergedConfig.multiAgentMode ? mergedConfig.multiAgentTool : undefined,
+    singleAgentMode: mergedConfig.singleAgentMode,
+    singleAgentTool: mergedConfig.singleAgentMode ? mergedConfig.singleAgentTool : undefined,
+  });
+
+  const spinner = new ProgressSpinner();
+
+  // Remove old installations
+  spinner.start('Removing old files');
+  await removeDir(joinPath(projectDir, 'agent-os/roles'));
+  await removeDir(joinPath(projectDir, 'agent-os/standards'));
+  await removeDir(joinPath(projectDir, '.claude/agents/agent-os'));
+  await removeDir(joinPath(projectDir, '.claude/commands/agent-os'));
+  spinner.stop('Removed old files');
+  console.log('');
+
+  // Save updated config
+  await saveProjectConfig(projectDir, mergedConfig);
+  printSuccess('Updated configuration');
+  console.log('');
+
+  // Install standards
+  spinner.start('Installing standards');
+  const standardsResult = await installStandards(baseDir, projectDir, mergedConfig.profile, false);
+  spinner.stop(`Installed ${standardsResult.count} standards`);
+  console.log('');
+
+  // Install single-agent mode files
+  if (mergedConfig.singleAgentMode) {
+    spinner.start('Installing roles');
+    const rolesResult = await installRoles(baseDir, projectDir, mergedConfig.profile, false);
+    spinner.stop(`Installed ${rolesResult.count} role files`);
+    console.log('');
+
+    spinner.start('Installing single-agent commands');
+    const commandsResult = await installSingleAgentCommands(
+      baseDir,
+      projectDir,
+      mergedConfig.profile,
+      {
+        version: mergedConfig.version,
+        profile: mergedConfig.profile,
+        multiAgentMode: mergedConfig.multiAgentMode,
+      },
+      false
+    );
+    spinner.stop(`Installed ${commandsResult.count} single-agent commands`);
+    console.log('');
+  }
+
+  // Install multi-agent mode files (Claude Code)
+  if (mergedConfig.multiAgentMode && mergedConfig.multiAgentTool === 'claude-code') {
+    spinner.start('Installing Claude Code commands');
+    const commandsResult = await installClaudeCodeCommands(
+      baseDir,
+      projectDir,
+      mergedConfig.profile,
+      { version: mergedConfig.version, profile: mergedConfig.profile },
+      false
+    );
+    spinner.stop(`Installed ${commandsResult.count} commands`);
+
+    spinner.start('Installing Claude Code agents');
+    const agentsResult = await installAllClaudeCodeAgents(
+      baseDir,
+      projectDir,
+      mergedConfig.profile,
+      { version: mergedConfig.version, profile: mergedConfig.profile },
+      false
+    );
+    spinner.stop(`Installed ${agentsResult.count} agents`);
+    console.log('');
+  }
+
+  printSuccess('Agent OS has been successfully updated!');
+  console.log('');
+  clack.note(
+    `${colors.green('Updated to version:')} ${colors.yellow(mergedConfig.version)}\n\n` +
+      `${colors.green('Visit the docs:')}\n` +
+      `${colors.yellow('https://buildermethods.com/agent-os')}`,
+    'Update complete'
+  );
+  console.log('');
+}
+
+/**
+ * Validate installation state before update
+ */
+export async function validateUpdatePreconditions(baseDir: string, projectDir: string): Promise<void> {
+  if (!(await fileExists(baseDir))) {
+    printError('Agent OS base installation not found at ~/agent-os');
+    printError('Please run base-install first.');
+    process.exit(1);
+  }
+
+  if (!(await fileExists(joinPath(projectDir, 'agent-os/config.yml')))) {
+    printError('Agent OS is not installed in this project');
+    printError('Please run project-install first.');
+    process.exit(1);
+  }
+}

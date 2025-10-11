@@ -1,0 +1,25 @@
+{
+  "name": "@agent-os/installer",
+  "version": "2.0.3",
+  "description": "Agent OS installation CLI tools",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --compile --outfile dist/agent-os",
+    "build:all-platforms": "bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile dist/agent-os-macos-arm64 && bun build src/index.ts --compile --target=bun-darwin-x64 --outfile dist/agent-os-macos-x64 && bun build src/index.ts --compile --target=bun-linux-x64 --outfile dist/agent-os-linux-x64 && bun build src/index.ts --compile --target=bun-windows-x64 --outfile dist/agent-os-windows-x64.exe",
+    "test": "bun test tests/integration.test.ts",
+    "test:watch": "bun test --watch tests/integration.test.ts",
+    "dev:base": "bun run src/base-install.ts",
+    "dev:project": "bun run src/project-install.ts"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.8.2",
+    "js-yaml": "^4.1.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/js-yaml": "^4.0.9",
+    "prettier": "^3.6.2"
+  }
+}

@@ -28,7 +28,18 @@ pids
 
 # Dependencies
 node_modules/
+cli/node_modules/
+
+# Build output
+dist/
+cli/dist/
+
+# Bun
+bun.lockb
 
 # Temporary files
 *.tmp
 *.temp
+
+# Claude settings
+.claude/settings.local.json
