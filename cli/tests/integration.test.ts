@@ -1,7 +1,13 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
 import { $ } from 'bun';
-import { existsSync, rmSync } from 'fs';import { join } from 'path';
+import { existsSync, rmSync } from 'fs';
+import { join } from 'path';
 import { tmpdir } from 'os';
+import { singleAgentInstallers, multiAgentInstallers } from '../src/libs/installation/commands';
+import {
+  SINGLE_AGENT_TOOLS,
+  MULTI_AGENT_TOOLS,
+} from '../src/types/config.types';
 
 const TEST_BASE_DIR = `/${tmpdir()}/agent-os-test`;
 const TEST_PROJECT_DIR = `/${tmpdir()}/agent-os-test-project`;
@@ -183,5 +189,44 @@ describe('Agent OS CLI - Integration Tests', () => {
 
     // Cleanup
     rmSync(projectDir, { recursive: true });
+  });
+
+  test('Use Case 9: Cursor single-agent mode creates .cursor/rules directory', async () => {
+    // Setup: Create project with Cursor single-agent mode
+    const projectDir = `${TEST_PROJECT_DIR}-cursor`;
+    await $`mkdir -p ${projectDir}/.cursor/rules/agent-os/new-spec`.quiet();
+    await $`mkdir -p ${projectDir}/.cursor/rules/agent-os/implement-spec`.quiet();
+
+    // Test: Create Cursor rule files
+    await $`echo "# New Spec Rule" > ${projectDir}/.cursor/rules/agent-os/new-spec/1-new-spec.mdc`.quiet();
+    await $`echo "# Implement Spec Rule" > ${projectDir}/.cursor/rules/agent-os/implement-spec/implement-spec.mdc`.quiet();
+
+    // Verify: Cursor structure exists
+    expect(existsSync(`${projectDir}/.cursor/rules/agent-os`)).toBe(true);
+    expect(existsSync(`${projectDir}/.cursor/rules/agent-os/new-spec`)).toBe(true);
+    expect(existsSync(`${projectDir}/.cursor/rules/agent-os/implement-spec`)).toBe(true);
+    expect(existsSync(`${projectDir}/.cursor/rules/agent-os/new-spec/1-new-spec.mdc`)).toBe(true);
+    expect(existsSync(`${projectDir}/.cursor/rules/agent-os/implement-spec/implement-spec.mdc`)).toBe(true);
+
+    // Cleanup
+    rmSync(projectDir, { recursive: true });
+  });
+
+  test('Use Case 10: Installer hash structure has all required tools', () => {
+    // Verify: singleAgentInstallers has all tools from SINGLE_AGENT_TOOLS
+    for (const tool of SINGLE_AGENT_TOOLS) {
+      expect(singleAgentInstallers).toHaveProperty(tool);
+      expect(typeof singleAgentInstallers[tool]).toBe('function');
+    }
+
+    // Verify: multiAgentInstallers has all tools from MULTI_AGENT_TOOLS
+    for (const tool of MULTI_AGENT_TOOLS) {
+      expect(multiAgentInstallers).toHaveProperty(tool);
+      expect(typeof multiAgentInstallers[tool]).toBe('function');
+    }
+
+    // Verify: No extra keys exist in installers
+    expect(Object.keys(singleAgentInstallers).sort()).toEqual([...SINGLE_AGENT_TOOLS].sort());
+    expect(Object.keys(multiAgentInstallers).sort()).toEqual([...MULTI_AGENT_TOOLS].sort());
   });
 });

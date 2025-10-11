@@ -6,6 +6,12 @@
 import { loadConfig as loadYamlConfig, writeProjectConfig } from '../../utils/yaml';
 import { joinPath } from '../../utils/files';
 import type { BaseConfig, EffectiveConfig, ConfigOptions, ValidationResult } from '../../types';
+import {
+  SINGLE_AGENT_TOOLS,
+  MULTI_AGENT_TOOLS,
+  type SingleAgentTool,
+  type MultiAgentTool,
+} from '../../types/config.types';
 
 /**
  * Load base configuration from BASE_DIR/config.yml
@@ -24,17 +30,44 @@ export async function loadProjectConfig(projectDir: string): Promise<BaseConfig 
 }
 
 /**
+ * Validate and convert a string to SingleAgentTool type
+ */
+function validateSingleAgentTool(tool: string): SingleAgentTool {
+  if (SINGLE_AGENT_TOOLS.includes(tool as SingleAgentTool)) {
+    return tool as SingleAgentTool;
+  }
+  throw new Error(
+    `Invalid single_agent_tool: "${tool}". Supported tools: ${SINGLE_AGENT_TOOLS.join(', ')}`
+  );
+}
+
+/**
+ * Validate and convert a string to MultiAgentTool type
+ */
+function validateMultiAgentTool(tool: string): MultiAgentTool {
+  if (MULTI_AGENT_TOOLS.includes(tool as MultiAgentTool)) {
+    return tool as MultiAgentTool;
+  }
+  throw new Error(
+    `Invalid multi_agent_tool: "${tool}". Supported tools: ${MULTI_AGENT_TOOLS.join(', ')}`
+  );
+}
+
+/**
  * Merge base config with command-line options
- * Converts snake_case from YAML to camelCase
+ * Converts snake_case from YAML to camelCase and validates tool values
  */
 export function mergeConfig(baseConfig: BaseConfig, options: ConfigOptions): EffectiveConfig {
+  const multiAgentTool = options.multiAgentTool ?? baseConfig.multi_agent_tool;
+  const singleAgentTool = options.singleAgentTool ?? baseConfig.single_agent_tool;
+
   return {
     version: baseConfig.version,
     profile: options.profile ?? baseConfig.profile,
     multiAgentMode: options.multiAgentMode ?? baseConfig.multi_agent_mode,
-    multiAgentTool: options.multiAgentTool ?? baseConfig.multi_agent_tool,
+    multiAgentTool: validateMultiAgentTool(multiAgentTool),
     singleAgentMode: options.singleAgentMode ?? baseConfig.single_agent_mode,
-    singleAgentTool: options.singleAgentTool ?? baseConfig.single_agent_tool,
+    singleAgentTool: validateSingleAgentTool(singleAgentTool),
   };
 }
 
