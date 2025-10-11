@@ -20,7 +20,7 @@ export interface Implementer extends Role {
 }
 
 export interface Verifier extends Role {
-  // Verifier-specific fields can be added here
+  verification_capabilities?: string[];
 }
 
 export interface RolesFile {

@@ -19,18 +19,78 @@ export async function processTemplate(
 ): Promise<string> {
   let processed = content;
 
-  // First, handle file includes if baseDir and profile are provided
+  // First, handle conditionals
+  processed = processConditionals(processed, replacements);
+
+  // Then, handle file includes if baseDir and profile are provided
   if (baseDir && profile) {
     processed = await processFileIncludes(processed, baseDir, profile);
   }
 
-  // Then handle simple variable replacements
+  // Finally handle simple variable replacements
   for (const [key, value] of Object.entries(replacements)) {
     const pattern = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
     processed = processed.replace(pattern, value);
   }
 
   return processed;
+}
+
+/**
+ * Process conditional statements like {{if variable contains "value"}}...{{endif}}
+ */
+function processConditionals(content: string, replacements: Record<string, string>): string {
+  let processed = content;
+
+  // Match {{if condition}}...{{endif}} blocks
+  const conditionalPattern = /\{\{if\s+([^}]+)\}\}([\s\S]*?)\{\{endif\}\}/g;
+
+  processed = processed.replace(conditionalPattern, (match, condition, contentBlock) => {
+    const trimmedCondition = condition.trim();
+
+    // Evaluate the condition
+    if (evaluateCondition(trimmedCondition, replacements)) {
+      return contentBlock;
+    } else {
+      return '';
+    }
+  });
+
+  return processed;
+}
+
+/**
+ * Evaluate a conditional expression
+ * Supports: "variable contains value", "variable equals value", "variable"
+ */
+function evaluateCondition(condition: string, replacements: Record<string, string>): boolean {
+  // Handle "contains" operator: variable contains "value"
+  const containsMatch = condition.match(/^(\w+)\s+contains\s+"([^"]+)"$/);
+  if (containsMatch) {
+    const [, variable, value] = containsMatch;
+    const variableValue = replacements[variable] || '';
+    return variableValue.includes(value);
+  }
+
+  // Handle "equals" operator: variable equals "value"
+  const equalsMatch = condition.match(/^(\w+)\s+equals\s+"([^"]+)"$/);
+  if (equalsMatch) {
+    const [, variable, value] = equalsMatch;
+    const variableValue = replacements[variable] || '';
+    return variableValue === value;
+  }
+
+  // Handle simple variable existence check: variable
+  const simpleMatch = condition.match(/^(\w+)$/);
+  if (simpleMatch) {
+    const [, variable] = simpleMatch;
+    const variableValue = replacements[variable];
+    return !!variableValue && variableValue !== 'false' && variableValue !== '0';
+  }
+
+  // If no pattern matches, return false
+  console.warn(`Unknown conditional expression: ${condition}`);
+  return false;
 }
 
 /**
@@ -112,6 +172,11 @@ export function getCommonReplacements(config: {
  * Build role-specific template replacements
  */
 export function buildRoleReplacements(role: Role): Record<string, string> {
+  // Type guard to check if role is a Verifier
+  const isVerifier = (r: Role): r is import('../../types').Verifier => {
+    return 'verification_capabilities' in r;
+  };
+
   return {
     id: role.id,
     description: role.description || '',
@@ -126,5 +191,9 @@ export function buildRoleReplacements(role: Role): Record<string, string> {
       role.standards?.map((s: string) => `@agent-os/standards/${s}.md`).join('\n') || '',
     verifier_standards:
       role.standards?.map((s: string) => `@agent-os/standards/${s}.md`).join('\n') || '',
+    verification_capabilities:
+      isVerifier(role) && role.verification_capabilities
+        ? role.verification_capabilities.join(', ')
+        : '',
   };
 }
