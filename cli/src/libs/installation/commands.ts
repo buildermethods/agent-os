@@ -38,7 +38,7 @@ export async function installSingleAgentCommands(
 
       if (!dryRun) {
         const content = await Bun.file(fullPath).text();
-        const processed = processTemplate(content, replacements);
+        const processed = await processTemplate(content, replacements, baseDir, profile);
         await writeFile(dest, processed);
       }
 
@@ -73,7 +73,7 @@ export async function installClaudeCodeCommands(
 
       if (!dryRun) {
         const content = await Bun.file(fullPath).text();
-        const processed = processTemplate(content, replacements);
+        const processed = await processTemplate(content, replacements, baseDir, profile);
         await writeFile(dest, processed);
       }
 

@@ -39,7 +39,7 @@ export async function installStaticAgents(
 
       if (!dryRun) {
         const content = await Bun.file(fullPath).text();
-        const processed = processTemplate(content, replacements);
+        const processed = await processTemplate(content, replacements, baseDir, profile);
         await writeFile(dest, processed);
       }
 
@@ -87,7 +87,7 @@ export async function generateImplementerAgents(
     if (!dryRun) {
       const roleReplacements = buildRoleReplacements(role);
       const allReplacements = { ...commonReplacements, ...roleReplacements };
-      const processed = processTemplate(template, allReplacements);
+      const processed = await processTemplate(template, allReplacements, baseDir, profile);
       await writeFile(dest, processed);
     }
 
@@ -134,7 +134,7 @@ export async function generateVerifierAgents(
     if (!dryRun) {
       const roleReplacements = buildRoleReplacements(role);
       const allReplacements = { ...commonReplacements, ...roleReplacements };
-      const processed = processTemplate(template, allReplacements);
+      const processed = await processTemplate(template, allReplacements, baseDir, profile);
       await writeFile(dest, processed);
     }
 
