@@ -16,6 +16,7 @@ import {
 import { profileExists } from '../profiles/profiles';
 import { installStandards } from './standards';
 import { installRoles } from './roles';
+import { installCustomFiles } from './custom';
 import { singleAgentInstallers, multiAgentInstallers } from './commands';
 import { installAllClaudeCodeAgents } from './agents';
 import { ProgressSpinner, displayConfiguration } from '../ui/feedback';
@@ -100,6 +101,17 @@ export async function performUpdate(
   const standardsResult = await installStandards(baseDir, projectDir, mergedConfig.profile, false);
   spinner.stop(`Installed ${standardsResult.count} standards`);
   console.log('');
+
+  // Install custom files
+  spinner.start('Installing custom files');
+  const customResult = await installCustomFiles(baseDir, projectDir, mergedConfig.profile, false);
+  if (customResult.count > 0) {
+    spinner.stop(`Installed ${customResult.count} custom files`);
+    console.log('');
+  } else {
+    spinner.stop('No custom files to install');
+    console.log('');
+  }
 
   // Install single-agent mode files
   if (mergedConfig.singleAgentMode) {

@@ -15,6 +15,7 @@ import {
 import { profileExists } from '../profiles/profiles';
 import { installStandards } from './standards';
 import { installRoles } from './roles';
+import { installCustomFiles } from './custom';
 import { installSingleAgentCommands, installClaudeCodeCommands } from './commands';
 import { installAllClaudeCodeAgents } from './agents';
 import { confirmReinstall } from '../ui/prompts';
@@ -94,6 +95,22 @@ export async function performProjectInstallation(
   );
   spinner.stop(`Installed ${standardsResult.count} standards`);
   console.log('');
+
+  // Install custom files
+  spinner.start('Installing custom files');
+  const customResult = await installCustomFiles(
+    baseDir,
+    projectDir,
+    config.profile,
+    options.dryRun
+  );
+  if (customResult.count > 0) {
+    spinner.stop(`Installed ${customResult.count} custom files`);
+    console.log('');
+  } else {
+    spinner.stop('No custom files to install');
+    console.log('');
+  }
 
   // Install single-agent mode files
   if (config.singleAgentMode) {
