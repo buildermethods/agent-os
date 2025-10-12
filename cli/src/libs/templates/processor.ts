@@ -6,7 +6,6 @@
 import type { Role } from '../../types';
 import { joinPath, fileExists } from '../../utils/files';
 import { globSync } from 'glob';
-import { readFileSync } from 'fs';
 
 /**
  * Process template placeholders in content, including file includes
@@ -95,7 +94,7 @@ function evaluateCondition(condition: string, replacements: Record<string, strin
 
 /**
  * Process file include patterns like {{workflows/path}} and {{standards/*}}
- * Recursively processes nested includes
+ * Converts patterns to file path references instead of embedding content
  */
 async function processFileIncludes(
   content: string,
@@ -128,22 +127,25 @@ async function processFileIncludes(
       const globPattern = joinPath(profilePath, category, path.replace('*', '**/*.md'));
       const files = globSync(globPattern);
 
-      let includedContent = '';
-      for (const file of files) {
-        if (await fileExists(file)) {
-          const fileContent = readFileSync(file, 'utf-8');
-          includedContent += `\n\n${fileContent}\n`;
-        }
-      }
+      // Generate file path references instead of embedding content
+      const filePaths = files
+        .map((file) => {
+          // Extract relative path from profile directory
+          const relativePath = file.replace(profilePath + '/', '');
+          // Convert to agent-os project path
+          return `agent-os/${relativePath}`;
+        })
+        .join('\n');
 
-      processed = processed.replace(fullMatch, includedContent.trim());
+      processed = processed.replace(fullMatch, filePaths);
     } else {
       // Handle specific file includes (e.g., workflows/specification/research-spec)
       const filePath = joinPath(profilePath, category, `${path}.md`);
 
       if (await fileExists(filePath)) {
-        const fileContent = readFileSync(filePath, 'utf-8');
-        processed = processed.replace(fullMatch, fileContent);
+        // Generate single file path reference
+        const relativePath = `agent-os/${category}/${path}.md`;
+        processed = processed.replace(fullMatch, relativePath);
       } else {
         // Leave the placeholder if file doesn't exist
         console.warn(`Template include file not found: ${filePath}`);
