@@ -2,7 +2,8 @@ import { describe, test, expect } from 'bun:test';
 import { processTemplate, getCommonReplacements, buildRoleReplacements } from '../src/libs/templates/processor';
 import type { Role } from '../src/types';
 
-describe('Template Processor - Conditionals', () => {
+describe('Template Processor', () => {
+  // Conditionals
   test('processes simple if statement with contains operator', async () => {
     const template = `
 Before
@@ -191,9 +192,8 @@ And more content.
     expect(result).toContain('multiline documentation');
     expect(result).toContain('And more content.');
   });
-});
 
-describe('Template Processor - Variable Replacement', () => {
+  // Variable Replacement
   test('replaces simple variables', async () => {
     const template = 'Version: {{version}}, Profile: {{profile}}';
     const replacements = {
@@ -217,9 +217,8 @@ describe('Template Processor - Variable Replacement', () => {
     expect(result).toContain('Version: 2.0.3');
     expect(result).toContain('{{missing}}'); // Should remain unreplaced
   });
-});
 
-describe('Common Replacements', () => {
+  // Common Replacements
   test('generates common replacements', () => {
     const config = {
       version: '2.0.3',
@@ -231,9 +230,8 @@ describe('Common Replacements', () => {
     expect(replacements.version).toBe('2.0.3');
     expect(replacements.profile).toBe('default');
   });
-});
 
-describe('Role Replacements', () => {
+  // Role Replacements
   test('builds role replacements with all fields', () => {
     const role: Role = {
       id: 'backend-dev',
@@ -261,9 +259,9 @@ describe('Role Replacements', () => {
   });
 
   test('handles missing optional fields', () => {
-    const role: Role = {
+    const role = {
       id: 'simple-dev',
-    };
+    } as Role;
 
     const replacements = buildRoleReplacements(role);
 

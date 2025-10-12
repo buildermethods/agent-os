@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "bun run src/index.ts",
     "build": "bun build src/index.ts --compile --outfile dist/agent-os",
+    "build:local": "bun run build && cp dist/agent-os ~/agent-os/cli && echo 'Binary copied to ~/agent-os/cli'",
     "build:all-platforms": "bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile dist/agent-os-macos-arm64 && bun build src/index.ts --compile --target=bun-darwin-x64 --outfile dist/agent-os-macos-x64 && bun build src/index.ts --compile --target=bun-linux-x64 --outfile dist/agent-os-linux-x64 && bun build src/index.ts --compile --target=bun-windows-x64 --outfile dist/agent-os-windows-x64.exe",
-    "test": "bun test tests/integration.test.ts",
-    "test:watch": "bun test --watch tests/integration.test.ts",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
     "dev:base": "bun run src/base-install.ts",
     "dev:project": "bun run src/project-install.ts"
   },
