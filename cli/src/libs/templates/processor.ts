@@ -94,7 +94,8 @@ function evaluateCondition(condition: string, replacements: Record<string, strin
 
 /**
  * Process file include patterns like {{workflows/path}} and {{standards/*}}
- * Converts patterns to file path references instead of embedding content
+ * - paths starting with 'standards' are converted to file path references
+ * - all other paths have their content expanded inline
  */
 async function processFileIncludes(
   content: string,
@@ -111,7 +112,7 @@ async function processFileIncludes(
   let processed = content;
 
   // Match patterns like {{workflows/...}} and {{standards/*}}
-  const includePattern = /\{\{(workflows|standards)\/([^}]+)\}\}/g;
+  const includePattern = /\{\{([^}|]+?)(?:\|noexpand)?\}\}/g;
   const matches = [...content.matchAll(includePattern)];
 
   if (matches.length === 0) {
@@ -119,41 +120,62 @@ async function processFileIncludes(
   }
 
   for (const match of matches) {
-    const [fullMatch, category, path] = match;
+    const [fullMatch, pathPattern] = match;
     const profilePath = joinPath(baseDir, 'profiles', profile);
 
-    if (path.includes('*')) {
-      // Handle glob patterns (e.g., standards/*)
-      const globPattern = joinPath(profilePath, category, path.replace('*', '**/*.md'));
+    // Check if this should be expanded or just referenced
+    const shouldReference = pathPattern.startsWith('standards/');
+
+    if (pathPattern.includes('*')) {
+      // Handle glob patterns (e.g., standards/* or workflows/*)
+      const globPattern = joinPath(profilePath, pathPattern.replace('*', '**/*.md'));
       const files = globSync(globPattern);
 
-      // Generate file path references instead of embedding content
-      const filePaths = files
-        .sort((a, b) => {
-          // Sort by directory depth (fewer slashes = more important/general)
-          const depthA = (a.match(/\//g) || []).length;
-          const depthB = (b.match(/\//g) || []).length;
-          if (depthA !== depthB) return depthA - depthB;
-          // Then alphabetically
-          return a.localeCompare(b);
-        })
-        .map((file) => {
-          // Extract relative path from profile directory
-          const relativePath = file.replace(profilePath + '/', '');
-          // Convert to agent-os project path with bullet point
-          return `- agent-os/${relativePath}`;
-        })
-        .join('\n');
+      if (shouldReference) {
+        // Generate file path references instead of embedding content
+        const filePaths = files
+          .sort((a, b) => {
+            // Sort by directory depth (fewer slashes = more important/general)
+            const depthA = (a.match(/\//g) || []).length;
+            const depthB = (b.match(/\//g) || []).length;
+            if (depthA !== depthB) return depthA - depthB;
+            // Then alphabetically
+            return a.localeCompare(b);
+          })
+          .map((file) => {
+            // Extract relative path from profile directory
+            const relativePath = file.replace(profilePath + '/', '');
+            // Convert to agent-os project path with bullet point
+            return `- agent-os/${relativePath}`;
+          })
+          .join('\n');
 
-      processed = processed.replace(fullMatch, filePaths);
+        processed = processed.replace(fullMatch, filePaths);
+      } else {
+        // Expand content from all matching files
+        const contents = await Promise.all(
+          files.map(async (file) => {
+            const fs = await import('fs/promises');
+            return fs.readFile(file, 'utf-8');
+          })
+        );
+        processed = processed.replace(fullMatch, contents.join('\n\n'));
+      }
     } else {
       // Handle specific file includes (e.g., workflows/specification/research-spec)
-      const filePath = joinPath(profilePath, category, `${path}.md`);
+      const filePath = joinPath(profilePath, `${pathPattern}.md`);
 
       if (await fileExists(filePath)) {
-        // Generate single file path reference with bullet point
-        const relativePath = `- agent-os/${category}/${path}.md`;
-        processed = processed.replace(fullMatch, relativePath);
+        if (shouldReference) {
+          // Generate single file path reference with bullet point
+          const relativePath = `- agent-os/${pathPattern}.md`;
+          processed = processed.replace(fullMatch, relativePath);
+        } else {
+          // Expand file content inline
+          const fs = await import('fs/promises');
+          const fileContent = await fs.readFile(filePath, 'utf-8');
+          processed = processed.replace(fullMatch, fileContent);
+        }
       } else {
         // Leave the placeholder if file doesn't exist
         console.warn(`Template include file not found: ${filePath}`);
