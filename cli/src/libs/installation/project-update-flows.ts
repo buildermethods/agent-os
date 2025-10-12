@@ -16,10 +16,10 @@ import {
 import { profileExists } from '../profiles/profiles';
 import { installStandards } from './standards';
 import { installRoles } from './roles';
-import { installSingleAgentCommands, installClaudeCodeCommands } from './commands';
+import { singleAgentInstallers, multiAgentInstallers } from './commands';
 import { installAllClaudeCodeAgents } from './agents';
 import { ProgressSpinner, displayConfiguration } from '../ui/feedback';
-import type { ConfigOptions } from '../../types';
+import type { ConfigOptions, MultiAgentTool, SingleAgentTool } from '../../types';
 
 interface UpdateOptions extends ConfigOptions {
   verbose: boolean;
@@ -50,9 +50,9 @@ export async function performUpdate(
     ...options,
     profile: projectConfig.profile,
     multiAgentMode: projectConfig.multi_agent_mode,
-    multiAgentTool: projectConfig.multi_agent_tool,
+    multiAgentTool: projectConfig.multi_agent_tool as MultiAgentTool,
     singleAgentMode: projectConfig.single_agent_mode,
-    singleAgentTool: projectConfig.single_agent_tool,
+    singleAgentTool: projectConfig.single_agent_tool as SingleAgentTool
   });
 
   // Validate configuration
@@ -83,8 +83,10 @@ export async function performUpdate(
   spinner.start('Removing old files');
   await removeDir(joinPath(projectDir, 'agent-os/roles'));
   await removeDir(joinPath(projectDir, 'agent-os/standards'));
+  await removeDir(joinPath(projectDir, 'agent-os/commands'));
   await removeDir(joinPath(projectDir, '.claude/agents/agent-os'));
   await removeDir(joinPath(projectDir, '.claude/commands/agent-os'));
+  await removeDir(joinPath(projectDir, '.cursor/rules/agent-os'));
   spinner.stop('Removed old files');
   console.log('');
 
@@ -106,26 +108,31 @@ export async function performUpdate(
     spinner.stop(`Installed ${rolesResult.count} role files`);
     console.log('');
 
-    spinner.start('Installing single-agent commands');
-    const commandsResult = await installSingleAgentCommands(
+    // Install single-agent commands using the appropriate installer
+    const installer = singleAgentInstallers[mergedConfig.singleAgentTool];
+    const toolName =
+      mergedConfig.singleAgentTool === 'cursor' ? 'Cursor rules' : 'single-agent commands';
+
+    spinner.start(`Installing ${toolName}`);
+    const commandsResult = await installer(
       baseDir,
       projectDir,
       mergedConfig.profile,
-      {
-        version: mergedConfig.version,
-        profile: mergedConfig.profile,
-        multiAgentMode: mergedConfig.multiAgentMode,
-      },
+      { version: mergedConfig.version, profile: mergedConfig.profile },
       false
     );
-    spinner.stop(`Installed ${commandsResult.count} single-agent commands`);
+    spinner.stop(`Installed ${commandsResult.count} ${toolName}`);
     console.log('');
   }
 
-  // Install multi-agent mode files (Claude Code)
-  if (mergedConfig.multiAgentMode && mergedConfig.multiAgentTool === 'claude-code') {
-    spinner.start('Installing Claude Code commands');
-    const commandsResult = await installClaudeCodeCommands(
+  // Install multi-agent mode files
+  if (mergedConfig.multiAgentMode) {
+    const installer = multiAgentInstallers[mergedConfig.multiAgentTool];
+    const toolName =
+      mergedConfig.multiAgentTool === 'claude-code' ? 'Claude Code' : mergedConfig.multiAgentTool;
+
+    spinner.start(`Installing ${toolName} commands`);
+    const commandsResult = await installer(
       baseDir,
       projectDir,
       mergedConfig.profile,
@@ -134,15 +141,18 @@ export async function performUpdate(
     );
     spinner.stop(`Installed ${commandsResult.count} commands`);
 
-    spinner.start('Installing Claude Code agents');
-    const agentsResult = await installAllClaudeCodeAgents(
-      baseDir,
-      projectDir,
-      mergedConfig.profile,
-      { version: mergedConfig.version, profile: mergedConfig.profile },
-      false
-    );
-    spinner.stop(`Installed ${agentsResult.count} agents`);
+    // Install agents for Claude Code
+    if (mergedConfig.multiAgentTool === 'claude-code') {
+      spinner.start('Installing Claude Code agents');
+      const agentsResult = await installAllClaudeCodeAgents(
+        baseDir,
+        projectDir,
+        mergedConfig.profile,
+        { version: mergedConfig.version, profile: mergedConfig.profile },
+        false
+      );
+      spinner.stop(`Installed ${agentsResult.count} agents`);
+    }
     console.log('');
   }
 

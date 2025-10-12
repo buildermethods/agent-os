@@ -24,6 +24,10 @@ multi_agent_tool: claude-code
 # Use this mode if you're using a tool that doesn't support multiple agents (a.k.a. subagents).
 # In single-agent mode, you deliver prompts to your main agent to perform tasks step-by-step.
 #
+# Supported tools:
+# - generic: Standard installation (agent-os/commands/)
+# - cursor: Installs to .cursor/rules/agent-os/*.mdc
+#
 # You can override this by running:
 # ~/.agent-os/scripts/project-install.sh --single-agent-mode [true/false] --single-agent-tool [tool-name]
 # ================================================
