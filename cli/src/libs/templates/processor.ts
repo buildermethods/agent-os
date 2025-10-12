@@ -112,7 +112,8 @@ async function processFileIncludes(
   let processed = content;
 
   // Match patterns like {{workflows/...}} and {{standards/*}}
-  const includePattern = /\{\{([^}|]+?)(?:\|noexpand)?\}\}/g;
+  // Only match patterns that contain a forward slash (file paths)
+  const includePattern = /\{\{([^}]+?\/[^}]+?)\}\}/g;
   const matches = [...content.matchAll(includePattern)];
 
   if (matches.length === 0) {
