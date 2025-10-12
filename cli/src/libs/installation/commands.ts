@@ -67,7 +67,11 @@ export async function installClaudeCodeCommands(
   const replacements = getCommonReplacements(config);
 
   for (const { relativePath, fullPath } of files) {
-    if (relativePath.includes('/multi-agent/')) {
+    // Include both multi-agent commands and standalone commands (not in single-agent folder)
+    const isMultiAgent = relativePath.includes('/multi-agent/');
+    const isStandalone = !relativePath.includes('/single-agent/') && !relativePath.includes('/multi-agent/');
+
+    if (isMultiAgent || isStandalone) {
       const commandName = basename(relativePath, '.md').split('/').pop() || '';
       const dest = joinPath(projectDir, '.claude/commands/agent-os', `${commandName}.md`);
 
