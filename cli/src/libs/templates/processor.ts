@@ -129,11 +129,19 @@ async function processFileIncludes(
 
       // Generate file path references instead of embedding content
       const filePaths = files
+        .sort((a, b) => {
+          // Sort by directory depth (fewer slashes = more important/general)
+          const depthA = (a.match(/\//g) || []).length;
+          const depthB = (b.match(/\//g) || []).length;
+          if (depthA !== depthB) return depthA - depthB;
+          // Then alphabetically
+          return a.localeCompare(b);
+        })
         .map((file) => {
           // Extract relative path from profile directory
           const relativePath = file.replace(profilePath + '/', '');
-          // Convert to agent-os project path
-          return `agent-os/${relativePath}`;
+          // Convert to agent-os project path with bullet point
+          return `- agent-os/${relativePath}`;
         })
         .join('\n');
 
@@ -143,8 +151,8 @@ async function processFileIncludes(
       const filePath = joinPath(profilePath, category, `${path}.md`);
 
       if (await fileExists(filePath)) {
-        // Generate single file path reference
-        const relativePath = `agent-os/${category}/${path}.md`;
+        // Generate single file path reference with bullet point
+        const relativePath = `- agent-os/${category}/${path}.md`;
         processed = processed.replace(fullMatch, relativePath);
       } else {
         // Leave the placeholder if file doesn't exist
