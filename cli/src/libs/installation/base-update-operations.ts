@@ -5,8 +5,9 @@
 
 import * as clack from '@clack/prompts';
 import { $ } from 'bun';
+import { dirname } from 'path';
 import { printSuccess } from '../../utils/colors';
-import { joinPath, removeDir, fileExists } from '../../utils/files';
+import { joinPath, removeDir, fileExists, ensureDir } from '../../utils/files';
 import { getAllRepoFiles, downloadFile } from '../../utils/github';
 
 /**
@@ -17,16 +18,69 @@ export async function updateProfile(baseDir: string, exclusions: string[]): Prom
   spinner.start('Updating default profile');
 
   const profileDir = joinPath(baseDir, 'profiles/default');
-  await removeDir(profileDir);
+  const commandsDir = joinPath(profileDir, 'commands');
+  const backupDir = joinPath(baseDir, '.profile-update-backup');
 
+  // Get list of files that exist in the repo
   const files = await getAllRepoFiles(exclusions);
   const profileFiles = files.filter((f) => f.startsWith('profiles/default/'));
+  const repoCommandFiles = new Set(
+    profileFiles
+      .filter((f) => f.startsWith('profiles/default/commands/'))
+      .map((f) => f.replace('profiles/default/', ''))
+  );
+
+  // Backup custom commands (those not in the repo)
+  const customCommands: Array<{ relativePath: string; fullPath: string }> = [];
+
+  if (await fileExists(commandsDir)) {
+    const findResult = await $`find ${commandsDir} -type f -name "*.md"`.quiet();
+    if (findResult.exitCode === 0) {
+      const commandFiles = findResult.stdout
+        .toString()
+        .trim()
+        .split('\n')
+        .filter((f) => f);
+
+      for (const file of commandFiles) {
+        const relativePath = file.replace(profileDir + '/', '');
+        if (!repoCommandFiles.has(relativePath)) {
+          customCommands.push({ relativePath, fullPath: file });
+        }
+      }
+
+      if (customCommands.length > 0) {
+        await ensureDir(backupDir);
+        for (const cmd of customCommands) {
+          const backupPath = joinPath(backupDir, cmd.relativePath);
+          await ensureDir(dirname(backupPath));
+          await $`cp ${cmd.fullPath} ${backupPath}`.quiet();
+        }
+        clack.log.info(`Backed up ${customCommands.length} custom command(s)`);
+      }
+    }
+  }
+
+  // Remove and reinstall profile
+  await removeDir(profileDir);
 
   let count = 0;
   for (const file of profileFiles) {
     const destFile = joinPath(baseDir, file);
     const success = await downloadFile(file, destFile);
     if (success) count++;
+  }
+
+  // Restore custom commands
+  if (customCommands.length > 0) {
+    for (const cmd of customCommands) {
+      const restorePath = joinPath(profileDir, cmd.relativePath);
+      const backupPath = joinPath(backupDir, cmd.relativePath);
+      await ensureDir(dirname(restorePath));
+      await $`cp ${backupPath} ${restorePath}`.quiet();
+    }
+    await removeDir(backupDir);
+    clack.log.success(`Restored ${customCommands.length} custom command(s)`);
   }
 
   spinner.stop('Profile updated');
