@@ -24,16 +24,26 @@ export async function installSingleAgentCommands(
   const replacements = getCommonReplacements(config);
 
   for (const { relativePath, fullPath } of files) {
-    if (relativePath.includes('/single-agent/')) {
+    // Include both single-agent commands and standalone commands (not in multi-agent folder)
+    const isSingleAgent = relativePath.includes('/single-agent/');
+    const isStandalone = !relativePath.includes('/single-agent/') && !relativePath.includes('/multi-agent/');
+
+    if (isSingleAgent || isStandalone) {
       let dest: string;
 
-      // If both modes enabled, keep folder structure
-      if (config.multiAgentMode) {
-        dest = joinPath(projectDir, 'agent-os', relativePath);
+      if (isSingleAgent) {
+        // If both modes enabled, keep folder structure
+        if (config.multiAgentMode) {
+          dest = joinPath(projectDir, 'agent-os', relativePath);
+        } else {
+          // Strip single-agent subfolder
+          const destFile = relativePath.replace('/single-agent', '');
+          dest = joinPath(projectDir, 'agent-os', destFile);
+        }
       } else {
-        // Strip single-agent subfolder
-        const destFile = relativePath.replace('/single-agent', '');
-        dest = joinPath(projectDir, 'agent-os', destFile);
+        // Standalone command - place directly in agent-os/commands/
+        const commandName = basename(relativePath, '.md');
+        dest = joinPath(projectDir, 'agent-os/commands', `${commandName}.md`);
       }
 
       if (!dryRun) {
@@ -67,7 +77,11 @@ export async function installClaudeCodeCommands(
   const replacements = getCommonReplacements(config);
 
   for (const { relativePath, fullPath } of files) {
-    if (relativePath.includes('/multi-agent/')) {
+    // Include both multi-agent commands and standalone commands (not in single-agent folder)
+    const isMultiAgent = relativePath.includes('/multi-agent/');
+    const isStandalone = !relativePath.includes('/single-agent/') && !relativePath.includes('/multi-agent/');
+
+    if (isMultiAgent || isStandalone) {
       const commandName = basename(relativePath, '.md').split('/').pop() || '';
       const dest = joinPath(projectDir, '.claude/commands/agent-os', `${commandName}.md`);
 
