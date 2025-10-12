@@ -1,0 +1,78 @@
+name: Release CLI Binary
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+            artifact: agent-os-linux
+          - os: macos-latest
+            target: darwin-arm64
+            artifact: agent-os-macos-arm64
+          - os: macos-13
+            target: darwin-x64
+            artifact: agent-os-macos-x64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: ./cli
+        run: bun install
+
+      - name: Build binary
+        working-directory: ./cli
+        run: bun build src/index.ts --compile --outfile dist/agent-os
+
+      - name: Rename binary
+        working-directory: ./cli
+        run: mv dist/agent-os dist/${{ matrix.artifact }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: cli/dist/${{ matrix.artifact }}
+
+  create-release:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/agent-os-linux/agent-os-linux
+            dist/agent-os-macos-arm64/agent-os-macos-arm64
+            dist/agent-os-macos-x64/agent-os-macos-x64
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
