@@ -43,3 +43,4 @@ bun.lockb
 
 # Claude settings
 .claude/settings.local.json
+cli/agent-os
