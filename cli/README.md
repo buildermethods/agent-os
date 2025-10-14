@@ -17,6 +17,8 @@ The TypeScript CLI replaces the original bash scripts with a **more reliable, te
 
 ## Installation
 
+### macOS and Linux
+
 The CLI is automatically installed with Agent OS base installation:
 
 ```bash
@@ -28,9 +30,55 @@ This installs the base system to `~/agent-os/` including the compiled `cli` exec
 For easier access, create an alias:
 
 ```bash
+# For zsh (macOS default)
 echo 'alias agent-os="~/agent-os/cli"' >> ~/.zshrc
 source ~/.zshrc
+
+# For bash (Linux default)
+echo 'alias agent-os="~/agent-os/cli"' >> ~/.bashrc
+source ~/.bashrc
 ```
+
+### Windows
+
+For Windows, you'll need to manually download and set up Agent OS:
+
+1. **Download the repository**:
+   ```powershell
+   # Using Git
+   git clone https://github.com/buildermethods/agent-os.git
+   cd agent-os
+
+   # Or download ZIP from GitHub and extract
+   ```
+
+2. **Download the Windows CLI executable**:
+   - Download `agent-os-windows-x64.exe` from the [latest release](https://github.com/buildermethods/agent-os/releases)
+   - Or build it yourself (see Development section below)
+
+3. **Set up the base installation**:
+   ```powershell
+   # Create agent-os directory in your user folder
+   mkdir $HOME\agent-os
+
+   # Copy the files
+   Copy-Item -Path "profiles", "workflows", "standards", "agents", "commands" -Destination "$HOME\agent-os" -Recurse
+   Copy-Item -Path "agent-os-windows-x64.exe" -Destination "$HOME\agent-os\cli.exe"
+   ```
+
+4. **Add to PATH (optional)**:
+   ```powershell
+   # Add to current session
+   $env:PATH += ";$HOME\agent-os"
+
+   # Add permanently (run PowerShell as Administrator)
+   [Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$HOME\agent-os", "User")
+   ```
+
+5. **Create an alias (optional)**:
+   - Open PowerShell profile: `notepad $PROFILE`
+   - Add: `function agent-os { & "$HOME\agent-os\cli.exe" $args }`
+   - Reload: `. $PROFILE`
 
 ## Usage
 

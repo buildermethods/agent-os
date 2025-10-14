@@ -20,6 +20,8 @@ Use it with:
 
 Docs, installation, usage, & best practices 👉 [It's all here](https://buildermethods.com/agent-os)
 
+**Windows users:** See the [CLI README](cli/README.md#windows) for Windows installation instructions.
+
 ---
 
 ### Created by Brian Casel @ Builder Methods
