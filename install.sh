@@ -154,51 +154,76 @@ install_base() {
   print_success "Base installation complete"
 }
 
+# Build CLI binary (called before backup in local mode)
+build_cli() {
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  CLI_DIR="$SCRIPT_DIR/cli"
+
+  if [ ! -d "$CLI_DIR" ]; then
+    print_error "CLI directory not found at $CLI_DIR"
+    exit 1
+  fi
+
+  # Check if Bun is installed
+  if ! command -v bun &> /dev/null; then
+    print_error "Bun is not installed. Please install Bun: https://bun.sh"
+    exit 1
+  fi
+
+  print_info "Building CLI with Bun..."
+  cd "$CLI_DIR"
+
+  # Install dependencies if needed
+  if [ ! -d "node_modules" ]; then
+    print_info "Installing dependencies..."
+    bun install
+  fi
+
+  # Build the CLI
+  bun run build
+
+  # Verify build succeeded
+  if [ ! -f "dist/agent-os" ]; then
+    print_error "Build failed: dist/agent-os not found"
+    exit 1
+  fi
+
+  cd - > /dev/null
+  print_success "CLI built successfully"
+}
+
 # Install CLI binary
 install_cli() {
   print_info "Installing agent-os CLI tool..."
 
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   CLI_PATH="$BASE_DIR/cli"
 
   if [ "$LOCAL_MODE" = true ]; then
-    # Build CLI locally
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    CLI_DIR="$SCRIPT_DIR/cli"
+    CLI_BINARY="$SCRIPT_DIR/cli/dist/agent-os"
 
-    if [ ! -d "$CLI_DIR" ]; then
-      print_error "CLI directory not found at $CLI_DIR"
-      exit 1
-    fi
-
-    # Check if Bun is installed
-    if ! command -v bun &> /dev/null; then
-      print_error "Bun is not installed. Please install Bun: https://bun.sh"
-      exit 1
-    fi
-
-    print_info "Building CLI with Bun..."
-    cd "$CLI_DIR"
-
-    # Install dependencies if needed
-    if [ ! -d "node_modules" ]; then
-      print_info "Installing dependencies..."
-      bun install
-    fi
-
-    # Build the CLI
-    bun run build
-
-    # Copy built CLI to base directory
-    if [ -f "dist/agent-os" ]; then
-      cp "dist/agent-os" "$CLI_PATH"
-      chmod +x "$CLI_PATH"
-      print_success "CLI built and installed from local repository"
+    # Check if building in-place (repo directory)
+    if [ "$BASE_DIR" = "$SCRIPT_DIR" ]; then
+      # Just create a symlink or copy in the same directory
+      if [ -f "$CLI_BINARY" ]; then
+        cp "$CLI_BINARY" "$CLI_PATH"
+        chmod +x "$CLI_PATH"
+        print_success "CLI binary ready at $CLI_PATH"
+      else
+        print_error "Build failed: $CLI_BINARY not found"
+        exit 1
+      fi
     else
-      print_error "Build failed: dist/agent-os not found"
-      exit 1
+      # Copy pre-built CLI to different installation directory
+      if [ -f "$CLI_BINARY" ]; then
+        cp "$CLI_BINARY" "$CLI_PATH"
+        chmod +x "$CLI_PATH"
+        print_success "CLI installed from local repository"
+      else
+        print_error "Pre-built CLI binary not found at $CLI_BINARY"
+        exit 1
+      fi
     fi
-
-    cd - > /dev/null
   else
     # Download CLI binary from GitHub
     BINARY_URL="https://github.com/$REPO/releases/latest/download/$BINARY_NAME"
@@ -263,9 +288,24 @@ main() {
   echo ""
 
   detect_platform
-  check_existing
-  install_base
-  install_cli
+
+  # Special handling for local development mode
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [ "$LOCAL_MODE" = true ] && [ "$BASE_DIR" = "$SCRIPT_DIR" ]; then
+    # Building from source in the repo directory - just build and install CLI
+    print_info "Building from source in repository directory"
+    build_cli
+    install_cli
+  else
+    # Standard installation flow
+    if [ "$LOCAL_MODE" = true ]; then
+      # Build CLI before backup to avoid losing source
+      build_cli
+    fi
+    check_existing
+    install_base
+    install_cli
+  fi
 
   echo ""
   echo -e "${GREEN}═══════════════════════════════════════════════════════${NC}"
