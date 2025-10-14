@@ -71,8 +71,11 @@ export async function checkExistingInstallation(
  */
 export async function validateBaseExists(baseDir: string): Promise<void> {
   if (!(await fileExists(baseDir))) {
-    printError('Agent OS base installation not found at ~/agent-os');
+    printError(`Agent OS base installation not found at ${baseDir}`);
     printError('Please reinstall using: curl -fsSL https://install.agent-os.dev | bash');
+    if (baseDir !== joinPath(process.env.HOME || '~', 'agent-os')) {
+      printError(`Or set AGENT_OS_HOME environment variable to: ${baseDir}`);
+    }
     process.exit(1);
   }
 }

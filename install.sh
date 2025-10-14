@@ -15,7 +15,7 @@ set -e
 REPO="buildermethods/agent-os"
 GITHUB_API="https://api.github.com/repos/$REPO"
 GITHUB_RAW="https://raw.githubusercontent.com/$REPO/main"
-BASE_DIR="$HOME/agent-os"
+BASE_DIR="${AGENT_OS_HOME:-$HOME/agent-os}"
 LOCAL_MODE=false
 
 # Colors
@@ -107,7 +107,7 @@ check_existing() {
 
 # Download and extract base Agent OS files
 install_base() {
-  print_info "Installing Agent OS base to ~/agent-os..."
+  print_info "Installing Agent OS base to $BASE_DIR..."
 
   # Create base directory
   mkdir -p "$BASE_DIR"
@@ -213,17 +213,42 @@ install_cli() {
 # Main installation
 main() {
   # Parse arguments
-  for arg in "$@"; do
-    case $arg in
+  while [[ $# -gt 0 ]]; do
+    case $1 in
       --local)
         LOCAL_MODE=true
         shift
         ;;
+      --install-dir)
+        BASE_DIR="$2"
+        shift 2
+        ;;
+      --install-dir=*)
+        BASE_DIR="${1#*=}"
+        shift
+        ;;
       *)
         # Unknown option
+        shift
         ;;
     esac
   done
+
+  # Auto-detect if running from git repository (for local development)
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [ "$LOCAL_MODE" = false ] && [ -d "$SCRIPT_DIR/.git" ] && [ -f "$SCRIPT_DIR/cli/package.json" ]; then
+    print_info "Detected git repository, enabling local development mode"
+    LOCAL_MODE=true
+    # If no custom install dir specified, use the repo directory
+    if [ "$BASE_DIR" = "$HOME/agent-os" ]; then
+      BASE_DIR="$SCRIPT_DIR"
+    fi
+  fi
+
+  # Expand ~ in BASE_DIR if present
+  if [[ "$BASE_DIR" == ~* ]]; then
+    BASE_DIR="${HOME}${BASE_DIR:1}"
+  fi
 
   clear
   show_logo
@@ -233,6 +258,8 @@ main() {
   else
     echo "🚀 Installing Agent OS for $PLATFORM"
   fi
+  echo ""
+  print_info "Installation directory: $BASE_DIR"
   echo ""
 
   detect_platform
@@ -246,29 +273,52 @@ main() {
   echo -e "${GREEN}═══════════════════════════════════════════════════════${NC}"
   echo ""
 
-  print_info "Next steps:"
-  echo ""
-  echo "  1. Customize your profile's standards:"
-  echo -e "     ${YELLOW}~/agent-os/profiles/default/standards${NC}"
-  echo ""
-  echo "  2. Navigate to a project directory:"
-  echo -e "     ${YELLOW}cd path/to/your-project${NC}"
-  echo ""
-  echo "  3. Install Agent OS in your project:"
-  echo -e "     ${YELLOW}~/agent-os/cli${NC}"
-  echo ""
-  echo "  Or run the interactive menu:"
-  echo -e "     ${YELLOW}~/agent-os/cli${NC}"
-  echo ""
-  echo -e "💡 ${BLUE}Tip: For easier access, add an alias:${NC}"
-  echo -e "     ${YELLOW}echo 'alias agent-os=\"~/agent-os/cli\"' >> ~/.zshrc${NC}"
-  echo ""
-  echo -e "   ${BLUE}Or add to your PATH:${NC}"
-  echo -e "     ${YELLOW}echo 'export PATH=\"\$HOME/agent-os:\$PATH\"' >> ~/.zshrc${NC}"
-  echo ""
-  echo -e "   ${BLUE}Then reload your shell:${NC}"
-  echo -e "     ${YELLOW}source ~/.zshrc${NC}"
-  echo ""
+  # Show immediate next steps based on installation type
+  if [ "$LOCAL_MODE" = true ] && [ "$BASE_DIR" != "$HOME/agent-os" ]; then
+    print_info "Quick Start (Local Development Mode):"
+    echo ""
+    echo "  Run the CLI directly:"
+    echo -e "     ${YELLOW}$BASE_DIR/cli${NC}"
+    echo ""
+    echo "  Or set environment variable and run:"
+    echo -e "     ${YELLOW}export AGENT_OS_HOME=\"$BASE_DIR\" && \$AGENT_OS_HOME/cli${NC}"
+    echo ""
+    echo -e "  ${BLUE}💡 Tip: Add to your shell profile for persistent access:${NC}"
+    echo -e "     ${YELLOW}echo 'export AGENT_OS_HOME=\"$BASE_DIR\"' >> ~/.zshrc${NC}"
+    echo -e "     ${YELLOW}echo 'alias agent-os=\"\$AGENT_OS_HOME/cli\"' >> ~/.zshrc${NC}"
+    echo -e "     ${YELLOW}source ~/.zshrc${NC}"
+    echo ""
+  else
+    print_info "Next steps:"
+    echo ""
+    echo "  1. Customize your profile's standards:"
+    echo -e "     ${YELLOW}$BASE_DIR/profiles/default/standards${NC}"
+    echo ""
+    echo "  2. Navigate to a project directory:"
+    echo -e "     ${YELLOW}cd path/to/your-project${NC}"
+    echo ""
+    echo "  3. Install Agent OS in your project:"
+    echo -e "     ${YELLOW}$BASE_DIR/cli${NC}"
+    echo ""
+    echo "  Or run the interactive menu:"
+    echo -e "     ${YELLOW}$BASE_DIR/cli${NC}"
+    echo ""
+    echo -e "💡 ${BLUE}Tip: For easier access, add an alias:${NC}"
+    echo -e "     ${YELLOW}echo 'alias agent-os=\"$BASE_DIR/cli\"' >> ~/.zshrc${NC}"
+    echo ""
+    echo -e "   ${BLUE}Or add to your PATH:${NC}"
+    echo -e "     ${YELLOW}echo 'export PATH=\"$BASE_DIR:\$PATH\"' >> ~/.zshrc${NC}"
+    echo ""
+    if [ "$BASE_DIR" != "$HOME/agent-os" ]; then
+      echo -e "   ${BLUE}Set environment variable for custom location:${NC}"
+      echo -e "     ${YELLOW}echo 'export AGENT_OS_HOME=\"$BASE_DIR\"' >> ~/.zshrc${NC}"
+      echo ""
+    fi
+    echo -e "   ${BLUE}Then reload your shell:${NC}"
+    echo -e "     ${YELLOW}source ~/.zshrc${NC}"
+    echo ""
+  fi
+
   echo -e "📚 ${BLUE}Visit the docs: https://buildermethods.com/agent-os${NC}"
   echo ""
 }

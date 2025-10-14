@@ -1,10 +1,10 @@
 import * as clack from '@clack/prompts';
 import { colors, printError } from '../utils/colors';
-import { getHomeDir, joinPath } from '../utils/files';
+import { getAgentOsHome } from '../utils/files';
 import { UserCancelledError } from '../utils/errors';
 import { performUpdate, validateUpdatePreconditions } from '../libs/installation/project-update-flows';
 
-const BASE_DIR = joinPath(getHomeDir(), 'agent-os');
+const BASE_DIR = getAgentOsHome();
 const PROJECT_DIR = process.cwd();
 
 export async function runProjectUpdate() {

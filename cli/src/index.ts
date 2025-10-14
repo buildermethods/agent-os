@@ -32,7 +32,7 @@ async function showMainMenu() {
       },
       { value: 'create-profile', label: 'Create new profile', hint: 'Create custom profile' },
       { value: 'create-role', label: 'Create new role', hint: 'Add implementer or verifier' },
-      { value: 'base-update', label: 'Update base installation', hint: 'Update ~/agent-os' },
+      { value: 'base-update', label: 'Update base installation', hint: 'Update Agent OS base' },
       { value: 'exit', label: 'Exit', hint: '' },
     ],
   });

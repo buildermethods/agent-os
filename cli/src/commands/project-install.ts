@@ -1,6 +1,6 @@
 import * as clack from '@clack/prompts';
 import { colors, printError } from '../utils/colors';
-import { getHomeDir, joinPath } from '../utils/files';
+import { getAgentOsHome } from '../utils/files';
 import { UserCancelledError } from '../utils/errors';
 import {
   performInstallation,
@@ -9,7 +9,7 @@ import {
   validateBaseInstallation,
 } from '../libs/installation/project-install-flows';
 
-const BASE_DIR = joinPath(getHomeDir(), 'agent-os');
+const BASE_DIR = getAgentOsHome();
 const PROJECT_DIR = process.cwd();
 
 export async function runProjectInstall() {

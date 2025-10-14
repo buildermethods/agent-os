@@ -1,15 +1,16 @@
 import { $ } from 'bun';
-import { mkdir } from 'fs/promises';
+import { mkdir, access } from 'fs/promises';
 import { dirname, join } from 'path';
+import { constants } from 'fs';
 
 /**
  * Check if a file or directory exists
  */
 export async function fileExists(path: string): Promise<boolean> {
   try {
-    // Use stat to check existence (works for both files and directories)
-    const result = await $`test -e ${path}`.quiet();
-    return result.exitCode === 0;
+    // Use fs.access to check existence (works for both files and directories)
+    await access(path, constants.F_OK);
+    return true;
   } catch {
     return false;
   }
@@ -65,6 +66,21 @@ export async function ensureDir(path: string): Promise<void> {
  */
 export function getHomeDir(): string {
   return process.env.HOME || process.env.USERPROFILE || '~';
+}
+
+/**
+ * Get Agent OS installation directory
+ * Checks AGENT_OS_HOME environment variable first, falls back to ~/agent-os
+ */
+export function getAgentOsHome(): string {
+  if (process.env.AGENT_OS_HOME) {
+    // Expand ~ if present
+    if (process.env.AGENT_OS_HOME.startsWith('~/')) {
+      return joinPath(getHomeDir(), process.env.AGENT_OS_HOME.slice(2));
+    }
+    return process.env.AGENT_OS_HOME;
+  }
+  return joinPath(getHomeDir(), 'agent-os');
 }
 
 /**

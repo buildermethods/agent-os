@@ -1,13 +1,13 @@
 import * as clack from '@clack/prompts';
 import { colors, printError } from '../utils/colors';
-import { getHomeDir, joinPath } from '../utils/files';
+import { getAgentOsHome } from '../utils/files';
 import {
   checkExistingInstallation,
   validateBaseExists,
   parseArguments,
 } from '../libs/installation/base-update-flows';
 
-const BASE_DIR = joinPath(getHomeDir(), 'agent-os');
+const BASE_DIR = getAgentOsHome();
 const EXCLUSIONS = ['old-versions/*', '.git*', '.github/*', 'cli/*'];
 
 export async function runBaseUpdate() {

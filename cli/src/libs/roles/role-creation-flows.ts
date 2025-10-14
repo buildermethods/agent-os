@@ -33,7 +33,7 @@ import { saveRoleConfiguration } from './role-file-operations';
  */
 export async function validateInstallation(baseDir: string, profilesDir: string): Promise<void> {
   if (!(await fileExists(baseDir))) {
-    printError('Agent OS base installation not found at ~/agent-os');
+    printError(`Agent OS base installation not found at ${baseDir}`);
     printError('Please run base-install first.');
     process.exit(1);
   }

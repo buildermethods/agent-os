@@ -177,7 +177,7 @@ export async function isAgentOsInstalled(projectDir: string): Promise<boolean> {
  */
 export async function validateBaseInstallation(baseDir: string): Promise<void> {
   if (!(await fileExists(baseDir))) {
-    printError('Agent OS base installation not found at ~/agent-os');
+    printError(`Agent OS base installation not found at ${baseDir}`);
     printError('Please run base-install first.');
     process.exit(1);
   }

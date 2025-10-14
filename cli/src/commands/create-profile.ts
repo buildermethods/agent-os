@@ -1,10 +1,10 @@
 import * as clack from '@clack/prompts';
 import { colors } from '../utils/colors';
-import { getHomeDir, joinPath } from '../utils/files';
+import { getAgentOsHome, joinPath } from '../utils/files';
 import { UserCancelledError } from '../utils/errors';
 import { createProfile } from '../libs/profiles/profile-creation-flows';
 
-const BASE_DIR = joinPath(getHomeDir(), 'agent-os');
+const BASE_DIR = getAgentOsHome();
 const PROFILES_DIR = joinPath(BASE_DIR, 'profiles');
 
 export async function runCreateProfile() {
