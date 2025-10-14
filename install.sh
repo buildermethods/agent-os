@@ -42,6 +42,44 @@ print_warning() {
   echo -e "${YELLOW}⚠${NC}  $1"
 }
 
+# Detect user's shell
+detect_shell() {
+  # Try to get shell from SHELL environment variable first
+  CURRENT_SHELL=$(basename "$SHELL" 2>/dev/null)
+
+  if [ -z "$CURRENT_SHELL" ]; then
+    # Fallback to default based on OS
+    if [ -f "/etc/os-release" ]; then
+      # Linux - default to bash
+      CURRENT_SHELL="bash"
+    else
+      # macOS - default to zsh
+      CURRENT_SHELL="zsh"
+    fi
+  fi
+
+  # Determine shell config file
+  case "$CURRENT_SHELL" in
+    zsh)
+      SHELL_RC="$HOME/.zshrc"
+      SHELL_NAME="zsh"
+      ;;
+    bash)
+      SHELL_RC="$HOME/.bashrc"
+      SHELL_NAME="bash"
+      ;;
+    fish)
+      SHELL_RC="$HOME/.config/fish/config.fish"
+      SHELL_NAME="fish"
+      ;;
+    *)
+      # Default to zsh for unknown shells
+      SHELL_RC="$HOME/.zshrc"
+      SHELL_NAME="zsh"
+      ;;
+  esac
+}
+
 # ASCII Logo
 show_logo() {
   echo -e "${RED}"
@@ -288,6 +326,7 @@ main() {
   echo ""
 
   detect_platform
+  detect_shell
 
   # Special handling for local development mode
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -324,9 +363,9 @@ main() {
     echo -e "     ${YELLOW}export AGENT_OS_HOME=\"$BASE_DIR\" && \$AGENT_OS_HOME/cli${NC}"
     echo ""
     echo -e "  ${BLUE}💡 Tip: Add to your shell profile for persistent access:${NC}"
-    echo -e "     ${YELLOW}echo 'export AGENT_OS_HOME=\"$BASE_DIR\"' >> ~/.zshrc${NC}"
-    echo -e "     ${YELLOW}echo 'alias agent-os=\"\$AGENT_OS_HOME/cli\"' >> ~/.zshrc${NC}"
-    echo -e "     ${YELLOW}source ~/.zshrc${NC}"
+    echo -e "     ${YELLOW}echo 'export AGENT_OS_HOME=\"$BASE_DIR\"' >> $SHELL_RC${NC}"
+    echo -e "     ${YELLOW}echo 'alias agent-os=\"\$AGENT_OS_HOME/cli\"' >> $SHELL_RC${NC}"
+    echo -e "     ${YELLOW}source $SHELL_RC${NC}"
     echo ""
   else
     print_info "Next steps:"
@@ -344,18 +383,18 @@ main() {
     echo -e "     ${YELLOW}$BASE_DIR/cli${NC}"
     echo ""
     echo -e "💡 ${BLUE}Tip: For easier access, add an alias:${NC}"
-    echo -e "     ${YELLOW}echo 'alias agent-os=\"$BASE_DIR/cli\"' >> ~/.zshrc${NC}"
+    echo -e "     ${YELLOW}echo 'alias agent-os=\"$BASE_DIR/cli\"' >> $SHELL_RC${NC}"
     echo ""
     echo -e "   ${BLUE}Or add to your PATH:${NC}"
-    echo -e "     ${YELLOW}echo 'export PATH=\"$BASE_DIR:\$PATH\"' >> ~/.zshrc${NC}"
+    echo -e "     ${YELLOW}echo 'export PATH=\"$BASE_DIR:\$PATH\"' >> $SHELL_RC${NC}"
     echo ""
     if [ "$BASE_DIR" != "$HOME/agent-os" ]; then
       echo -e "   ${BLUE}Set environment variable for custom location:${NC}"
-      echo -e "     ${YELLOW}echo 'export AGENT_OS_HOME=\"$BASE_DIR\"' >> ~/.zshrc${NC}"
+      echo -e "     ${YELLOW}echo 'export AGENT_OS_HOME=\"$BASE_DIR\"' >> $SHELL_RC${NC}"
       echo ""
     fi
     echo -e "   ${BLUE}Then reload your shell:${NC}"
-    echo -e "     ${YELLOW}source ~/.zshrc${NC}"
+    echo -e "     ${YELLOW}source $SHELL_RC${NC}"
     echo ""
   fi
 
