@@ -31,6 +31,7 @@ OVERWRITE_ALL="false"
 OVERWRITE_STANDARDS="false"
 OVERWRITE_COMMANDS="false"
 OVERWRITE_AGENTS="false"
+OVERWRITE_AUTOMATIONS="false"
 INSTALLED_FILES=()
 
 # -----------------------------------------------------------------------------
@@ -54,6 +55,7 @@ Options:
     --overwrite-standards       Overwrite existing standards during update
     --overwrite-commands        Overwrite existing commands during update
     --overwrite-agents          Overwrite existing agents during update
+    --overwrite-automations     Overwrite existing automation files during update
     --dry-run                   Show what would be done without doing it
     --verbose                   Show detailed output
     -h, --help                  Show this help message
@@ -113,6 +115,10 @@ parse_arguments() {
                 ;;
             --overwrite-agents)
                 OVERWRITE_AGENTS="true"
+                shift
+                ;;
+            --overwrite-automations)
+                OVERWRITE_AUTOMATIONS="true"
                 shift
                 ;;
             --dry-run)
@@ -463,6 +469,133 @@ install_claude_code_files() {
     fi
 }
 
+# Install automations files
+install_automations() {
+    if [[ "$DRY_RUN" != "true" ]]; then
+        print_status "Installing automations"
+    fi
+
+    local automations_count=0
+
+    # Platform-specific mappings
+    while read file; do
+        local source=$(get_profile_file "$EFFECTIVE_PROFILE" "$file" "$BASE_DIR")
+        if [[ ! -f "$source" ]]; then
+            continue
+        fi
+
+        local dest=""
+
+        # GitHub Actions: automations/github/workflows/* → .github/workflows/*
+        if [[ "$file" == automations/github/workflows/* ]]; then
+            local relative_path="${file#automations/github/}"
+            dest="$PROJECT_DIR/.github/$relative_path"
+
+        # Bitbucket Pipelines: automations/bitbucket/* → ./*
+        elif [[ "$file" == automations/bitbucket/* ]]; then
+            local filename=$(basename "$file")
+            dest="$PROJECT_DIR/$filename"
+
+        # GitLab CI: automations/gitlab/* → ./*
+        elif [[ "$file" == automations/gitlab/* ]]; then
+            local filename=$(basename "$file")
+            # GitLab uses .gitlab-ci.yml (with leading dot)
+            if [[ "$filename" == "gitlab-ci.yml" ]]; then
+                dest="$PROJECT_DIR/.gitlab-ci.yml"
+            else
+                dest="$PROJECT_DIR/$filename"
+            fi
+
+        # CircleCI: automations/circleci/* → .circleci/*
+        elif [[ "$file" == automations/circleci/* ]]; then
+            local relative_path="${file#automations/circleci/}"
+            dest="$PROJECT_DIR/.circleci/$relative_path"
+
+        # Documentation: automations/setup/*, automations/README.md → agent-os/automations/*
+        elif [[ "$file" == automations/setup/* ]] || [[ "$file" == automations/README.md ]]; then
+            dest="$PROJECT_DIR/agent-os/$file"
+
+        # Skip setup.sh files - they stay in profile directory
+        elif [[ "$file" == automations/*/setup.sh ]]; then
+            continue
+
+        else
+            continue
+        fi
+
+        local installed_file=$(copy_file "$source" "$dest")
+        if [[ -n "$installed_file" ]]; then
+            INSTALLED_FILES+=("$installed_file")
+            ((automations_count++)) || true
+        fi
+    done < <(get_profile_files "$EFFECTIVE_PROFILE" "$BASE_DIR" "automations")
+
+    if [[ "$DRY_RUN" != "true" ]] && [[ $automations_count -gt 0 ]]; then
+        echo "✓ Installed $automations_count automation files"
+    fi
+}
+
+# Run automation setup scripts
+run_automation_setup_scripts() {
+    if [[ "$DRY_RUN" == "true" ]]; then
+        return
+    fi
+
+    local profile_automations="$BASE_DIR/profiles/$EFFECTIVE_PROFILE/automations"
+
+    # Collect available setup scripts
+    local available_scripts=()
+    if [[ -d "$profile_automations" ]]; then
+        for platform_dir in "$profile_automations"/*; do
+            if [[ -d "$platform_dir" ]]; then
+                local setup_script="$platform_dir/setup.sh"
+                if [[ -f "$setup_script" && -x "$setup_script" ]]; then
+                    local platform=$(basename "$platform_dir")
+                    available_scripts+=("$platform:$setup_script")
+                fi
+            fi
+        done
+    fi
+
+    # If no setup scripts found, skip
+    if [[ ${#available_scripts[@]} -eq 0 ]]; then
+        return
+    fi
+
+    echo ""
+    print_status "Automation setup scripts found for: ${available_scripts[@]%%:*}"
+
+    # Ask for confirmation (skip if non-interactive)
+    if [[ -t 0 ]]; then
+        echo ""
+        read -p "Run automation setup scripts? (y/N): " -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Skipped automation setup scripts"
+            echo "You can run them manually later:"
+            for script_info in "${available_scripts[@]}"; do
+                local platform="${script_info%%:*}"
+                local setup_script="${script_info#*:}"
+                echo "  PROJECT_ROOT=\"\$PROJECT_DIR\" bash \"$setup_script\""
+            done
+            return
+        fi
+    else
+        echo "Non-interactive context detected - skipping automation setup scripts"
+        return
+    fi
+
+    # Run setup scripts
+    echo ""
+    for script_info in "${available_scripts[@]}"; do
+        local platform="${script_info%%:*}"
+        local setup_script="${script_info#*:}"
+
+        echo ""
+        print_status "Running $platform setup..."
+        (cd "$PROJECT_DIR" && PROJECT_ROOT="$PROJECT_DIR" bash "$setup_script")
+    done
+}
 
 # Create agent-os folder structure
 create_agent_os_folder() {
@@ -520,6 +653,7 @@ perform_installation() {
         fi
         if [[ "$EFFECTIVE_MULTI_AGENT_MODE" == "true" ]] && [[ "$EFFECTIVE_MULTI_AGENT_TOOL" == "claude-code" ]]; then
             install_claude_code_files
+            install_automations
         fi
 
         echo ""
@@ -548,6 +682,9 @@ perform_installation() {
         if [[ "$EFFECTIVE_MULTI_AGENT_MODE" == "true" ]] && [[ "$EFFECTIVE_MULTI_AGENT_TOOL" == "claude-code" ]]; then
             install_claude_code_files
             echo ""
+            install_automations
+            echo ""
+            run_automation_setup_scripts
         fi
     fi
 

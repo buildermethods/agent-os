@@ -496,6 +496,9 @@ should_skip_file() {
         "standard")
             [[ "$overwrite_type" == "true" ]] && return 1
             ;;
+        "automation")
+            [[ "$overwrite_type" == "true" ]] && return 1
+            ;;
     esac
 
     return 0  # Skip file

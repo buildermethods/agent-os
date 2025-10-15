@@ -31,6 +31,7 @@ OVERWRITE_ALL="false"
 OVERWRITE_AGENTS="false"
 OVERWRITE_COMMANDS="false"
 OVERWRITE_STANDARDS="false"
+OVERWRITE_AUTOMATIONS="false"
 SKIPPED_FILES=()
 UPDATED_FILES=()
 NEW_FILES=()
@@ -56,6 +57,7 @@ Options:
     --overwrite-agents          Overwrite existing agent files
     --overwrite-commands        Overwrite existing command files
     --overwrite-standards       Overwrite existing standards files
+    --overwrite-automations     Overwrite existing automation files
     --dry-run                   Show what would be done without doing it
     --verbose                   Show detailed output
     -h, --help                  Show this help message
@@ -115,6 +117,10 @@ parse_arguments() {
                 ;;
             --overwrite-standards)
                 OVERWRITE_STANDARDS="true"
+                shift
+                ;;
+            --overwrite-automations)
+                OVERWRITE_AUTOMATIONS="true"
                 shift
                 ;;
             --dry-run)
@@ -419,6 +425,92 @@ update_roles() {
         fi
         if [[ $roles_skipped -gt 0 ]]; then
             echo -e "${YELLOW}$roles_skipped files in agent-os/roles were not updated and overwritten.${NC}"
+        fi
+    fi
+}
+
+# Update automations files
+update_automations() {
+    print_status "Updating automations"
+
+    local automations_updated=0
+    local automations_skipped=0
+    local automations_new=0
+
+    while read file; do
+        local source=$(get_profile_file "$PROJECT_PROFILE" "$file" "$BASE_DIR")
+        if [[ ! -f "$source" ]]; then
+            continue
+        fi
+
+        # Determine destination based on platform
+        local dest=""
+
+        # GitHub Actions: automations/github/workflows/* → .github/workflows/*
+        if [[ "$file" == automations/github/workflows/* ]]; then
+            local relative_path="${file#automations/github/}"
+            dest="$PROJECT_DIR/.github/$relative_path"
+
+        # Bitbucket Pipelines: automations/bitbucket/* → ./*
+        elif [[ "$file" == automations/bitbucket/* ]]; then
+            local filename=$(basename "$file")
+            dest="$PROJECT_DIR/$filename"
+
+        # GitLab CI: automations/gitlab/* → ./*
+        elif [[ "$file" == automations/gitlab/* ]]; then
+            local filename=$(basename "$file")
+            if [[ "$filename" == "gitlab-ci.yml" ]]; then
+                dest="$PROJECT_DIR/.gitlab-ci.yml"
+            else
+                dest="$PROJECT_DIR/$filename"
+            fi
+
+        # CircleCI: automations/circleci/* → .circleci/*
+        elif [[ "$file" == automations/circleci/* ]]; then
+            local relative_path="${file#automations/circleci/}"
+            dest="$PROJECT_DIR/.circleci/$relative_path"
+
+        # Documentation: automations/setup/*, automations/README.md → agent-os/automations/*
+        elif [[ "$file" == automations/setup/* ]] || [[ "$file" == automations/README.md ]]; then
+            dest="$PROJECT_DIR/agent-os/$file"
+
+        # Skip setup.sh files
+        elif [[ "$file" == automations/*/setup.sh ]]; then
+            continue
+
+        else
+            continue
+        fi
+
+        if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_AUTOMATIONS" "automation"; then
+            SKIPPED_FILES+=("$dest")
+            ((automations_skipped++)) || true
+            print_verbose "Skipped: $dest"
+        else
+            if [[ -f "$dest" ]]; then
+                UPDATED_FILES+=("$dest")
+                ((automations_updated++)) || true
+                print_verbose "Updated: $dest"
+            else
+                NEW_FILES+=("$dest")
+                ((automations_new++)) || true
+                print_verbose "New file: $dest"
+            fi
+            if [[ "$DRY_RUN" != "true" ]]; then
+                copy_file "$source" "$dest" > /dev/null
+            fi
+        fi
+    done < <(get_profile_files "$PROJECT_PROFILE" "$BASE_DIR" "automations")
+
+    if [[ "$DRY_RUN" != "true" ]]; then
+        if [[ $automations_new -gt 0 ]]; then
+            echo "✓ Added $automations_new automation files"
+        fi
+        if [[ $automations_updated -gt 0 ]]; then
+            echo "✓ Updated $automations_updated automation files"
+        fi
+        if [[ $automations_skipped -gt 0 ]]; then
+            echo -e "${YELLOW}$automations_skipped automation files were not updated. To overwrite, re-run with --overwrite-automations flag.${NC}"
         fi
     fi
 }
@@ -843,6 +935,8 @@ perform_update() {
 
     if [[ "$PROJECT_MULTI_AGENT_MODE" == "true" ]] && [[ "$PROJECT_MULTI_AGENT_TOOL" == "claude-code" ]]; then
         update_claude_code_files
+        echo ""
+        update_automations
         echo ""
     fi
 
