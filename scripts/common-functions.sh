@@ -1024,6 +1024,9 @@ check_for_base_updates() {
         return 1
     fi
 
+    # Detect repo URL for version check and potential update
+    local repo_url=$(detect_repo_url)
+
     # Get latest version from GitHub
     local latest_version=$(get_latest_version)
     if [[ -z "$latest_version" ]]; then
@@ -1065,8 +1068,9 @@ check_for_base_updates() {
             echo ""
             print_status "Updating Agent OS..."
 
-            # Run base-install.sh to update
-            if curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/scripts/base-install.sh 2>/dev/null | bash; then
+            # Run base-install.sh to update (use detected repo URL)
+            local update_url="${repo_url}/raw/main/scripts/base-install.sh"
+            if curl -sSL "$update_url" 2>/dev/null | bash; then
                 echo ""
                 print_success "Agent OS has been updated to version $latest_version"
                 echo ""
