@@ -960,6 +960,30 @@ compile_command() {
 # Version Functions
 # -----------------------------------------------------------------------------
 
+# Detect repository URL from git remote or use default
+detect_repo_url() {
+    # If REPO_URL is already set via environment, use it
+    if [[ -n "${REPO_URL:-}" ]]; then
+        echo "$REPO_URL"
+        return
+    fi
+
+    # Try to detect from git remote in base directory
+    local base_dir=${BASE_DIR:-"$HOME/agent-os"}
+    if [[ -d "$base_dir/.git" ]]; then
+        local git_url=$(cd "$base_dir" && git remote get-url origin 2>/dev/null || echo "")
+        if [[ -n "$git_url" ]]; then
+            # Convert git URL to https URL and remove .git suffix
+            git_url=$(echo "$git_url" | sed 's|^git@github.com:|https://github.com/|' | sed 's|\.git$||')
+            echo "$git_url"
+            return
+        fi
+    fi
+
+    # Fall back to default
+    echo "https://github.com/buildermethods/agent-os"
+}
+
 # Compare versions (returns 0 if compatible, 1 if not)
 check_version_compatibility() {
     local base_version=$1
@@ -978,7 +1002,7 @@ check_version_compatibility() {
 
 # Get latest version from GitHub
 get_latest_version() {
-    local repo_url=${REPO_URL:-"https://github.com/CodefiLabs/agent-os"}
+    local repo_url=$(detect_repo_url)
     local config_url="${repo_url}/raw/main/config.yml"
     curl -sL "$config_url" 2>/dev/null | grep "^version:" | sed 's/version: *//' | tr -d '\r\n'
 }
@@ -1042,7 +1066,7 @@ check_for_base_updates() {
             print_status "Updating Agent OS..."
 
             # Run base-install.sh to update
-            if curl -sSL https://raw.githubusercontent.com/CodefiLabs/agent-os/main/scripts/base-install.sh 2>/dev/null | bash; then
+            if curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/scripts/base-install.sh 2>/dev/null | bash; then
                 echo ""
                 print_success "Agent OS has been updated to version $latest_version"
                 echo ""
