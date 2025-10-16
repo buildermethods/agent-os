@@ -6,3 +6,4 @@
 6. **Verify tasks.md status has been updated:** Verify and ensure that the tasks in `tasks.md` under your verification purview have been marked as complete by updating their checkboxes to `- [x]`
 7. **Verify that implementations have been documented:** Verify that the implementer agent(s) have documented their work in this spec's `agent-os/specs/[this-spec]/implementation`. folder.
 8. **Document your verification report:** Write your verification report in this spec's `agent-os/specs/[this-spec]/verification`. folder.
+9. **Return control for review:** Summarize verification results (pass/fail status, critical issues) and key findings, then return control for user review before proceeding.

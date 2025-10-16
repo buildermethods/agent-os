@@ -38,13 +38,40 @@ Ensure each assigned subagent exists in both of these locations:
 
 Loop through each task group in `agent-os/specs/[this-spec]/tasks.md` and delegate its implementation to the assigned subagent specified in `task-assignments.yml`.
 
-For each delegation, provide the subagent with:
-- The task group (including the parent task and all sub-tasks)
-- The spec file: `agent-os/specs/[this-spec]/spec.md`
-- Instruct subagent to:
-  1. Perform their implementation
-  2. Check off the task and sub-task(s) in `agent-os/specs/[this-spec]/tasks.md`
-  3. Document their work in an implementation report named and numbered by this task name and placed in `agent-os/specs/[this-spec]/implementation/`.
+**IMPORTANT**: After EACH task group is completed, PAUSE for user review before proceeding to the next task group. This prevents massive uncommittable changesets and allows incremental commits.
+
+For each task group:
+
+1. **Delegate to assigned subagent** with:
+   - The task group (including the parent task and all sub-tasks)
+   - The spec file: `agent-os/specs/[this-spec]/spec.md`
+   - Instruct subagent to:
+     1. Perform their implementation
+     2. Check off the task and sub-task(s) in `agent-os/specs/[this-spec]/tasks.md`
+     3. Document their work in an implementation report named and numbered by this task name and placed in `agent-os/specs/[this-spec]/implementation/`
+     4. Provide a clear summary and list of files changed when returning control
+
+2. **After subagent returns, PAUSE FOR REVIEW**:
+   - Summarize what was implemented in this task group
+   - List all files created/modified/deleted by this task group
+   - Run `git status` to show current changes
+   - Provide suggested commit message following conventional commits format
+   - Ask user: "Ready to review and commit this task group? Reply 'yes' to commit and continue, or provide feedback for adjustments."
+   - **WAIT for explicit user approval**
+   - **If user approves**: Create the commit using the suggested message (or user's modified message)
+   - **If user provides feedback**: Make adjustments, then repeat the pause-for-review cycle
+   - After commit is created, confirm to user and proceed to next task group
+
+**See** @agent-os/standards/global/agent-workflow.md for detailed guidance on commit strategies and pause-for-review best practices.
+
+**PAUSE BEFORE VERIFICATION**: Before proceeding to PHASE 3:
+- Check `git status` to verify all work from PHASE 2 has been committed
+- If uncommitted work remains, pause and create final commit(s) with user approval
+- Summarize all commits created during PHASE 2
+- Ask user: "All task groups have been implemented and committed. Ready to proceed with verification? Reply 'yes' to begin PHASE 3."
+- **WAIT for explicit user approval** before starting verification
+
+**Note**: Verification should run against committed code to ensure a clean baseline and allow easy rollback if issues are found.
 
 ### PHASE 3: Delegate verifications of implementation to verifier subagents
 

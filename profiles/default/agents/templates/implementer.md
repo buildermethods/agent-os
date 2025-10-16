@@ -48,6 +48,18 @@ Read and understand what you are being asked to implement and do not implement t
 
 {{workflows/implementation/document-implementation}}
 
+### Step 6: Return Control for Review
+
+After completing your implementation and documentation:
+
+1. **Provide a clear summary** of what was completed
+2. **List all files created/modified** with brief descriptions
+3. **Return control** to the orchestrating agent
+
+**Note:** The orchestrating agent will pause for user review and create commits between task groups. Do not proceed to other task groups that weren't assigned to you, and do not create commits yourself.
+
+**See** @agent-os/standards/global/agent-workflow.md for details on commit and review workflows.
+
 ## Important Constraints
 
 As a reminder, be sure to adhere to your core responsibilities when you implement the above Workflow:

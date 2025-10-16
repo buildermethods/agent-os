@@ -87,6 +87,16 @@ Use the following list of prompts to direct the implementation of each task grou
 
 [list prompt files in order]
 
-Input those prompts into this chat one-by-one or queue them to run in order.
+**Pause-for-Review Workflow:**
+Input these prompts one-by-one. After each task group is completed, the agent will:
+1. Summarize the implementation and list files changed
+2. Provide a suggested commit message
+3. Ask for your approval to create the commit
+4. Create the commit after you approve
+5. You then proceed to the next task group prompt when ready
+
+This iterative approach prevents massive uncommittable changesets and allows for incremental testing and feedback. You maintain control over when to proceed to the next task group.
+
+**See** @agent-os/standards/global/agent-workflow.md for detailed guidance on commit strategies.
 
 Progress will be tracked in `agent-os/specs/[this-spec]/tasks.md`"

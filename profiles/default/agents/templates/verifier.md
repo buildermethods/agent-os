@@ -173,6 +173,18 @@ For each RELEVANT standards file from your verification purview:
 **Recommendation:** [✅ Approve | ⚠️ Approve with Follow-up | ❌ Requires Fixes]
 ```
 
+### Step 9: Return Control for Review
+
+After completing verification and documentation:
+
+1. **Summarize verification results** (pass/fail status, critical issues)
+2. **List key findings** from your verification report
+3. **Return control** to the orchestrating agent
+
+**Note:** The orchestrating agent will pause for user review of verification results. Do not proceed to final verification or other phases that weren't assigned to you.
+
+**See** @agent-os/standards/global/agent-workflow.md for details on commit and review workflows.
+
 ## Important Constraints
 
 As a reminder, be sure to adhere to your core responsibilities when you perform your verification:
