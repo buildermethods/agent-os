@@ -9,7 +9,7 @@ set -e  # Exit on error
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BASE_DIR="$HOME/agent-os"
+BASE_DIR="${BASE_DIR:-$HOME/agent-os}"
 PROFILES_DIR="$BASE_DIR/profiles"
 
 # Source common functions
@@ -24,13 +24,14 @@ ROLE_TYPE=""
 ROLE_ID=""
 ROLE_DESCRIPTION=""
 ROLE_TEXT=""
-ROLE_TOOLS=""
-ROLE_MODEL=""
+ROLE_TOOLS="Write, Read, Bash, WebFetch"  # Default tools
+ROLE_MODEL="inherit"  # Default model
 ROLE_COLOR=""
 ROLE_AREAS=()
 ROLE_OUT_OF_SCOPE=()
 ROLE_STANDARDS=()
 ROLE_VERIFIERS=()
+NON_INTERACTIVE=false
 
 # -----------------------------------------------------------------------------
 # Validation Functions
@@ -625,11 +626,198 @@ write_role_to_yaml() {
 }
 
 # -----------------------------------------------------------------------------
+# Help Message
+# -----------------------------------------------------------------------------
+
+show_help() {
+    cat << EOF
+Usage: create-role.sh [OPTIONS]
+
+Create a new role (implementer or verifier) for an Agent OS profile.
+
+OPTIONS:
+    --profile PROFILE           Profile name (required in non-interactive)
+    --type TYPE                 Role type: 'implementer' or 'verifier' (required)
+    --id ID                     Role ID (e.g., 'api-engineer') (required)
+    --description TEXT          One-line description (required)
+    --role-text TEXT            Role definition text (required)
+    --tools LIST                Comma-separated tools (default: Write,Read,Bash,WebFetch)
+    --model MODEL               Model: inherit|sonnet|opus (default: inherit)
+    --color COLOR               Color: red|blue|green|purple|pink|orange|cyan|yellow (required)
+    --responsibilities LIST     Comma-separated responsibilities (required)
+    --out-of-scope LIST         Comma-separated out-of-scope areas
+    --standards LIST            Comma-separated standards (e.g., 'global/*,backend/*')
+    --verified-by LIST          Comma-separated verifier IDs (implementers only)
+    --base-dir PATH             Base directory for Agent OS (default: $HOME/agent-os)
+    --non-interactive           Run without prompts
+    -h, --help                  Show this help message
+
+EXAMPLES:
+    # Interactive mode (default)
+    ./create-role.sh
+
+    # Non-interactive implementer
+    ./create-role.sh \\
+      --profile rails-api \\
+      --type implementer \\
+      --id database-engineer \\
+      --description "Handles migrations, models, schemas" \\
+      --role-text "You are a database engineer..." \\
+      --color orange \\
+      --responsibilities "Create migrations,Define models,Write queries" \\
+      --out-of-scope "API endpoints,UI components" \\
+      --standards "global/*,backend/*,testing/*" \\
+      --verified-by "backend-verifier" \\
+      --non-interactive
+
+    # Non-interactive verifier
+    ./create-role.sh \\
+      --profile rails-api \\
+      --type verifier \\
+      --id backend-verifier \\
+      --description "Reviews backend code quality" \\
+      --role-text "You are a backend code reviewer..." \\
+      --model opus \\
+      --color red \\
+      --responsibilities "Review API implementations,Verify database efficiency" \\
+      --standards "global/*,backend/*" \\
+      --non-interactive
+
+NOTES:
+    - Role IDs are normalized (lowercase, hyphens)
+    - Verifiers don't need --verified-by
+    - Use --tools to override defaults
+
+EOF
+}
+
+# -----------------------------------------------------------------------------
+# Argument Parsing
+# -----------------------------------------------------------------------------
+
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --profile)
+                SELECTED_PROFILE="$2"
+                shift 2
+                ;;
+            --type)
+                ROLE_TYPE="$2"
+                shift 2
+                ;;
+            --id)
+                ROLE_ID="$2"
+                shift 2
+                ;;
+            --description)
+                ROLE_DESCRIPTION="$2"
+                shift 2
+                ;;
+            --role-text)
+                ROLE_TEXT="$2"
+                shift 2
+                ;;
+            --tools)
+                ROLE_TOOLS="$2"
+                shift 2
+                ;;
+            --model)
+                ROLE_MODEL="$2"
+                shift 2
+                ;;
+            --color)
+                ROLE_COLOR="$2"
+                shift 2
+                ;;
+            --responsibilities)
+                IFS=',' read -ra ROLE_AREAS <<< "$2"
+                shift 2
+                ;;
+            --out-of-scope)
+                IFS=',' read -ra ROLE_OUT_OF_SCOPE <<< "$2"
+                shift 2
+                ;;
+            --standards)
+                IFS=',' read -ra ROLE_STANDARDS <<< "$2"
+                shift 2
+                ;;
+            --verified-by)
+                IFS=',' read -ra ROLE_VERIFIERS <<< "$2"
+                shift 2
+                ;;
+            --base-dir)
+                BASE_DIR="$2"
+                PROFILES_DIR="$BASE_DIR/profiles"
+                shift 2
+                ;;
+            --non-interactive)
+                NON_INTERACTIVE=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                echo "Use --help for usage information"
+                exit 1
+                ;;
+        esac
+    done
+
+    # Validate non-interactive requirements
+    if [[ "$NON_INTERACTIVE" == true ]]; then
+        local errors=()
+
+        [[ -z "$SELECTED_PROFILE" ]] && errors+=("--profile is required")
+        [[ -z "$ROLE_TYPE" ]] && errors+=("--type is required")
+        [[ -z "$ROLE_ID" ]] && errors+=("--id is required")
+        [[ -z "$ROLE_DESCRIPTION" ]] && errors+=("--description is required")
+        [[ -z "$ROLE_TEXT" ]] && errors+=("--role-text is required")
+        [[ -z "$ROLE_COLOR" ]] && errors+=("--color is required")
+        [[ ${#ROLE_AREAS[@]} -eq 0 ]] && errors+=("--responsibilities is required")
+
+        if [[ ${#errors[@]} -gt 0 ]]; then
+            print_error "Non-interactive mode missing required arguments:"
+            for err in "${errors[@]}"; do
+                echo "  - $err"
+            done
+            echo ""
+            echo "Use --help for usage information"
+            exit 1
+        fi
+
+        # Validate profile exists
+        if [[ ! -d "$PROFILES_DIR/$SELECTED_PROFILE" ]]; then
+            print_error "Profile does not exist: $SELECTED_PROFILE"
+            exit 1
+        fi
+
+        # Validate role type
+        if [[ "$ROLE_TYPE" != "implementer" && "$ROLE_TYPE" != "verifier" ]]; then
+            print_error "Invalid role type: $ROLE_TYPE (must be 'implementer' or 'verifier')"
+            exit 1
+        fi
+
+        # Normalize role ID
+        ROLE_ID=$(normalize_name "$ROLE_ID")
+    fi
+}
+
+# -----------------------------------------------------------------------------
 # Main Execution
 # -----------------------------------------------------------------------------
 
 main() {
-    clear
+    # Parse command line arguments
+    parse_arguments "$@"
+
+    if [[ "$NON_INTERACTIVE" == false ]]; then
+        clear
+    fi
+
     echo ""
     echo -e "${BLUE}=== Agent OS - Create Role Utility ===${NC}"
     echo ""
@@ -637,33 +825,44 @@ main() {
     # Validate installation
     validate_installation
 
-    # Profile selection
-    select_profile
+    # Interactive mode: prompt for inputs
+    if [[ "$NON_INTERACTIVE" == false ]]; then
+        # Profile selection
+        select_profile
 
-    # Role type selection
-    select_role_type
+        # Role type selection
+        select_role_type
 
-    # Get role configuration
-    get_role_id
-    get_role_description
-    get_role_text
+        # Get role configuration
+        get_role_id
+        get_role_description
+        get_role_text
 
-    # Configure tools
-    configure_tools
+        # Configure tools
+        configure_tools
 
-    # Select model and color
-    select_model
-    select_color
+        # Select model and color
+        select_model
+        select_color
 
-    # Define areas of responsibility
-    get_areas_of_responsibility
-    get_out_of_scope_areas
+        # Define areas of responsibility
+        get_areas_of_responsibility
+        get_out_of_scope_areas
 
-    # Select standards
-    select_standards
+        # Select standards
+        select_standards
 
-    # Select verifiers (for implementers only)
-    select_verifiers
+        # Select verifiers (for implementers only)
+        select_verifiers
+    else
+        # Non-interactive mode: use provided values
+        print_status "Creating role in non-interactive mode..."
+        echo ""
+        print_status "Profile: $SELECTED_PROFILE"
+        print_status "Type: $ROLE_TYPE"
+        print_status "ID: $ROLE_ID"
+        echo ""
+    fi
 
     # Write the role to YAML
     write_role_to_yaml

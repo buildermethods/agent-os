@@ -9,7 +9,7 @@ set -e  # Exit on error
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BASE_DIR="$HOME/agent-os"
+BASE_DIR="${BASE_DIR:-$HOME/agent-os}"
 PROFILES_DIR="$BASE_DIR/profiles"
 
 # Source common functions
@@ -22,6 +22,7 @@ source "$SCRIPT_DIR/common-functions.sh"
 PROFILE_NAME=""
 INHERIT_FROM=""
 COPY_FROM=""
+NON_INTERACTIVE=false
 
 # -----------------------------------------------------------------------------
 # Validation Functions
@@ -271,11 +272,132 @@ EOF
 }
 
 # -----------------------------------------------------------------------------
+# Help Message
+# -----------------------------------------------------------------------------
+
+show_help() {
+    cat << EOF
+Usage: create-profile.sh [OPTIONS]
+
+Create a new Agent OS profile with custom standards, roles, and workflows.
+
+OPTIONS:
+    --name NAME              Profile name (required in non-interactive mode)
+    --inherit-from PROFILE   Inherit from existing profile (e.g., 'default')
+    --copy-from PROFILE      Copy structure from existing profile
+    --base-dir PATH          Base directory for Agent OS (default: $HOME/agent-os)
+    --non-interactive        Run without prompts (requires --name)
+    -h, --help              Show this help message
+
+EXAMPLES:
+    # Interactive mode (default)
+    ./create-profile.sh
+
+    # Non-interactive with inheritance
+    ./create-profile.sh --name rails-api --inherit-from default --non-interactive
+
+    # Non-interactive with copy
+    ./create-profile.sh --name python-ml --copy-from default --non-interactive
+
+    # Non-interactive standalone
+    ./create-profile.sh --name wordpress --non-interactive
+
+NOTES:
+    - Profile names are normalized (lowercase, hyphens)
+    - Cannot use both --inherit-from and --copy-from
+    - In non-interactive mode, defaults to standalone if no inheritance specified
+
+EOF
+}
+
+# -----------------------------------------------------------------------------
+# Argument Parsing
+# -----------------------------------------------------------------------------
+
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --name)
+                PROFILE_NAME="$2"
+                shift 2
+                ;;
+            --inherit-from)
+                INHERIT_FROM="$2"
+                shift 2
+                ;;
+            --copy-from)
+                COPY_FROM="$2"
+                shift 2
+                ;;
+            --base-dir)
+                BASE_DIR="$2"
+                PROFILES_DIR="$BASE_DIR/profiles"
+                shift 2
+                ;;
+            --non-interactive)
+                NON_INTERACTIVE=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                echo "Use --help for usage information"
+                exit 1
+                ;;
+        esac
+    done
+
+    # Validate non-interactive requirements
+    if [[ "$NON_INTERACTIVE" == true ]]; then
+        if [[ -z "$PROFILE_NAME" ]]; then
+            print_error "Non-interactive mode requires --name"
+            echo "Use --help for usage information"
+            exit 1
+        fi
+
+        if [[ -n "$INHERIT_FROM" && -n "$COPY_FROM" ]]; then
+            print_error "Cannot use both --inherit-from and --copy-from"
+            exit 1
+        fi
+
+        # Normalize the profile name
+        PROFILE_NAME=$(normalize_name "$PROFILE_NAME")
+
+        # Check if profile already exists
+        if [[ -d "$PROFILES_DIR/$PROFILE_NAME" ]]; then
+            print_error "Profile '$PROFILE_NAME' already exists"
+            exit 1
+        fi
+
+        # Validate inherit-from profile exists
+        if [[ -n "$INHERIT_FROM" && ! -d "$PROFILES_DIR/$INHERIT_FROM" ]]; then
+            print_error "Profile to inherit from does not exist: $INHERIT_FROM"
+            exit 1
+        fi
+
+        # Validate copy-from profile exists
+        if [[ -n "$COPY_FROM" && ! -d "$PROFILES_DIR/$COPY_FROM" ]]; then
+            print_error "Profile to copy from does not exist: $COPY_FROM"
+            exit 1
+        fi
+    fi
+}
+
+# -----------------------------------------------------------------------------
 # Main Execution
 # -----------------------------------------------------------------------------
 
 main() {
-    clear
+    # Parse command line arguments
+    parse_arguments "$@"
+
+    if [[ "$NON_INTERACTIVE" == false ]]; then
+        clear
+    fi
+
     echo ""
     echo -e "${BLUE}=== Agent OS - Create Profile Utility ===${NC}"
     echo ""
@@ -283,14 +405,31 @@ main() {
     # Validate installation
     validate_installation
 
-    # Get profile name
-    get_profile_name
+    # Interactive mode: prompt for inputs
+    if [[ "$NON_INTERACTIVE" == false ]]; then
+        # Get profile name
+        get_profile_name
 
-    # Select inheritance
-    select_inheritance
+        # Select inheritance
+        select_inheritance
 
-    # Select copy source (if not inheriting)
-    select_copy_source
+        # Select copy source (if not inheriting)
+        select_copy_source
+    else
+        # Non-interactive mode: use provided values
+        print_status "Creating profile in non-interactive mode..."
+        echo ""
+        print_status "Profile name: $PROFILE_NAME"
+
+        if [[ -n "$INHERIT_FROM" ]]; then
+            print_status "Inheriting from: $INHERIT_FROM"
+        elif [[ -n "$COPY_FROM" ]]; then
+            print_status "Copying from: $COPY_FROM"
+        else
+            print_status "Creating standalone profile"
+        fi
+        echo ""
+    fi
 
     # Create the profile
     create_profile_structure
@@ -323,5 +462,5 @@ main() {
     echo ""
 }
 
-# Run main function
+# Run main function with all arguments
 main "$@"
