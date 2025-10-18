@@ -794,6 +794,284 @@ update_claude_code_files() {
     fi
 }
 
+# Update OpenCode agents and commands
+update_opencode_files() {
+    print_status "Updating OpenCode tools"
+
+    local commands_updated=0
+    local commands_skipped=0
+    local commands_new=0
+    local agents_updated=0
+    local agents_skipped=0
+    local agents_new=0
+
+    # Update commands in .opencode/command/
+    while read file; do
+        if [[ "$file" == commands/*/multi-agent/* ]]; then
+            local source=$(get_profile_file "$PROJECT_PROFILE" "$file" "$BASE_DIR")
+            if [[ -f "$source" ]]; then
+                local command_name=$(echo "$file" | sed 's/commands\///' | sed 's/\/multi-agent.*//')
+                local dest="$PROJECT_DIR/.opencode/command/${command_name}.md"
+
+                if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_COMMANDS" "command"; then
+                    SKIPPED_FILES+=("$dest")
+                    ((commands_skipped++)) || true
+                    print_verbose "Skipped: $dest"
+                else
+                    if [[ -f "$dest" ]]; then
+                        UPDATED_FILES+=("$dest")
+                        ((commands_updated++)) || true
+                        print_verbose "Updated: $dest"
+                    else
+                        NEW_FILES+=("$dest")
+                        ((commands_new++)) || true
+                        print_verbose "New file: $dest"
+                    fi
+                    if [[ "$DRY_RUN" != "true" ]]; then
+                        compile_command "$source" "$dest" "$BASE_DIR" "$PROJECT_PROFILE"
+                    fi
+                fi
+            fi
+        fi
+    done < <(get_profile_files "$PROJECT_PROFILE" "$BASE_DIR" "commands")
+
+    # Update static agents
+    get_profile_files "$PROJECT_PROFILE" "$BASE_DIR" "agents" | while read file; do
+        if [[ "$file" == agents/*.md ]] && [[ "$file" != agents/templates/* ]]; then
+            local source=$(get_profile_file "$PROJECT_PROFILE" "$file" "$BASE_DIR")
+            if [[ -f "$source" ]]; then
+                local agent_name=$(basename "$file" .md)
+                local dest="$PROJECT_DIR/.opencode/agent/${agent_name}.md"
+
+                if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_AGENTS" "agent"; then
+                    SKIPPED_FILES+=("$dest")
+                    print_verbose "Skipped: $dest"
+                else
+                    if [[ -f "$dest" ]]; then
+                        UPDATED_FILES+=("$dest")
+                        print_verbose "Updated: $dest"
+                    else
+                        NEW_FILES+=("$dest")
+                        print_verbose "New file: $dest"
+                    fi
+                    if [[ "$DRY_RUN" != "true" ]]; then
+                        compile_agent "$source" "$dest" "$BASE_DIR" "$PROJECT_PROFILE" ""
+                    fi
+                fi
+            fi
+        fi
+    done
+
+    # Update specification agents
+    get_profile_files "$PROJECT_PROFILE" "$BASE_DIR" "agents/specification" | while read file; do
+        if [[ "$file" == agents/specification/*.md ]]; then
+            local source=$(get_profile_file "$PROJECT_PROFILE" "$file" "$BASE_DIR")
+            if [[ -f "$source" ]]; then
+                local agent_name=$(basename "$file" .md)
+                local dest="$PROJECT_DIR/.opencode/agent/${agent_name}.md"
+
+                if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_AGENTS" "agent"; then
+                    SKIPPED_FILES+=("$dest")
+                    print_verbose "Skipped: $dest"
+                else
+                    if [[ -f "$dest" ]]; then
+                        UPDATED_FILES+=("$dest")
+                        print_verbose "Updated: $dest"
+                    else
+                        NEW_FILES+=("$dest")
+                        print_verbose "New file: $dest"
+                    fi
+                    if [[ "$DRY_RUN" != "true" ]]; then
+                        compile_agent "$source" "$dest" "$BASE_DIR" "$PROJECT_PROFILE" ""
+                    fi
+                fi
+            fi
+        fi
+    done
+
+    # Generate and update implementer agents
+    local implementers_file=$(get_profile_file "$PROJECT_PROFILE" "roles/implementers.yml" "$BASE_DIR")
+    if [[ -f "$implementers_file" ]]; then
+        local template_file=$(get_profile_file "$PROJECT_PROFILE" "agents/templates/opencode-implementer.md" "$BASE_DIR")
+        if [[ -f "$template_file" ]]; then
+            local implementer_ids=$(awk '/^[ \t]*- id:/ {print $3}' "$implementers_file")
+
+            for id in $implementer_ids; do
+                local dest="$PROJECT_DIR/.opencode/agent/${id}.md"
+
+                if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_AGENTS" "agent"; then
+                    SKIPPED_FILES+=("$dest")
+                    print_verbose "Skipped: $dest"
+                else
+                    # Build role data with delimiter-based format for multi-line values
+                    local role_data=""
+                    role_data="${role_data}<<<id>>>"$'\n'"$id"$'\n'"<<<END>>>"$'\n'
+
+                    local description=$(parse_role_yaml "$implementers_file" "implementers" "$id" "description")
+                    role_data="${role_data}<<<description>>>"$'\n'"$description"$'\n'"<<<END>>>"$'\n'
+
+                    local your_role=$(parse_role_yaml "$implementers_file" "implementers" "$id" "your_role")
+                    role_data="${role_data}<<<your_role>>>"$'\n'"$your_role"$'\n'"<<<END>>>"$'\n'
+
+                    local tools=$(parse_role_yaml "$implementers_file" "implementers" "$id" "tools")
+                    role_data="${role_data}<<<tools>>>"$'\n'"$tools"$'\n'"<<<END>>>"$'\n'
+
+                    local model=$(parse_role_yaml "$implementers_file" "implementers" "$id" "model")
+                    role_data="${role_data}<<<model>>>"$'\n'"$model"$'\n'"<<<END>>>"$'\n'
+
+                    local color=$(parse_role_yaml "$implementers_file" "implementers" "$id" "color")
+                    role_data="${role_data}<<<color>>>"$'\n'"$color"$'\n'"<<<END>>>"$'\n'
+
+                    # Get areas of responsibility
+                    local areas=$(parse_role_yaml "$implementers_file" "implementers" "$id" "areas_of_responsibility")
+                    role_data="${role_data}<<<areas_of_responsibility>>>"$'\n'"$areas"$'\n'"<<<END>>>"$'\n'
+
+                    # Get example areas outside of responsibility
+                    local example_areas_outside=$(parse_role_yaml "$implementers_file" "implementers" "$id" "example_areas_outside_of_responsibility")
+                    role_data="${role_data}<<<example_areas_outside_of_responsibility>>>"$'\n'"$example_areas_outside"$'\n'"<<<END>>>"$'\n'
+
+                    # Get standards
+                    local standards_patterns=$(get_role_standards "$implementers_file" "implementers" "$id")
+                    local standards_list=$(process_standards "" "$BASE_DIR" "$PROJECT_PROFILE" "$standards_patterns")
+                    role_data="${role_data}<<<implementer_standards>>>"$'\n'"$standards_list"$'\n'"<<<END>>>"$'\n'
+
+                    if [[ -f "$dest" ]]; then
+                        UPDATED_FILES+=("$dest")
+                        print_verbose "Updated: $dest"
+                    else
+                        NEW_FILES+=("$dest")
+                        print_verbose "New file: $dest"
+                    fi
+
+                    if [[ "$DRY_RUN" != "true" ]]; then
+                        compile_agent "$template_file" "$dest" "$BASE_DIR" "$PROJECT_PROFILE" "$role_data"
+                    fi
+                fi
+            done
+        fi
+    fi
+
+    # Generate and update area verifier agents
+    local verifiers_file=$(get_profile_file "$PROJECT_PROFILE" "roles/verifiers.yml" "$BASE_DIR")
+    if [[ -f "$verifiers_file" ]]; then
+        local template_file=$(get_profile_file "$PROJECT_PROFILE" "agents/templates/opencode-verifier.md" "$BASE_DIR")
+        if [[ -f "$template_file" ]]; then
+            local verifier_ids=$(awk '/^[ \t]*- id:/ {print $3}' "$verifiers_file")
+
+            for id in $verifier_ids; do
+                local dest="$PROJECT_DIR/.opencode/agent/${id}.md"
+
+                if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_AGENTS" "agent"; then
+                    SKIPPED_FILES+=("$dest")
+                    print_verbose "Skipped: $dest"
+                else
+                    # Build role data with delimiter-based format for multi-line values
+                    local role_data=""
+                    role_data="${role_data}<<<id>>>"$'\n'"$id"$'\n'"<<<END>>>"$'\n'
+
+                    local description=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "description")
+                    role_data="${role_data}<<<description>>>"$'\n'"$description"$'\n'"<<<END>>>"$'\n'
+
+                    local your_role=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "your_role")
+                    role_data="${role_data}<<<your_role>>>"$'\n'"$your_role"$'\n'"<<<END>>>"$'\n'
+
+                    local tools=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "tools")
+                    role_data="${role_data}<<<tools>>>"$'\n'"$tools"$'\n'"<<<END>>>"$'\n'
+
+                    local model=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "model")
+                    role_data="${role_data}<<<model>>>"$'\n'"$model"$'\n'"<<<END>>>"$'\n'
+
+                    local color=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "color")
+                    role_data="${role_data}<<<color>>>"$'\n'"$color"$'\n'"<<<END>>>"$'\n'
+
+                    # Get areas of responsibility
+                    local areas=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "areas_of_responsibility")
+                    role_data="${role_data}<<<areas_of_responsibility>>>"$'\n'"$areas"$'\n'"<<<END>>>"$'\n'
+
+                    # Get example areas outside of responsibility
+                    local example_areas_outside=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "example_areas_outside_of_responsibility")
+                    role_data="${role_data}<<<example_areas_outside_of_responsibility>>>"$'\n'"$example_areas_outside"$'\n'"<<<END>>>"$'\n'
+
+                    # Get standards
+                    local standards_patterns=$(get_role_standards "$verifiers_file" "verifiers" "$id")
+                    local standards_list=$(process_standards "" "$BASE_DIR" "$PROJECT_PROFILE" "$standards_patterns")
+                    role_data="${role_data}<<<verifier_standards>>>"$'\n'"$standards_list"$'\n'"<<<END>>>"$'\n'
+
+                    if [[ -f "$dest" ]]; then
+                        UPDATED_FILES+=("$dest")
+                        print_verbose "Updated: $dest"
+                    else
+                        NEW_FILES+=("$dest")
+                        print_verbose "New file: $dest"
+                    fi
+
+                    if [[ "$DRY_RUN" != "true" ]]; then
+                        compile_agent "$template_file" "$dest" "$BASE_DIR" "$PROJECT_PROFILE" "$role_data"
+                    fi
+                fi
+            done
+        fi
+    fi
+
+    if [[ "$DRY_RUN" != "true" ]]; then
+        # Count commands separately
+        local command_pattern=".opencode/command"
+        local commands_actual_updated=0
+        local commands_actual_skipped=0
+        local commands_actual_new=0
+
+        for file in "${UPDATED_FILES[@]}"; do
+            [[ "$file" == *"$command_pattern"* ]] && ((commands_actual_updated++)) || true
+        done
+
+        for file in "${NEW_FILES[@]}"; do
+            [[ "$file" == *"$command_pattern"* ]] && ((commands_actual_new++)) || true
+        done
+
+        for file in "${SKIPPED_FILES[@]}"; do
+            [[ "$file" == *"$command_pattern"* ]] && ((commands_actual_skipped++)) || true
+        done
+
+        if [[ $commands_actual_new -gt 0 ]]; then
+            echo "✓ Added $commands_actual_new OpenCode commands"
+        fi
+        if [[ $commands_actual_updated -gt 0 ]]; then
+            echo "✓ Updated $commands_actual_updated OpenCode commands"
+        fi
+        if [[ $commands_actual_skipped -gt 0 ]]; then
+            echo -e "${YELLOW}$commands_actual_skipped commands were not updated and overwritten. To update and overwrite these, re-run with --overwrite-commands flag.${NC}"
+        fi
+
+        # Count agent files by checking SKIPPED_FILES, UPDATED_FILES, NEW_FILES
+        local agent_pattern=".opencode/agent"
+        local agents_updated=0
+        local agents_skipped=0
+        local agents_new=0
+
+        for file in "${UPDATED_FILES[@]}"; do
+            [[ "$file" == *"$agent_pattern"* ]] && ((agents_updated++)) || true
+        done
+
+        for file in "${NEW_FILES[@]}"; do
+            [[ "$file" == *"$agent_pattern"* ]] && ((agents_new++)) || true
+        done
+
+        for file in "${SKIPPED_FILES[@]}"; do
+            [[ "$file" == *"$agent_pattern"* ]] && ((agents_skipped++)) || true
+        done
+
+        if [[ $agents_new -gt 0 ]]; then
+            echo "✓ Added $agents_new OpenCode agents"
+        fi
+        if [[ $agents_updated -gt 0 ]]; then
+            echo "✓ Updated $agents_updated OpenCode agents"
+        fi
+        if [[ $agents_skipped -gt 0 ]]; then
+            echo -e "${YELLOW}$agents_skipped agents were not updated and overwritten. To update and overwrite these, re-run with --overwrite-agents flag.${NC}"
+        fi
+    fi
+}
+
 # Update agent-os folder and configuration
 update_agent_os_folder() {
     print_status "Updating agent-os folder"
@@ -841,9 +1119,14 @@ perform_update() {
         echo ""
     fi
 
-    if [[ "$PROJECT_MULTI_AGENT_MODE" == "true" ]] && [[ "$PROJECT_MULTI_AGENT_TOOL" == "claude-code" ]]; then
-        update_claude_code_files
-        echo ""
+    if [[ "$PROJECT_MULTI_AGENT_MODE" == "true" ]]; then
+        if [[ "$PROJECT_MULTI_AGENT_TOOL" == "claude-code" ]]; then
+            update_claude_code_files
+            echo ""
+        elif [[ "$PROJECT_MULTI_AGENT_TOOL" == "opencode" ]]; then
+            update_opencode_files
+            echo ""
+        fi
     fi
 
     if [[ "$DRY_RUN" == "true" ]]; then
@@ -898,11 +1181,13 @@ handle_reinstallation() {
     print_warning "This will DELETE your current agent-os/ folder and reinstall from scratch."
     echo ""
 
-    # Check for Claude Code files
-    if [[ -d "$PROJECT_DIR/.claude/agents/agent-os" ]] || [[ -d "$PROJECT_DIR/.claude/commands/agent-os" ]]; then
+    # Check for Claude Code and OpenCode files
+    if [[ -d "$PROJECT_DIR/.claude/agents/agent-os" ]] || [[ -d "$PROJECT_DIR/.claude/commands/agent-os" ]] || [[ -d "$PROJECT_DIR/.opencode/agent" ]] || [[ -d "$PROJECT_DIR/.opencode/command" ]]; then
         print_warning "This will also DELETE:"
         [[ -d "$PROJECT_DIR/.claude/agents/agent-os" ]] && echo "  - .claude/agents/agent-os/"
         [[ -d "$PROJECT_DIR/.claude/commands/agent-os" ]] && echo "  - .claude/commands/agent-os/"
+        [[ -d "$PROJECT_DIR/.opencode/agent" ]] && echo "  - .opencode/agent/"
+        [[ -d "$PROJECT_DIR/.opencode/command" ]] && echo "  - .opencode/command/"
         echo ""
     fi
 

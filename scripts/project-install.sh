@@ -463,6 +463,188 @@ install_claude_code_files() {
     fi
 }
 
+# Install and compile multi-agent mode files for OpenCode
+install_opencode_files() {
+    if [[ "$DRY_RUN" != "true" ]]; then
+        print_status "Installing OpenCode tools"
+    fi
+
+    local commands_count=0
+    local agents_count=0
+
+    # Install commands to .opencode/command/
+    while read file; do
+        if [[ "$file" == commands/*/multi-agent/* ]]; then
+            local source=$(get_profile_file "$EFFECTIVE_PROFILE" "$file" "$BASE_DIR")
+            if [[ -f "$source" ]]; then
+                # Extract command name from path
+                local command_name=$(echo "$file" | sed 's/commands\///' | sed 's/\/multi-agent.*//')
+                local dest="$PROJECT_DIR/.opencode/command/${command_name}.md"
+
+                local compiled=$(compile_command "$source" "$dest" "$BASE_DIR" "$EFFECTIVE_PROFILE")
+                if [[ "$DRY_RUN" == "true" ]]; then
+                    INSTALLED_FILES+=("$dest")
+                fi
+                ((commands_count++)) || true
+            fi
+        fi
+    done < <(get_profile_files "$EFFECTIVE_PROFILE" "$BASE_DIR" "commands")
+
+    if [[ "$DRY_RUN" != "true" ]]; then
+        if [[ $commands_count -gt 0 ]]; then
+            echo "✓ Installed $commands_count OpenCode commands"
+        fi
+    fi
+
+    # Install static agents to .opencode/agent/
+    get_profile_files "$EFFECTIVE_PROFILE" "$BASE_DIR" "agents" | while read file; do
+        if [[ "$file" == agents/*.md ]] && [[ "$file" != agents/templates/* ]]; then
+            local source=$(get_profile_file "$EFFECTIVE_PROFILE" "$file" "$BASE_DIR")
+            if [[ -f "$source" ]]; then
+                local agent_name=$(basename "$file" .md)
+                local dest="$PROJECT_DIR/.opencode/agent/${agent_name}.md"
+
+                local compiled=$(compile_agent "$source" "$dest" "$BASE_DIR" "$EFFECTIVE_PROFILE" "")
+                if [[ "$DRY_RUN" == "true" ]]; then
+                    INSTALLED_FILES+=("$dest")
+                fi
+                ((agents_count++)) || true
+            fi
+        fi
+    done
+
+    # Install specification agents
+    get_profile_files "$EFFECTIVE_PROFILE" "$BASE_DIR" "agents/specification" | while read file; do
+        if [[ "$file" == agents/specification/*.md ]]; then
+            local source=$(get_profile_file "$EFFECTIVE_PROFILE" "$file" "$BASE_DIR")
+            if [[ -f "$source" ]]; then
+                local agent_name=$(basename "$file" .md)
+                local dest="$PROJECT_DIR/.opencode/agent/${agent_name}.md"
+
+                local compiled=$(compile_agent "$source" "$dest" "$BASE_DIR" "$EFFECTIVE_PROFILE" "")
+                if [[ "$DRY_RUN" == "true" ]]; then
+                    INSTALLED_FILES+=("$dest")
+                fi
+                ((agents_count++)) || true
+            fi
+        fi
+    done
+
+    # Generate and install implementer agents
+    local implementers_file=$(get_profile_file "$EFFECTIVE_PROFILE" "roles/implementers.yml" "$BASE_DIR")
+    if [[ -f "$implementers_file" ]]; then
+        local template_file=$(get_profile_file "$EFFECTIVE_PROFILE" "agents/templates/opencode-implementer.md" "$BASE_DIR")
+        if [[ -f "$template_file" ]]; then
+            # Get list of implementer IDs
+            local implementer_ids=$(awk '/^[ \t]*- id:/ {print $3}' "$implementers_file")
+
+            for id in $implementer_ids; do
+                print_verbose "Generating implementer agent: $id"
+
+                # Build role data with delimiter-based format for multi-line values
+                local role_data=""
+                role_data="${role_data}<<<id>>>"$'\n'"$id"$'\n'"<<<END>>>"$'\n'
+
+                local description=$(parse_role_yaml "$implementers_file" "implementers" "$id" "description")
+                role_data="${role_data}<<<description>>>"$'\n'"$description"$'\n'"<<<END>>>"$'\n'
+
+                local your_role=$(parse_role_yaml "$implementers_file" "implementers" "$id" "your_role")
+                role_data="${role_data}<<<your_role>>>"$'\n'"$your_role"$'\n'"<<<END>>>"$'\n'
+
+                local tools=$(parse_role_yaml "$implementers_file" "implementers" "$id" "tools")
+                role_data="${role_data}<<<tools>>>"$'\n'"$tools"$'\n'"<<<END>>>"$'\n'
+
+                local model=$(parse_role_yaml "$implementers_file" "implementers" "$id" "model")
+                role_data="${role_data}<<<model>>>"$'\n'"$model"$'\n'"<<<END>>>"$'\n'
+
+                local color=$(parse_role_yaml "$implementers_file" "implementers" "$id" "color")
+                role_data="${role_data}<<<color>>>"$'\n'"$color"$'\n'"<<<END>>>"$'\n'
+
+                # Get areas of responsibility
+                local areas=$(parse_role_yaml "$implementers_file" "implementers" "$id" "areas_of_responsibility")
+                role_data="${role_data}<<<areas_of_responsibility>>>"$'\n'"$areas"$'\n'"<<<END>>>"$'\n'
+
+                # Get example areas outside of responsibility
+                local example_areas_outside=$(parse_role_yaml "$implementers_file" "implementers" "$id" "example_areas_outside_of_responsibility")
+                role_data="${role_data}<<<example_areas_outside_of_responsibility>>>"$'\n'"$example_areas_outside"$'\n'"<<<END>>>"$'\n'
+
+                # Get standards
+                local standards_patterns=$(get_role_standards "$implementers_file" "implementers" "$id")
+                local standards_list=$(process_standards "" "$BASE_DIR" "$EFFECTIVE_PROFILE" "$standards_patterns")
+                role_data="${role_data}<<<implementer_standards>>>"$'\n'"$standards_list"$'\n'"<<<END>>>"$'\n'
+
+                # Compile agent
+                local dest="$PROJECT_DIR/.opencode/agent/${id}.md"
+                local compiled=$(compile_agent "$template_file" "$dest" "$BASE_DIR" "$EFFECTIVE_PROFILE" "$role_data")
+                if [[ "$DRY_RUN" == "true" ]]; then
+                    INSTALLED_FILES+=("$dest")
+                fi
+                ((agents_count++)) || true
+            done
+        fi
+    fi
+
+    # Generate and install area verifier agents
+    local verifiers_file=$(get_profile_file "$EFFECTIVE_PROFILE" "roles/verifiers.yml" "$BASE_DIR")
+    if [[ -f "$verifiers_file" ]]; then
+        local template_file=$(get_profile_file "$EFFECTIVE_PROFILE" "agents/templates/opencode-verifier.md" "$BASE_DIR")
+        if [[ -f "$template_file" ]]; then
+            # Get list of verifier IDs
+            local verifier_ids=$(awk '/^[ \t]*- id:/ {print $3}' "$verifiers_file")
+
+            for id in $verifier_ids; do
+                print_verbose "Generating area verifier agent: $id"
+
+                # Build role data with delimiter-based format for multi-line values
+                local role_data=""
+                role_data="${role_data}<<<id>>>"$'\n'"$id"$'\n'"<<<END>>>"$'\n'
+
+                local description=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "description")
+                role_data="${role_data}<<<description>>>"$'\n'"$description"$'\n'"<<<END>>>"$'\n'
+
+                local your_role=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "your_role")
+                role_data="${role_data}<<<your_role>>>"$'\n'"$your_role"$'\n'"<<<END>>>"$'\n'
+
+                local tools=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "tools")
+                role_data="${role_data}<<<tools>>>"$'\n'"$tools"$'\n'"<<<END>>>"$'\n'
+
+                local model=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "model")
+                role_data="${role_data}<<<model>>>"$'\n'"$model"$'\n'"<<<END>>>"$'\n'
+
+                local color=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "color")
+                role_data="${role_data}<<<color>>>"$'\n'"$color"$'\n'"<<<END>>>"$'\n'
+
+                # Get areas of responsibility
+                local areas=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "areas_of_responsibility")
+                role_data="${role_data}<<<areas_of_responsibility>>>"$'\n'"$areas"$'\n'"<<<END>>>"$'\n'
+
+                # Get example areas outside of responsibility
+                local example_areas_outside=$(parse_role_yaml "$verifiers_file" "verifiers" "$id" "example_areas_outside_of_responsibility")
+                role_data="${role_data}<<<example_areas_outside_of_responsibility>>>"$'\n'"$example_areas_outside"$'\n'"<<<END>>>"$'\n'
+
+                # Get standards
+                local standards_patterns=$(get_role_standards "$verifiers_file" "verifiers" "$id")
+                local standards_list=$(process_standards "" "$BASE_DIR" "$EFFECTIVE_PROFILE" "$standards_patterns")
+                role_data="${role_data}<<<verifier_standards>>>"$'\n'"$standards_list"$'\n'"<<<END>>>"$'\n'
+
+                # Compile agent
+                local dest="$PROJECT_DIR/.opencode/agent/${id}.md"
+                local compiled=$(compile_agent "$template_file" "$dest" "$BASE_DIR" "$EFFECTIVE_PROFILE" "$role_data")
+                if [[ "$DRY_RUN" == "true" ]]; then
+                    INSTALLED_FILES+=("$dest")
+                fi
+                ((agents_count++)) || true
+            done
+        fi
+    fi
+
+    if [[ "$DRY_RUN" != "true" ]]; then
+        if [[ $agents_count -gt 0 ]]; then
+            echo "✓ Installed $agents_count OpenCode agents"
+        fi
+    fi
+}
+
 
 # Create agent-os folder structure
 create_agent_os_folder() {
@@ -518,8 +700,12 @@ perform_installation() {
         if [[ "$EFFECTIVE_SINGLE_AGENT_MODE" == "true" ]]; then
             install_single_agent_commands
         fi
-        if [[ "$EFFECTIVE_MULTI_AGENT_MODE" == "true" ]] && [[ "$EFFECTIVE_MULTI_AGENT_TOOL" == "claude-code" ]]; then
-            install_claude_code_files
+        if [[ "$EFFECTIVE_MULTI_AGENT_MODE" == "true" ]]; then
+            if [[ "$EFFECTIVE_MULTI_AGENT_TOOL" == "claude-code" ]]; then
+                install_claude_code_files
+            elif [[ "$EFFECTIVE_MULTI_AGENT_TOOL" == "opencode" ]]; then
+                install_opencode_files
+            fi
         fi
 
         echo ""
@@ -545,9 +731,14 @@ perform_installation() {
             echo ""
         fi
 
-        if [[ "$EFFECTIVE_MULTI_AGENT_MODE" == "true" ]] && [[ "$EFFECTIVE_MULTI_AGENT_TOOL" == "claude-code" ]]; then
-            install_claude_code_files
-            echo ""
+        if [[ "$EFFECTIVE_MULTI_AGENT_MODE" == "true" ]]; then
+            if [[ "$EFFECTIVE_MULTI_AGENT_TOOL" == "claude-code" ]]; then
+                install_claude_code_files
+                echo ""
+            elif [[ "$EFFECTIVE_MULTI_AGENT_TOOL" == "opencode" ]]; then
+                install_opencode_files
+                echo ""
+            fi
         fi
     fi
 

@@ -689,6 +689,34 @@ replace_playwright_tools() {
     echo "$tools" | sed "s/Playwright/$playwright_tools/g"
 }
 
+# Convert tools from comma-separated format to OpenCode YAML format
+convert_tools_to_opencode_format() {
+    local tools=$1
+
+    # Handle Playwright expansion first
+    tools=$(replace_playwright_tools "$tools")
+
+    # Convert comma-separated list to YAML format
+    local result=""
+
+    # Split by comma and trim whitespace
+    IFS=',' read -ra tool_array <<< "$tools"
+
+    for tool in "${tool_array[@]}"; do
+        # Trim whitespace
+        tool=$(echo "$tool" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+        # Convert to lowercase for the key
+        local tool_key=$(echo "$tool" | tr '[:upper:]' '[:lower:]')
+
+        # Add to result with proper indentation
+        result="${result}  ${tool_key}: true"$'\n'
+    done
+
+    # Remove trailing newline
+    echo -n "$result"
+}
+
 # Process workflow replacements recursively
 process_workflows() {
     local content=$1
@@ -872,6 +900,43 @@ compile_agent() {
                     ' "$key" "$temp_value" "$temp_content")
 
                     rm -f "$temp_content" "$temp_value"
+
+                    # If this is the tools key, also create tools_opencode version
+                    if [[ "$key" == "tools" ]]; then
+                        local tools_opencode_value=$(convert_tools_to_opencode_format "$value")
+                        local temp_tools_opencode=$(mktemp)
+                        echo "$tools_opencode_value" > "$temp_tools_opencode"
+
+                        local temp_content2=$(mktemp)
+                        echo "$content" > "$temp_content2"
+
+                        content=$(perl -e '
+                            use strict;
+                            use warnings;
+
+                            my $value_file = $ARGV[0];
+                            my $content_file = $ARGV[1];
+
+                            # Read value
+                            open(my $fh, "<", $value_file) or die $!;
+                            my $value = do { local $/; <$fh> };
+                            close($fh);
+                            chomp $value;
+
+                            # Read content
+                            open($fh, "<", $content_file) or die $!;
+                            my $content = do { local $/; <$fh> };
+                            close($fh);
+
+                            # Do the replacement
+                            my $pattern = quotemeta("{{tools_opencode}}");
+                            $content =~ s/$pattern/$value/g;
+
+                            print $content;
+                        ' "$temp_tools_opencode" "$temp_content2")
+
+                        rm -f "$temp_content2" "$temp_tools_opencode"
+                    fi
                 fi
             fi
         done < "$temp_role_data"
@@ -935,6 +1000,52 @@ compile_agent() {
         local new_tools_line=$(replace_playwright_tools "$tools_line")
         # Simple replacement since this is a single line
         content=$(echo "$content" | sed "s|^tools:.*$|$new_tools_line|")
+    fi
+
+    # OpenCode-specific processing
+    if [[ "$dest_file" == *".opencode/"* ]]; then
+        # Add mode: subagent to frontmatter if not already present
+        if echo "$content" | grep -q "^---" && ! echo "$content" | grep -q "^mode:"; then
+            # Insert mode: subagent after the opening ---
+            content=$(echo "$content" | awk '
+                BEGIN { found_first_delimiter = 0 }
+                /^---$/ && found_first_delimiter == 0 {
+                    print
+                    print "mode: subagent"
+                    found_first_delimiter = 1
+                    next
+                }
+                { print }
+            ')
+        fi
+
+        # Convert tools format from "tools: Read, Write, Edit" to OpenCode YAML format
+        if echo "$content" | grep -q "^tools: "; then
+            local tools_line=$(echo "$content" | grep "^tools: ")
+            local tools_value=$(echo "$tools_line" | sed 's/^tools: //')
+            local tools_opencode=$(convert_tools_to_opencode_format "$tools_value")
+
+            # Replace the single-line tools with multi-line YAML format
+            local temp_content=$(mktemp)
+            local temp_tools=$(mktemp)
+            echo "$content" > "$temp_content"
+            echo "$tools_opencode" > "$temp_tools"
+
+            # Use sed to replace the tools line, then insert the multi-line tools
+            content=$(awk '
+                /^tools: / {
+                    print "tools:"
+                    while ((getline line < "'"$temp_tools"'") > 0) {
+                        print line
+                    }
+                    close("'"$temp_tools"'")
+                    next
+                }
+                { print }
+            ' "$temp_content")
+
+            rm -f "$temp_content" "$temp_tools"
+        fi
     fi
 
     if [[ "$DRY_RUN" == "true" ]]; then

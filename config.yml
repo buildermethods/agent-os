@@ -14,7 +14,7 @@ base_install: true
 
 multi_agent_mode: true
 
-# Currently supported tools: claude-code
+# Currently supported tools: claude-code, opencode
 multi_agent_tool: claude-code
 
 
