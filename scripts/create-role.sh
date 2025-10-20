@@ -99,7 +99,7 @@ select_profile() {
             else
                 echo "  $index) $profile"
             fi
-            ((index++))
+            ((index++)) || true
         done
 
         echo ""
@@ -423,7 +423,7 @@ select_standards() {
                 local relative_dir="${dir#$standards_dir/}"
                 items+=("${relative_dir}/*")
                 echo "  $index) ${relative_dir}/*"
-                ((index++))
+                ((index++)) || true
             done < <(find "$standards_dir" -type d -mindepth 1 -print0 | sort -z)
 
             # Find all files
@@ -432,7 +432,7 @@ select_standards() {
                 local relative_file="${file#$standards_dir/}"
                 items+=("$relative_file")
                 echo "  $index) $relative_file"
-                ((index++))
+                ((index++)) || true
             done < <(find "$standards_dir" -type f \( -name "*.md" -o -name "*.yml" -o -name "*.yaml" \) -print0 | sort -z)
             shopt -u nullglob
 
@@ -516,7 +516,7 @@ select_verifiers() {
     local index=1
     for vid in "${verifier_ids[@]}"; do
         echo "  $index) $vid"
-        ((index++))
+        ((index++)) || true
     done
 
     echo ""
