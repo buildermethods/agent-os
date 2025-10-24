@@ -307,14 +307,31 @@ get_profile_file() {
         local profile_dir="$base_dir/profiles/$current_profile"
         local full_path="$profile_dir/$file_path"
 
+        # Check for profile config first (needed for exclusion check)
+        local profile_config="$profile_dir/profile-config.yml"
+
         # Check if file exists in current profile
         if [[ -f "$full_path" ]]; then
+            # Check if this file is excluded (even in current profile)
+            if [[ -f "$profile_config" ]]; then
+                local excluded="false"
+                while read pattern; do
+                    if [[ -n "$pattern" ]] && match_pattern "$file_path" "$pattern"; then
+                        excluded="true"
+                        break
+                    fi
+                done < <(get_yaml_array "$profile_config" "exclude_inherited_files")
+
+                if [[ "$excluded" == "true" ]]; then
+                    echo ""
+                    return
+                fi
+            fi
             echo "$full_path"
             return
         fi
 
         # Check for inheritance
-        local profile_config="$profile_dir/profile-config.yml"
         if [[ ! -f "$profile_config" ]]; then
             # No profile config means this is likely the default profile
             echo ""
@@ -328,15 +345,16 @@ get_profile_file() {
             return
         fi
 
-        # Check if file is excluded
-        local excluded=$(get_yaml_array "$profile_config" "exclude_inherited_files" | while read pattern; do
-            if match_pattern "$file_path" "$pattern"; then
-                echo "yes"
+        # Check if file is excluded during inheritance
+        local excluded="false"
+        while read pattern; do
+            if [[ -n "$pattern" ]] && match_pattern "$file_path" "$pattern"; then
+                excluded="true"
                 break
             fi
-        done)
+        done < <(get_yaml_array "$profile_config" "exclude_inherited_files")
 
-        if [[ "$excluded" == "yes" ]]; then
+        if [[ "$excluded" == "true" ]]; then
             echo ""
             return
         fi
@@ -424,12 +442,12 @@ get_profile_files() {
 
                 # Check if excluded
                 excluded="false"
-                echo "$excluded_patterns" | while read pattern; do
+                while read pattern; do
                     if [[ -n "$pattern" ]] && match_pattern "$relative_path" "$pattern"; then
                         excluded="true"
                         break
                     fi
-                done
+                done <<< "$excluded_patterns"
 
                 if [[ "$excluded" != "true" ]]; then
                     # Check if already in list (override scenario)
