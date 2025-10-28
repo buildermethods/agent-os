@@ -217,7 +217,7 @@ download_all_files() {
             [[ -d "$dir_path" ]] || mkdir -p "$dir_path"
 
             if download_file "$file_path" "$dest_file"; then
-                ((file_count++))
+                ((file_count++)) || true
                 print_verbose "  Downloaded: ${file_path}"
             else
                 print_verbose "  Failed to download: ${file_path}"
@@ -448,7 +448,7 @@ full_update() {
                 local dir_path=$(dirname "$dest_file")
                 [[ -d "$dir_path" ]] || mkdir -p "$dir_path"
                 if download_file "$file_path" "$dest_file"; then
-                    ((file_count++))
+                    ((file_count++)) || true
                     print_verbose "  Downloaded: ${file_path}"
                 fi
             fi
@@ -469,7 +469,7 @@ full_update() {
                 local dir_path=$(dirname "$dest_file")
                 [[ -d "$dir_path" ]] || mkdir -p "$dir_path"
                 if download_file "$file_path" "$dest_file"; then
-                    ((file_count++))
+                    ((file_count++)) || true
                     print_verbose "  Downloaded: ${file_path}"
                 fi
             fi
@@ -532,7 +532,7 @@ overwrite_profile() {
                 [[ -d "$dir_path" ]] || mkdir -p "$dir_path"
 
                 if download_file "$file_path" "$dest_file"; then
-                    ((file_count++))
+                    ((file_count++)) || true
                     print_verbose "  Downloaded: ${file_path}"
                 fi
             fi
@@ -563,7 +563,7 @@ overwrite_scripts() {
                 [[ -d "$dir_path" ]] || mkdir -p "$dir_path"
 
                 if download_file "$file_path" "$dest_file"; then
-                    ((file_count++))
+                    ((file_count++)) || true
                     print_verbose "  Downloaded: ${file_path}"
                 fi
             fi
