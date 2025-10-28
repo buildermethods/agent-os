@@ -130,7 +130,7 @@ select_inheritance() {
         local index=2
         for profile in "${profiles[@]}"; do
             echo "  $index) $profile"
-            ((index++))
+            ((index++)) || true
         done
 
         echo ""
@@ -194,7 +194,7 @@ select_copy_source() {
         local index=2
         for profile in "${profiles[@]}"; do
             echo "  $index) $profile"
-            ((index++))
+            ((index++)) || true
         done
 
         echo ""
