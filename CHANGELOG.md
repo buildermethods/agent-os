@@ -3,6 +3,14 @@
 Get notified of major releases by subscribing here:
 https://buildermethods.com/agent-os
 
+## [2.1.1] - 2025-10-29
+
+- Replaced references to 'spec-researcher' (depreciated agent name) with 'spec-shaper'.
+- Clarified --dry-run output to user to reassure we're in dry-run mode
+- Tightened up template and istructions for writing spec.md, aiming to keep it shorter, easier to scan, and covering only the essentials.
+- Tweaked create-task-list workflow for consistency.
+- When planning product roadmap, removed instruction to limit it to 12 items.
+
 ## [2.1.0] - 2025-10-21
 
 Version 2.1 implemented a round of significant changes to how things work in Agent OS.  Here is a summary of what's new in version 2.1.0:

@@ -678,14 +678,24 @@ prompt_update_confirmation() {
         echo ""
         print_color "$PURPLE" "=== Version/Configuration Update Required ==="
         echo ""
+        if [[ "$DRY_RUN" == "true" ]]; then
+            print_warning "Dry run simulation"
+        fi
         echo ""
         print_status "Your project's Agent OS version and/or configuration is different than the version you're trying to install."
     else
         echo ""
         print_color "$PURPLE" "=== Confirm Update ==="
         echo ""
+        if [[ "$DRY_RUN" == "true" ]]; then
+            print_warning "Dry run simulation"
+        fi
         echo ""
-        print_status "Confirm you'd like to proceed with an update."
+        if [[ "$DRY_RUN" == "true" ]]; then
+            print_status "Confirm you'd like to proceed with a DRY RUN update simulation."
+        else
+            print_status "Confirm you'd like to proceed with an update."
+        fi
     fi
     echo ""
 
@@ -722,14 +732,22 @@ prompt_update_confirmation() {
     echo ""
 
     # Show what will happen
-    print_status "Here's what will happen if you proceed:"
+    if [[ "$DRY_RUN" == "true" ]]; then
+        print_status "Here's what WOULD happen if this were a real update (but it's a DRY RUN):"
+    else
+        print_status "Here's what will happen if you proceed:"
+    fi
     echo ""
     echo -e "${GREEN}✔ These will remain intact:${NC}"
     echo ""
     echo "  - agent-os/specs/*"
     echo "  - agent-os/product/*"
     echo ""
-    echo -e "${YELLOW}⚠️  These will be deleted and re-installed to match the new version and configurations:${NC}"
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo -e "${YELLOW}⚠️  These WOULD BE deleted and re-installed to match the new version and configurations if this were a real update (but it's a DRY RUN):${NC}"
+    else
+        echo -e "${YELLOW}⚠️  These will be deleted and re-installed to match the new version and configurations:${NC}"
+    fi
     echo ""
     echo "  - agent-os/config.yml"
     echo "  - agent-os/standards/"
@@ -759,7 +777,7 @@ prompt_update_confirmation() {
 # Perform cleanup before update - delete everything except specs/ and product/
 perform_update_cleanup() {
     if [[ "$DRY_RUN" == "true" ]]; then
-        print_status "Dry run: Would prepare for update..."
+        print_warning "Dry run: Would prepare for update..."
         echo ""
     else
         print_status "Preparing for update..."

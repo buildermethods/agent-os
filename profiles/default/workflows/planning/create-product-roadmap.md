@@ -6,7 +6,7 @@ Do not include any tasks for initializing a new codebase or bootstrapping a new 
 
 1. **Review the Mission** - Read `agent-os/product/mission.md` to understand the product's goals, target users, and success criteria.
 
-2. **Identify Features** - Based on the mission, determine 4–12 concrete features needed to achieve the product vision.
+2. **Identify Features** - Based on the mission, determine the list of concrete features needed to achieve the product vision.
 
 3. **Strategic Ordering** - Order features based on:
    - Technical dependencies (foundational features first)
@@ -29,7 +29,6 @@ Do not include any tasks for initializing a new codebase or bootstrapping a new 
 8. [ ] [FEATURE_NAME] — [1-2 SENTENCE DESCRIPTION OF COMPLETE, TESTABLE FEATURE] `[EFFORT]`
 
 > Notes
-> - Include 4–12 items total
 > - Order items by technical dependencies and product architecture
 > - Each item should represent an end-to-end (frontend + backend) functional and testable feature
 ```

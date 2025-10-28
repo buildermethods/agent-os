@@ -4,14 +4,14 @@
 
 1. **Analyze spec and requirements**: Read and analyze the spec.md and/or requirements.md to inform the tasks list you will create.
 2. **Plan task execution order**: Break the requirements into a list of tasks in an order that takes their dependencies into account.
-3. **Group tasks by specialization**: Group tasks that should be handled by the same specialist together.
+3. **Group tasks by specialization**: Group tasks that require the same skill or stack specialization together (backend, api, ui design, etc.)
 4. **Create Tasks list**: Create the markdown tasks list broken into groups with sub-tasks.
 
 ## Workflow
 
 ### Step 1: Analyze Spec & Requirements
 
-Read each of these files (if available) and analyze them to understand the requirements for this feature implementation:
+Read each of these files (whichever are available) and analyze them to understand the requirements for this feature implementation:
 - `agent-os/specs/[this-spec]/spec.md`
 - `agent-os/specs/[this-spec]/planning/requirements.md`
 
@@ -188,7 +188,7 @@ Recommended implementation sequence:
 ## Important Constraints
 
 - **Create tasks that are specific and verifiable**
-- **Group related tasks** for efficient specialists implementer assignment. For example, group back-end engineering tasks together and front-end UI tasks together.
+- **Group related tasks:** For example, group back-end engineering tasks together and front-end UI tasks together.
 - **Limit test writing during development**:
   - Each task group (1-3) should write 2-8 focused tests maximum
   - Tests should cover only critical behaviors, not exhaustive coverage
