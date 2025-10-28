@@ -9,6 +9,7 @@ https://buildermethods.com/agent-os
 - Clarified --dry-run output to user to reassure we're in dry-run mode
 - Tightened up template and istructions for writing spec.md, aiming to keep it shorter, easier to scan, and covering only the essentials.
 - Tweaked create-task-list workflow for consistency.
+- When planning product roadmap, removed instruction to limit it to 12 items.
 
 ## [2.1.0] - 2025-10-21
 
