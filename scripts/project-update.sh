@@ -758,37 +758,52 @@ prompt_update_confirmation() {
 
 # Perform cleanup before update - delete everything except specs/ and product/
 perform_update_cleanup() {
-    print_status "Preparing for update..."
-    echo ""
+    if [[ "$DRY_RUN" == "true" ]]; then
+        print_status "Dry run: Would prepare for update..."
+        echo ""
+    else
+        print_status "Preparing for update..."
+        echo ""
+    fi
 
     # Delete agent-os/standards/ (will be reinstalled)
     if [[ -d "$PROJECT_DIR/agent-os/standards" ]]; then
         print_status "Removing agent-os/standards/"
-        rm -rf "$PROJECT_DIR/agent-os/standards"
+        if [[ "$DRY_RUN" != "true" ]]; then
+            rm -rf "$PROJECT_DIR/agent-os/standards"
+        fi
     fi
 
     # Delete agent-os/commands/ if exists
     if [[ -d "$PROJECT_DIR/agent-os/commands" ]]; then
         print_status "Removing agent-os/commands/"
-        rm -rf "$PROJECT_DIR/agent-os/commands"
+        if [[ "$DRY_RUN" != "true" ]]; then
+            rm -rf "$PROJECT_DIR/agent-os/commands"
+        fi
     fi
 
     # Delete .claude/agents/agent-os/ if exists
     if [[ -d "$PROJECT_DIR/.claude/agents/agent-os" ]]; then
         print_status "Removing .claude/agents/agent-os/"
-        rm -rf "$PROJECT_DIR/.claude/agents/agent-os"
+        if [[ "$DRY_RUN" != "true" ]]; then
+            rm -rf "$PROJECT_DIR/.claude/agents/agent-os"
+        fi
     fi
 
     # Delete .claude/commands/agent-os/ if exists
     if [[ -d "$PROJECT_DIR/.claude/commands/agent-os" ]]; then
         print_status "Removing .claude/commands/agent-os/"
-        rm -rf "$PROJECT_DIR/.claude/commands/agent-os"
+        if [[ "$DRY_RUN" != "true" ]]; then
+            rm -rf "$PROJECT_DIR/.claude/commands/agent-os"
+        fi
     fi
 
     # Delete old .claude/skills/agent-os/ if exists (legacy location)
     if [[ -d "$PROJECT_DIR/.claude/skills/agent-os" ]]; then
         print_status "Removing legacy .claude/skills/agent-os/"
-        rm -rf "$PROJECT_DIR/.claude/skills/agent-os"
+        if [[ "$DRY_RUN" != "true" ]]; then
+            rm -rf "$PROJECT_DIR/.claude/skills/agent-os"
+        fi
     fi
 
     # Delete individual Agent OS skills (new location: .claude/skills/[skill-name]/)
@@ -799,7 +814,9 @@ perform_update_cleanup() {
                 local skill_name=$(echo "$file" | sed 's|^standards/||' | sed 's|\.md$||' | sed 's|/|-|g')
                 if [[ -d "$PROJECT_DIR/.claude/skills/$skill_name" ]]; then
                     print_status "Removing .claude/skills/$skill_name/"
-                    rm -rf "$PROJECT_DIR/.claude/skills/$skill_name"
+                    if [[ "$DRY_RUN" != "true" ]]; then
+                        rm -rf "$PROJECT_DIR/.claude/skills/$skill_name"
+                    fi
                 fi
             fi
         done < <(get_profile_files "$PROJECT_PROFILE" "$BASE_DIR" "standards")
@@ -808,11 +825,17 @@ perform_update_cleanup() {
     # Delete agent-os/roles/ if exists (legacy)
     if [[ -d "$PROJECT_DIR/agent-os/roles" ]]; then
         print_status "Removing legacy agent-os/roles/"
-        rm -rf "$PROJECT_DIR/agent-os/roles"
+        if [[ "$DRY_RUN" != "true" ]]; then
+            rm -rf "$PROJECT_DIR/agent-os/roles"
+        fi
     fi
 
     echo ""
-    print_success "Cleanup complete!"
+    if [[ "$DRY_RUN" == "true" ]]; then
+        print_success "Dry run: Cleanup would be complete!"
+    else
+        print_success "Cleanup complete!"
+    fi
     echo ""
     print_status "Proceeding with update..."
     echo ""
