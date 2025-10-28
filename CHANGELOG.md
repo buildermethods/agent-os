@@ -6,6 +6,7 @@ https://buildermethods.com/agent-os
 ## [2.1.1] - 2025-10-29
 
 - Replaced references to 'spec-researcher' (depreciated agent name) with 'spec-shaper'.
+- Clarified --dry-run output to user to reassure we're in dry-run mode
 
 ## [2.1.0] - 2025-10-21
 
