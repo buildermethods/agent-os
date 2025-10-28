@@ -515,7 +515,7 @@ process_conditionals() {
                 should_include=false
             fi
 
-            ((nesting_level++))
+            ((nesting_level++)) || true
             continue
         fi
 
@@ -550,7 +550,7 @@ process_conditionals() {
                 should_include=false
             fi
 
-            ((nesting_level++))
+            ((nesting_level++)) || true
             continue
         fi
 
