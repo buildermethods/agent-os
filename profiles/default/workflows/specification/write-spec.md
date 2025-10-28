@@ -21,7 +21,7 @@ ls -la agent-os/specs/[current-spec]/planning/visuals/ 2>/dev/null | grep -v "^t
 
 Parse and analyze:
 - User's feature description and goals
-- Requirements gathered by spec-researcher
+- Requirements gathered by spec-shaper
 - Visual mockups or screenshots (if present)
 - Any constraints or out-of-scope items mentioned
 
