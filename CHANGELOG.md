@@ -3,6 +3,10 @@
 Get notified of major releases by subscribing here:
 https://buildermethods.com/agent-os
 
+## [2.1.1] - 2025-10-29
+
+- Replaced references to 'spec-researcher' (depreciated agent name) with 'spec-shaper'.
+
 ## [2.1.0] - 2025-10-21
 
 Version 2.1 implemented a round of significant changes to how things work in Agent OS.  Here is a summary of what's new in version 2.1.0:
