@@ -62,41 +62,32 @@ Follow this structure exactly when creating the content of `spec.md`:
 
 ## User Stories
 - As a [user type], I want to [action] so that [benefit]
-- [Additional stories based on requirements]
+- [repeat for up to 2 max additional user stories]
 
-## Core Requirements
-- [User-facing capability]
-- [What users can do]
-- [Key features to implement]
+## Specific Requirements
+
+**Specific requirement name**
+- [Up to 8 CONCISE sub-bullet points to clarify specific sub-requirements, design or architectual decisions that go into this requirement, or the technical approach to take when implementing this requirement]
+
+[repeat for up to a max of 10 specific requirements]
 
 ## Visual Design
 [If mockups provided]
-- Mockup reference: `planning/visuals/[filename]`
-- Key UI elements to implement
-- Responsive breakpoints required
 
-## Reusable Components
-### Existing Code to Leverage
-- Components: [List found components]
-- Services: [List found services]
-- Patterns: [Similar features to model after]
+**`planning/visuals/[filename]`**
+- [up to 8 CONCISE bullets describing specific UI elements found in this visual to address when building]
 
-### New Components Required
-- [Component that doesn't exist yet]
-- [Why it can't reuse existing code]
+[repeat for each file in the `planning/visuals` folder]
 
-## Technical Approach
-- [Briefly describe specific technical notes to ensure alignment with requirements.md]
+## Existing Code to Leverage
+
+**Code, component, or existing logic found**
+- [up to 5 bullets that describe what this existing code does and how it should be re-used or replicated when building this spec]
+
+[repeat for up to 5 existing code areas]
 
 ## Out of Scope
-- [Features not being built now]
-- [Future enhancements]
-- [Items explicitly excluded]
-
-## Success Criteria
-- [Measurable outcome]
-- [Performance metric]
-- [User experience goal]
+- [up to 10 concise descriptions of specific features that are out of scope and MUST NOT be built in this spec]
 ```
 
 ## Important Constraints
@@ -105,4 +96,4 @@ Follow this structure exactly when creating the content of `spec.md`:
 2. **Reference visual assets** when available
 3. **Do NOT write actual code** in the spec
 4. **Keep each section short**, with clear, direct, skimmable specifications
-5. **Document WHY new code is needed** if can't reuse existing
+5. **Do NOT deviate from the template above** and do not add additional sections
