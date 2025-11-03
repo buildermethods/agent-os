@@ -1186,6 +1186,7 @@ load_base_config() {
     BASE_USE_CLAUDE_CODE_SUBAGENTS=$(get_yaml_value "$BASE_DIR/config.yml" "use_claude_code_subagents" "true")
     BASE_AGENT_OS_COMMANDS=$(get_yaml_value "$BASE_DIR/config.yml" "agent_os_commands" "false")
     BASE_STANDARDS_AS_CLAUDE_CODE_SKILLS=$(get_yaml_value "$BASE_DIR/config.yml" "standards_as_claude_code_skills" "true")
+    BASE_FACTORY_AI_DROIDS=$(get_yaml_value "$BASE_DIR/config.yml" "factory_ai_droids" "false")
 
     # Check for old config flags to set variables for validation
     MULTI_AGENT_MODE=$(get_yaml_value "$BASE_DIR/config.yml" "multi_agent_mode" "")
@@ -1201,6 +1202,7 @@ load_project_config() {
     PROJECT_USE_CLAUDE_CODE_SUBAGENTS=$(get_project_config "$PROJECT_DIR" "use_claude_code_subagents")
     PROJECT_AGENT_OS_COMMANDS=$(get_project_config "$PROJECT_DIR" "agent_os_commands")
     PROJECT_STANDARDS_AS_CLAUDE_CODE_SKILLS=$(get_project_config "$PROJECT_DIR" "standards_as_claude_code_skills")
+    PROJECT_FACTORY_AI_DROIDS=$(get_project_config "$PROJECT_DIR" "factory_ai_droids")
 
     # Check for old config flags to set variables for validation
     MULTI_AGENT_MODE=$(get_project_config "$PROJECT_DIR" "multi_agent_mode")
@@ -1256,6 +1258,7 @@ write_project_config() {
     local use_claude_code_subagents=$4
     local agent_os_commands=$5
     local standards_as_claude_code_skills=$6
+    local factory_ai_droids=$7
     local dest="$PROJECT_DIR/agent-os/config.yml"
 
     local config_content="version: $version
@@ -1270,7 +1273,8 @@ profile: $profile
 claude_code_commands: $claude_code_commands
 use_claude_code_subagents: $use_claude_code_subagents
 agent_os_commands: $agent_os_commands
-standards_as_claude_code_skills: $standards_as_claude_code_skills"
+standards_as_claude_code_skills: $standards_as_claude_code_skills
+factory_ai_droids: $factory_ai_droids"
 
     local result=$(write_file "$config_content" "$dest")
     if [[ "$DRY_RUN" == "true" ]]; then
@@ -1463,6 +1467,272 @@ install_improve_skills_command() {
 
         if [[ "$DRY_RUN" == "true" ]]; then
             INSTALLED_FILES+=("$dest")
+        fi
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Factory AI Droid Functions
+# -----------------------------------------------------------------------------
+
+# Map agent-os tool names to Factory AI tool names
+map_tools_to_factory() {
+    local tools=$1
+    # Remove the brackets and split by comma
+    local tools_array=$(echo "$tools" | sed 's/\[//g' | sed 's/\]//g' | sed 's/, */ /g')
+    local factory_tools=()
+    
+    for tool in $tools_array; do
+        case "$tool" in
+            "Write")
+                # Map Write to standard Factory edit tools + exploration tools
+                factory_tools+=("Read" "LS" "Grep" "Glob" "Create" "Edit" "MultiEdit")
+                ;;
+            "Read")
+                # Map Read to Factory read-only tools
+                factory_tools+=("Read" "LS" "Grep" "Glob")
+                ;;
+            "Bash")
+                # Map Bash to Factory Execute
+                factory_tools+=("Execute")
+                ;;
+            "WebFetch")
+                # Map WebFetch to Factory web tools (but exclude for most droids)
+                # Don't add by default - let droids that need it specify explicitly
+                ;;
+            "Playwright")
+                # Don't include Playwright tools - not standard Factory tools
+                # Browsers should be used via WebSearch/FetchUrl instead
+                ;;
+            *)
+                # Pass through any other tool names as-is
+                factory_tools+=("$tool")
+                ;;
+        esac
+    done
+    
+    # Remove duplicates and format as JSON array
+    local unique_tools=($(echo "${factory_tools[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+    local json_tools="["
+    local first=true
+    for tool in "${unique_tools[@]}"; do
+        if [[ "$first" == "true" ]]; then
+            json_tools+="\"$tool\""
+            first=false
+        else
+            json_tools+=", \"$tool\""
+        fi
+    done
+    json_tools+="]"
+    echo "$json_tools"
+}
+
+# Create a Factory AI droid from an agent file
+# Args: $1=agent file path (relative to profile, e.g., "agents/implementer.md")
+#       $2=dest base directory (project directory)
+#       $3=base directory (~/agent-os)
+#       $4=profile name
+create_factory_droid() {
+    local agent_file=$1
+    local dest_base=$2
+    local base_dir=$3
+    local profile=$4
+
+    # Get the full path to the agent file
+    local source_file=$(get_profile_file "$profile" "$agent_file" "$base_dir")
+    if [[ ! -f "$source_file" ]]; then
+        print_error "Agent file not found: $source_file"
+        return 1
+    fi
+
+    # Extract agent name from filename
+    local agent_name=$(basename "$agent_file" .md)
+
+    # Read the agent file and extract frontmatter
+    local agent_content=$(cat "$source_file")
+    local description=""
+    local tools=""
+    local model="inherit"
+    
+    # Extract frontmatter using awk - extract everything between first and second ---
+    description=$(awk 'BEGIN{count=0} /^---$/{count++; next} count==1 && /^description:/{sub(/^description:[[:space:]]*/, ""); print; exit}' "$source_file")
+    tools=$(awk 'BEGIN{count=0} /^---$/{count++; next} count==1 && /^tools:/{sub(/^tools:[[:space:]]*/, ""); print; exit}' "$source_file")
+    
+    # Extract content after frontmatter (everything after second ---)
+    local droid_content=$(echo "$agent_content" | awk '/^---$/ {count++; next} count >= 2 {print}')
+    
+    # Compile the droid content (process workflows, standards, conditionals)
+    # First write to a temp file
+    local temp_file=$(mktemp)
+    echo "$droid_content" > "$temp_file"
+    
+    # Now compile it
+    local compiled_content=$(compile_agent "$temp_file" "$temp_file.compiled" "$base_dir" "$profile" "" "")
+    compiled_content=$(cat "$temp_file.compiled" 2>/dev/null || echo "$droid_content")
+    rm -f "$temp_file" "$temp_file.compiled"
+    
+    # Map tools to Factory AI tool names
+    local factory_tools=$(map_tools_to_factory "$tools")
+    
+    # Get the droid template
+    local template_file=$(get_profile_file "$profile" "factory-ai-droid-template.md" "$base_dir")
+    if [[ ! -f "$template_file" ]]; then
+        print_error "Factory AI droid template not found: $template_file"
+        return 1
+    fi
+
+    # Read template and replace placeholders
+    local droid_file_content=$(cat "$template_file")
+    droid_file_content=$(echo "$droid_file_content" | sed "s|{{agent_name}}|$agent_name|g")
+    droid_file_content=$(echo "$droid_file_content" | sed "s|{{agent_description}}|$description|g")
+    droid_file_content=$(echo "$droid_file_content" | sed "s|{{agent_tools}}|$factory_tools|g")
+    
+    # Replace content placeholder (handle multiline)
+    local temp_template=$(mktemp)
+    local temp_content=$(mktemp)
+    echo "$droid_file_content" > "$temp_template"
+    echo "$compiled_content" > "$temp_content"
+    
+    droid_file_content=$(perl -e '
+        use strict;
+        use warnings;
+        
+        my $content_file = $ARGV[0];
+        my $template_file = $ARGV[1];
+        
+        # Read compiled content
+        open(my $fh, "<", $content_file) or die $!;
+        my $content = do { local $/; <$fh> };
+        close($fh);
+        chomp $content;
+        
+        # Read template
+        open($fh, "<", $template_file) or die $!;
+        my $template = do { local $/; <$fh> };
+        close($fh);
+        
+        # Replace placeholder
+        $template =~ s/\{\{agent_content\}\}/$content/g;
+        
+        print $template;
+    ' "$temp_content" "$temp_template")
+    
+    rm -f "$temp_template" "$temp_content"
+    
+    # Create droid directory
+    local droid_dir="$dest_base/.factory/droids"
+    ensure_dir "$droid_dir"
+    
+    # Write droid file
+    local droid_file="$droid_dir/$agent_name.md"
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo "$droid_file"
+    else
+        echo "$droid_file_content" > "$droid_file"
+        print_verbose "Created Factory AI droid: $droid_file"
+    fi
+}
+
+# Create a Factory AI command that delegates to a droid
+# Args: $1=command file path (relative to profile)
+#       $2=dest base directory (project directory)
+#       $3=base directory (~/agent-os)
+#       $4=profile name
+create_factory_command() {
+    local command_file=$1
+    local dest_base=$2
+    local base_dir=$3
+    local profile=$4
+
+    # Get the full path to the command file
+    local source_file=$(get_profile_file "$profile" "$command_file" "$base_dir")
+    if [[ ! -f "$source_file" ]]; then
+        print_verbose "Command file not found: $source_file"
+        return 0
+    fi
+
+    # Extract command name from path
+    # e.g., commands/plan-product/multi-agent/plan-product.md -> plan-product
+    local command_name=$(echo "$command_file" | cut -d'/' -f2)
+
+    # Create command directory
+    local command_dir="$dest_base/.factory/commands"
+    ensure_dir "$command_dir"
+
+    # Compile the command content (process workflows, standards, conditionals)
+    local temp_file=$(mktemp)
+    compile_command "$source_file" "$temp_file" "$base_dir" "$profile" ""
+    local command_content=$(cat "$temp_file")
+    rm -f "$temp_file"
+
+    # Generate description from command name
+    local description=$(echo "$command_name" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
+
+    # Add YAML frontmatter for Factory AI slash command
+    local dest_file="$command_dir/$command_name.md"
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo "$dest_file"
+    else
+        cat > "$dest_file" << EOF
+---
+name: $command_name
+description: $description
+---
+
+$command_content
+EOF
+        print_verbose "Created Factory AI command: $dest_file"
+    fi
+}
+
+# Install Factory AI droids and commands
+install_factory_droids() {
+    # Only install droids if Factory AI is enabled
+    if [[ "$EFFECTIVE_FACTORY_AI_DROIDS" != "true" ]]; then
+        return 0
+    fi
+
+    if [[ "$DRY_RUN" != "true" ]]; then
+        print_status "Installing Factory AI droids and commands..."
+    fi
+
+    local droids_count=0
+    local commands_count=0
+
+    # Install droids from agent files
+    while read file; do
+        if [[ "$file" == agents/* ]] && [[ "$file" == *.md ]]; then
+            # Create droid from this agent file
+            create_factory_droid "$file" "$PROJECT_DIR" "$BASE_DIR" "$EFFECTIVE_PROFILE"
+
+            # Track the droid file for dry run
+            local agent_name=$(basename "$file" .md)
+            local droid_file="$PROJECT_DIR/.factory/droids/$agent_name.md"
+            if [[ "$DRY_RUN" == "true" ]]; then
+                INSTALLED_FILES+=("$droid_file")
+            fi
+            ((droids_count++)) || true
+        fi
+    done < <(get_profile_files "$EFFECTIVE_PROFILE" "$BASE_DIR" "agents")
+
+    # Install commands (slash commands that delegate to droids)
+    while read file; do
+        # Use multi-agent commands for Factory AI (they use Task tool delegation)
+        if [[ "$file" == commands/*/multi-agent/* ]] || [[ "$file" == commands/orchestrate-tasks/orchestrate-tasks.md ]]; then
+            create_factory_command "$file" "$PROJECT_DIR" "$BASE_DIR" "$EFFECTIVE_PROFILE"
+            
+            if [[ "$DRY_RUN" == "true" ]]; then
+                local command_name=$(echo "$file" | cut -d'/' -f2)
+                INSTALLED_FILES+=("$PROJECT_DIR/.factory/commands/$command_name.md")
+            fi
+            ((commands_count++)) || true
+        fi
+    done < <(get_profile_files "$EFFECTIVE_PROFILE" "$BASE_DIR" "commands")
+
+    if [[ "$DRY_RUN" != "true" ]]; then
+        if [[ $droids_count -gt 0 ]] || [[ $commands_count -gt 0 ]]; then
+            echo "✓ Installed $droids_count Factory AI droids and $commands_count commands"
+            echo -e "${YELLOW}  👉 Enable Custom Droids in Factory AI settings, then use slash commands like /plan-product${NC}"
         fi
     fi
 }

@@ -31,7 +31,7 @@ agent_os_commands: false
 #
 # Override this default when running project-install.sh by using the flag --use-claude-code-subagents true/false
 # ================================================
-use_claude_code_subagents: true
+use_claude_code_subagents: false
 
 
 # ================================================
@@ -43,6 +43,15 @@ use_claude_code_subagents: true
 # Override this default when running project-install.sh by using the flag --standards-as-claude-code-skills true/false
 # ================================================
 standards_as_claude_code_skills: false
+
+
+# ================================================
+# Do you use Factory AI?
+# Set to true to install droids in your project's .factory/droids/ folder
+#
+# Override this default when running project-install.sh by using the flag --factory-ai-droids true/false
+# ================================================
+factory_ai_droids: true
 
 
 # ================================================

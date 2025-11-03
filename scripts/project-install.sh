@@ -26,6 +26,7 @@ CLAUDE_CODE_COMMANDS=""
 USE_CLAUDE_CODE_SUBAGENTS=""
 AGENT_OS_COMMANDS=""
 STANDARDS_AS_CLAUDE_CODE_SKILLS=""
+FACTORY_AI_DROIDS=""
 RE_INSTALL="false"
 OVERWRITE_ALL="false"
 OVERWRITE_STANDARDS="false"
@@ -49,6 +50,7 @@ Options:
     --use-claude-code-subagents [BOOL]       Use Claude Code subagents (default: from config.yml)
     --agent-os-commands [BOOL]               Install agent-os commands (default: from config.yml)
     --standards-as-claude-code-skills [BOOL] Use Claude Code Skills for standards (default: from config.yml)
+    --factory-ai-droids [BOOL]               Install Factory AI droids (default: from config.yml)
     --re-install                             Delete and reinstall Agent OS
     --overwrite-all                          Overwrite all existing files during update
     --overwrite-standards                    Overwrite existing standards during update
@@ -98,6 +100,10 @@ parse_arguments() {
                 ;;
             --standards-as-claude-code-skills)
                 read STANDARDS_AS_CLAUDE_CODE_SKILLS shift_count <<< "$(parse_bool_flag "$STANDARDS_AS_CLAUDE_CODE_SKILLS" "$2")"
+                shift $shift_count
+                ;;
+            --factory-ai-droids)
+                read FACTORY_AI_DROIDS shift_count <<< "$(parse_bool_flag "$FACTORY_AI_DROIDS" "$2")"
                 shift $shift_count
                 ;;
             --re-install)
@@ -153,6 +159,7 @@ load_configuration() {
     EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS="${USE_CLAUDE_CODE_SUBAGENTS:-$BASE_USE_CLAUDE_CODE_SUBAGENTS}"
     EFFECTIVE_AGENT_OS_COMMANDS="${AGENT_OS_COMMANDS:-$BASE_AGENT_OS_COMMANDS}"
     EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS="${STANDARDS_AS_CLAUDE_CODE_SKILLS:-$BASE_STANDARDS_AS_CLAUDE_CODE_SKILLS}"
+    EFFECTIVE_FACTORY_AI_DROIDS="${FACTORY_AI_DROIDS:-$BASE_FACTORY_AI_DROIDS}"
     EFFECTIVE_VERSION="$BASE_VERSION"
 
     # Validate configuration using common function (may override EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS if dependency not met)
@@ -164,6 +171,7 @@ load_configuration() {
     print_verbose "  Use Claude Code subagents: $EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS"
     print_verbose "  Agent OS commands: $EFFECTIVE_AGENT_OS_COMMANDS"
     print_verbose "  Standards as Claude Code Skills: $EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS"
+    print_verbose "  Factory AI droids: $EFFECTIVE_FACTORY_AI_DROIDS"
 }
 
 # -----------------------------------------------------------------------------
@@ -375,7 +383,8 @@ create_agent_os_folder() {
     # Create the configuration file
     local config_file=$(write_project_config "$EFFECTIVE_VERSION" "$EFFECTIVE_PROFILE" \
         "$EFFECTIVE_CLAUDE_CODE_COMMANDS" "$EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS" \
-        "$EFFECTIVE_AGENT_OS_COMMANDS" "$EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS")
+        "$EFFECTIVE_AGENT_OS_COMMANDS" "$EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS" \
+        "$EFFECTIVE_FACTORY_AI_DROIDS")
     if [[ "$DRY_RUN" == "true" && -n "$config_file" ]]; then
         INSTALLED_FILES+=("$config_file")
     fi
@@ -422,6 +431,11 @@ perform_installation() {
             install_improve_skills_command
         fi
 
+        # Install Factory AI droids if enabled
+        if [[ "$EFFECTIVE_FACTORY_AI_DROIDS" == "true" ]]; then
+            install_factory_droids
+        fi
+
         # Install agent-os commands if enabled
         if [[ "$EFFECTIVE_AGENT_OS_COMMANDS" == "true" ]]; then
             install_agent_os_commands
@@ -455,6 +469,12 @@ perform_installation() {
             fi
             install_claude_code_skills
             install_improve_skills_command
+            echo ""
+        fi
+
+        # Install Factory AI droids if enabled
+        if [[ "$EFFECTIVE_FACTORY_AI_DROIDS" == "true" ]]; then
+            install_factory_droids
             echo ""
         fi
 

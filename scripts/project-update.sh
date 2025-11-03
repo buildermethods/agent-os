@@ -26,6 +26,7 @@ CLAUDE_CODE_COMMANDS=""
 USE_CLAUDE_CODE_SUBAGENTS=""
 AGENT_OS_COMMANDS=""
 STANDARDS_AS_CLAUDE_CODE_SKILLS=""
+FACTORY_AI_DROIDS=""
 RE_INSTALL="false"
 OVERWRITE_ALL="false"
 OVERWRITE_AGENTS="false"
@@ -51,6 +52,7 @@ Options:
     --use-claude-code-subagents [BOOL]       Use Claude Code subagents with delegation (true/false)
     --agent-os-commands [BOOL]               Install agent-os commands for other tools (true/false)
     --standards-as-claude-code-skills [BOOL] Use Claude Code Skills for standards (true/false)
+    --factory-ai-droids [BOOL]               Install Factory AI droids (true/false)
     --re-install                             Delete and reinstall Agent OS
     --overwrite-all                          Overwrite all existing files
     --overwrite-agents                       Overwrite existing agent files
@@ -100,6 +102,10 @@ parse_arguments() {
                 ;;
             --standards-as-claude-code-skills)
                 read STANDARDS_AS_CLAUDE_CODE_SKILLS shift_count <<< "$(parse_bool_flag "$STANDARDS_AS_CLAUDE_CODE_SKILLS" "$2")"
+                shift $shift_count
+                ;;
+            --factory-ai-droids)
+                read FACTORY_AI_DROIDS shift_count <<< "$(parse_bool_flag "$FACTORY_AI_DROIDS" "$2")"
                 shift $shift_count
                 ;;
             --re-install)
@@ -177,6 +183,7 @@ load_configurations() {
     EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS="${USE_CLAUDE_CODE_SUBAGENTS:-$BASE_USE_CLAUDE_CODE_SUBAGENTS}"
     EFFECTIVE_AGENT_OS_COMMANDS="${AGENT_OS_COMMANDS:-$BASE_AGENT_OS_COMMANDS}"
     EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS="${STANDARDS_AS_CLAUDE_CODE_SKILLS:-$BASE_STANDARDS_AS_CLAUDE_CODE_SKILLS}"
+    EFFECTIVE_FACTORY_AI_DROIDS="${FACTORY_AI_DROIDS:-$BASE_FACTORY_AI_DROIDS}"
     EFFECTIVE_VERSION="$BASE_VERSION"
 
     # Validate config but suppress warnings (will show after user confirms update)
@@ -189,6 +196,7 @@ load_configurations() {
     print_verbose "  Use Claude Code subagents: $BASE_USE_CLAUDE_CODE_SUBAGENTS"
     print_verbose "  Agent OS commands: $BASE_AGENT_OS_COMMANDS"
     print_verbose "  Standards as Claude Code Skills: $BASE_STANDARDS_AS_CLAUDE_CODE_SKILLS"
+    print_verbose "  Factory AI droids: $BASE_FACTORY_AI_DROIDS"
 
     print_verbose "Project configuration:"
     print_verbose "  Version: $PROJECT_VERSION"
@@ -197,6 +205,7 @@ load_configurations() {
     print_verbose "  Use Claude Code subagents: $PROJECT_USE_CLAUDE_CODE_SUBAGENTS"
     print_verbose "  Agent OS commands: $PROJECT_AGENT_OS_COMMANDS"
     print_verbose "  Standards as Claude Code Skills: $PROJECT_STANDARDS_AS_CLAUDE_CODE_SKILLS"
+    print_verbose "  Factory AI droids: $PROJECT_FACTORY_AI_DROIDS"
 
     print_verbose "Effective configuration:"
     print_verbose "  Profile: $EFFECTIVE_PROFILE"
@@ -204,6 +213,7 @@ load_configurations() {
     print_verbose "  Use Claude Code subagents: $EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS"
     print_verbose "  Agent OS commands: $EFFECTIVE_AGENT_OS_COMMANDS"
     print_verbose "  Standards as Claude Code Skills: $EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS"
+    print_verbose "  Factory AI droids: $EFFECTIVE_FACTORY_AI_DROIDS"
 }
 
 # -----------------------------------------------------------------------------
@@ -561,7 +571,8 @@ update_agent_os_folder() {
     # Update the configuration file
     write_project_config "$EFFECTIVE_VERSION" "$PROJECT_PROFILE" \
         "$PROJECT_CLAUDE_CODE_COMMANDS" "$PROJECT_USE_CLAUDE_CODE_SUBAGENTS" \
-        "$PROJECT_AGENT_OS_COMMANDS" "$PROJECT_STANDARDS_AS_CLAUDE_CODE_SKILLS"
+        "$PROJECT_AGENT_OS_COMMANDS" "$PROJECT_STANDARDS_AS_CLAUDE_CODE_SKILLS" \
+        "$PROJECT_FACTORY_AI_DROIDS"
 
     if [[ "$DRY_RUN" != "true" ]]; then
         echo "✓ Updated agent-os folder"
@@ -603,6 +614,12 @@ perform_update() {
         # Install/update Claude Code Skills (uses install function since directory was cleaned)
         install_claude_code_skills
         install_improve_skills_command
+        echo ""
+    fi
+
+    # Install/update Factory AI droids if enabled
+    if [[ "$PROJECT_FACTORY_AI_DROIDS" == "true" ]]; then
+        install_factory_droids
         echo ""
     fi
 
@@ -763,6 +780,9 @@ prompt_update_confirmation() {
     if [[ "$EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS" == "true" ]] || [[ -d "$PROJECT_DIR/.claude/skills" ]]; then
         echo "  - .claude/skills/ (Agent OS skills)"
     fi
+    if [[ "$EFFECTIVE_FACTORY_AI_DROIDS" == "true" ]] || [[ -d "$PROJECT_DIR/.factory/droids" ]]; then
+        echo "  - .factory/droids/"
+    fi
     echo ""
 
     read -p "Do you want to proceed? (y/n): " -n 1 -r
@@ -840,6 +860,14 @@ perform_update_cleanup() {
         done < <(get_profile_files "$PROJECT_PROFILE" "$BASE_DIR" "standards")
     fi
 
+    # Delete Factory AI droids directory if exists
+    if [[ -d "$PROJECT_DIR/.factory/droids" ]]; then
+        print_status "Removing .factory/droids/"
+        if [[ "$DRY_RUN" != "true" ]]; then
+            rm -rf "$PROJECT_DIR/.factory/droids"
+        fi
+    fi
+
     # Delete agent-os/roles/ if exists (legacy)
     if [[ -d "$PROJECT_DIR/agent-os/roles" ]]; then
         print_status "Removing legacy agent-os/roles/"
@@ -888,7 +916,8 @@ main() {
        [[ "$PROJECT_CLAUDE_CODE_COMMANDS" != "$EFFECTIVE_CLAUDE_CODE_COMMANDS" ]] || \
        [[ "$PROJECT_USE_CLAUDE_CODE_SUBAGENTS" != "$EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS" ]] || \
        [[ "$PROJECT_AGENT_OS_COMMANDS" != "$EFFECTIVE_AGENT_OS_COMMANDS" ]] || \
-       [[ "$PROJECT_STANDARDS_AS_CLAUDE_CODE_SKILLS" != "$EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS" ]]; then
+       [[ "$PROJECT_STANDARDS_AS_CLAUDE_CODE_SKILLS" != "$EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS" ]] || \
+       [[ "$PROJECT_FACTORY_AI_DROIDS" != "$EFFECTIVE_FACTORY_AI_DROIDS" ]]; then
         has_config_diff="true"
     fi
 
@@ -908,6 +937,7 @@ main() {
         PROJECT_USE_CLAUDE_CODE_SUBAGENTS="$EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS"
         PROJECT_AGENT_OS_COMMANDS="$EFFECTIVE_AGENT_OS_COMMANDS"
         PROJECT_STANDARDS_AS_CLAUDE_CODE_SKILLS="$EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS"
+        PROJECT_FACTORY_AI_DROIDS="$EFFECTIVE_FACTORY_AI_DROIDS"
 
         # Proceed with update
         perform_update
