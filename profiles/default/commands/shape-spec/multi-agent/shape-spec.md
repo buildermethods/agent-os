@@ -16,7 +16,7 @@ Follow each of these phases and their individual workflows IN SEQUENCE:
 
 ### PHASE 1: Initialize Spec
 
-Use the **spec-shaper** subagent to initialize a new spec.
+Use the **spec-initializer** subagent to initialize a new spec.
 
 IF the user has provided a description, provide that to the spec-initializer.
 
