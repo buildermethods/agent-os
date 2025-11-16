@@ -240,13 +240,3 @@ Review it to ensure all of the tech stack details are correct for this product.
 
 You're ready to start planning a feature spec! You can do so by running `/shape-spec` or `/write-spec`.
 ```
-
----
-
-## Best Practices
-
-1. **Sequential Execution**: Complete each phase fully before moving to the next
-2. **User Confirmation**: Wait for user approval before proceeding to next phase
-3. **Alignment**: Ensure mission, roadmap, and tech stack are aligned with user's standards
-4. **Clarity**: Keep documents concise, scannable, and focused on user benefits
-5. **Actionability**: Make roadmap items concrete, testable, and estimable
