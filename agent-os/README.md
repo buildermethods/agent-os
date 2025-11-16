@@ -60,6 +60,14 @@ Agent OS is a Claude Code plugin that transforms AI coding agents into productiv
 - Includes focused testing approach
 - Groups by specialization (database, API, UI)
 
+**`/implement-task`** - Implement a single task group with multi-agent workflow
+
+- 7-phase guided implementation workflow
+- Parallel codebase exploration with code-explorer agents
+- Multiple architecture approaches with code-architect agents
+- Quality review with code-reviewer agents
+- Automated testing and verification reports
+
 ### Skills
 
 Skills are automatically invoked by Claude when relevant to your request:
@@ -98,6 +106,13 @@ Specialized subagents for complex workflows:
 - Designs feature architecture
 - Creates component design and data flow
 - Provides implementation blueprint
+
+**`code-reviewer`** - Code quality review
+
+- Reviews code for bugs and logic errors
+- Checks adherence to project conventions
+- Identifies security vulnerabilities
+- Validates code quality and best practices
 
 ## Quick Start
 
@@ -152,30 +167,29 @@ This creates:
 - Orders tasks by dependencies
 - Includes focused testing approach
 
-### 5. Implement the Feature
+### 5. Implement Task Groups
 
-After tasks are defined, implementation follows structured phases:
+Use the `/implement-task` command for a guided, multi-agent implementation workflow:
 
-**Implement Task Groups:**
-
-```markdown
-Ask Claude: "Implement Task Group 1"
+```bash
+/implement-task
 ```
 
-- Follows task breakdown order
-- Uses test-driven approach
-- Reuses existing patterns
-- Verifies against spec
+This orchestrates a 7-phase workflow:
 
-**Verify Implementation:**
+1. **Discovery** - Select which task group to implement
+2. **Codebase Exploration** - Parallel code-explorer agents find patterns
+3. **Read Files** - Deep dive into relevant code
+4. **Architecture Design** - Parallel code-architect agents design approaches
+5. **Implementation** - Build following chosen architecture
+6. **Quality Review** - Parallel code-reviewer agents verify quality
+7. **Verification** - Run tests and create reports
 
-```markdown
-Ask Claude: "Verify the [feature-name] implementation"
-```
+Creates:
 
-- Runs feature tests
-- Tests UI in browser
-- Creates verification report
+- `agent-os/specs/[spec-name]/implementation/[task-group].md` - Implementation report
+- `agent-os/specs/[spec-name]/verification/[task-group]-verification.md` - Verification report
+- Updates `tasks.md` with completed checkboxes
 
 ## Core Concepts
 
@@ -350,19 +364,89 @@ Task groups:
 2. API Layer (CRUD endpoints, drag-drop handler)
 3. Frontend Layer (Board component, drag-drop)
 4. Testing (Integration tests for drag-drop flow)
+```
 
-User: Implement Task Group 1
+### Example 4: Implementing with Multi-Agent Workflow
 
-Claude: Implementing database layer...
+```markdown
+User: /implement-task
 
-✅ Wrote 8 focused tests
-✅ Created Task model
-✅ Created Board model
-✅ Created migrations
-✅ All 8 tests pass
+Claude: I'll guide you through implementing a task group.
+
+Which task group should we implement?
+1. Database Layer (Task model, Board model)
+2. API Layer (CRUD endpoints, drag-drop handler)
+3. Frontend Layer (Board component, drag-drop)
+4. Testing (Integration tests for drag-drop flow)
+
+User: 1
+
+Claude: Phase 1: Discovery
+✅ Selected Task Group 1: Database Layer
+✅ Created implementation todo list
+
+Phase 2: Codebase Exploration
+Launching 3 code-explorer agents in parallel...
+→ Explorer 1: Analyzing similar database models
+→ Explorer 2: Finding validation patterns
+→ Explorer 3: Identifying migration strategies
+
+✅ Found 18 relevant files
+✅ Identified key patterns: Prisma models, Zod schemas, migration structure
+
+Phase 3: Reading Identified Files
+📖 Reading 18 key files...
+✅ Understood existing model patterns
+✅ Identified reusable utilities
+
+Phase 4: Architecture Design
+Launching 3 code-architect agents in parallel...
+→ Architect 1: Minimal changes approach
+→ Architect 2: Clean architecture approach
+→ Architect 3: Pragmatic balance approach
+
+Recommendation: Pragmatic balance
+- Reuses existing Prisma patterns
+- Adds proper validation with Zod
+- Includes sensible indexes
+- Follows migration conventions
+
+Which approach should we use?
+User: Pragmatic balance
+
+Claude: Phase 5: Implementation
+Ready to implement? This will create:
+- Task and Board Prisma models
+- Zod validation schemas
+- Database migrations
+
+User: Yes
+
+✅ Created models/task.ts
+✅ Created models/board.ts
+✅ Created validation/schemas.ts
+✅ Created migrations/001_add_boards_tasks.sql
 ✅ Updated tasks.md
 
-Task Group 1 complete. Ready for Task Group 2.
+Phase 6: Quality Review
+Launching 3 code-reviewer agents in parallel...
+→ Reviewer 1: Code quality & DRY
+→ Reviewer 2: Functional correctness
+→ Reviewer 3: Project conventions
+
+✅ No critical issues found
+✅ 2 minor suggestions for improvement
+
+Phase 7: Verification
+✅ All tasks marked complete
+✅ Test suite: 145 passing, 0 failing
+✅ Created implementation/database-layer.md
+✅ Created verification/database-layer-verification.md
+
+🎉 Implementation Complete!
+
+Remaining tasks: 3 task groups
+Would you like to implement another task group?
 ```
 
 ## Advanced Usage
