@@ -15,7 +15,7 @@ IF you were given a description of the feature, use that to initiate a new spec.
 
 OTHERWISE:
 
-1. Check `agent-os/product/roadmap.md` to find the next feature
+1. Check `@agent-os/product/roadmap.md` to find the next feature
 2. Ask the user:
 
    ```bash
@@ -71,19 +71,19 @@ Ready for requirements research phase.
 
 Before generating questions, understand the broader product context by reading:
 
-1. **Product Mission** (`agent-os/product/mission.md`):
+1. **Product Mission** (`@agent-os/product/mission.md`):
    - Overall mission and purpose
    - Target users and primary use cases
    - Core problems the product solves
    - Expected user benefits
 
-2. **Product Roadmap** (`agent-os/product/roadmap.md`):
+2. **Product Roadmap** (`@agent-os/product/roadmap.md`):
    - Features already completed
    - Current product state
    - Where this feature fits in the broader roadmap
    - Related features that might inform this work
 
-3. **Tech Stack** (`agent-os/product/tech-stack.md`):
+3. **Tech Stack** (`@agent-os/product/tech-stack.md`):
    - Technologies and frameworks in use
    - Technical constraints and capabilities
    - Available libraries and tools
