@@ -1,0 +1,8 @@
+{
+    "name": "agent-os",
+    "description": "Agent OS is a system for spec-driven agentic development that transforms AI coding agents into productive developers through structured workflows.",
+    "version": "2.1.0",
+    "author": {
+        "name": "BuilderMethods"
+    }
+}

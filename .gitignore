@@ -32,3 +32,6 @@ node_modules/
 # Temporary files
 *.tmp
 *.temp
+
+# Claude files
+CLAUDE.md
