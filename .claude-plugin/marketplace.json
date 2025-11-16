@@ -1,0 +1,13 @@
+{
+  "name": "agent-os-plugin",
+  "owner": {
+    "name": "Brian Casel & Schalappe"
+  },
+  "plugins": [
+    {
+      "name": "agent-os",
+      "source": "./agent-os",
+      "description": "Structured specification workflow for feature development - from shaping to writing comprehensive specs"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
   "name": "spec-workflow",
   "description": "Structured specification workflow for feature development - from shaping to writing comprehensive specs",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "author": {
-    "name": "Agent OS"
+    "name": "Brian Casel & Schalappe"
   }
 }
