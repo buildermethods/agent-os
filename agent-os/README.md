@@ -15,14 +15,16 @@ Agent OS is a Claude Code plugin that transforms AI coding agents into productiv
 ### Via Claude Code Plugin System
 
 1. Add the Agent OS marketplace:
-```bash
-/plugin marketplace add agent-os https://github.com/buildermethods/agent-os
-```
+
+    ```bash
+    /plugin marketplace add agent-os https://github.com/buildermethods/agent-os
+    ```
 
 2. Install the plugin:
-```bash
-/plugin install agent-os
-```
+
+    ```bash
+    /plugin install agent-os
+    ```
 
 3. The plugin will be available in your project with:
    - Commands in `.claude/commands/agent-os/`
@@ -34,16 +36,19 @@ Agent OS is a Claude Code plugin that transforms AI coding agents into productiv
 ### Commands
 
 **`/plan-product`** - Create product mission, roadmap, and tech stack
+
 - Guides through 4-phase planning process
 - Creates structured product documentation
 - Establishes technical foundation
 
 **`/shape-spec`** - Gather requirements for feature specification
+
 - Interactive requirements gathering
 - Visual design analysis
 - Existing code identification
 
 **`/write-spec`** - Write comprehensive feature specification
+
 - Architecture-informed spec creation
 - Leverages existing codebase patterns
 - Visual design integration
@@ -53,11 +58,13 @@ Agent OS is a Claude Code plugin that transforms AI coding agents into productiv
 Skills are automatically invoked by Claude when relevant to your request:
 
 **`product-planning`** - Systematic product planning workflow
+
 - Activated when planning products or features
 - Creates mission, roadmap, tech stack documents
 - Ensures strategic alignment
 
 **`spec-creation`** - Structured specification workflow
+
 - Activated when creating feature specs
 - Two-phase: shaping (gathering) and writing (documenting)
 - Reusability-focused with architecture design
@@ -67,11 +74,13 @@ Skills are automatically invoked by Claude when relevant to your request:
 Specialized subagents for complex workflows:
 
 **`code-explorer`** - Deep codebase analysis
+
 - Finds reusable components and patterns
 - Analyzes similar existing features
 - Provides integration guidance
 
 **`code-architect`** - Architecture design
+
 - Designs feature architecture
 - Creates component design and data flow
 - Provides implementation blueprint
@@ -85,6 +94,7 @@ Specialized subagents for complex workflows:
 ```
 
 This creates:
+
 - `agent-os/product/mission.md` - Product definition and strategy
 - `agent-os/product/roadmap.md` - Prioritized feature checklist
 - `agent-os/product/tech-stack.md` - Technical stack documentation
@@ -96,6 +106,7 @@ This creates:
 ```
 
 This creates:
+
 - `agent-os/specs/YYYY-MM-DD-feature-name/planning/requirements.md`
 - Gathers requirements through targeted questions
 - Analyzes visual mockups if provided
@@ -108,6 +119,7 @@ This creates:
 ```
 
 This creates:
+
 - `agent-os/specs/YYYY-MM-DD-feature-name/spec.md`
 - Uses code-explorer agents to find reusable code
 - Uses code-architect agent for architecture design
@@ -118,25 +130,31 @@ This creates:
 After spec is complete, implementation follows three phases:
 
 **Create Tasks Breakdown:**
-```text
+
+```markdown
 Ask Claude: "Create tasks for the [feature-name] spec"
 ```
+
 - Breaks spec into task groups
 - Orders by dependencies
 - Includes focused testing approach
 
 **Implement Task Groups:**
-```text
+
+```markdown
 Ask Claude: "Implement Task Group 1"
 ```
+
 - Follows test-driven approach
 - Reuses existing patterns
 - Verifies against spec
 
 **Verify Implementation:**
-```text
+
+```markdown
 Ask Claude: "Verify the [feature-name] implementation"
 ```
+
 - Runs feature tests
 - Tests UI in browser
 - Creates verification report
@@ -183,7 +201,7 @@ Focus on critical behaviors, not exhaustive coverage:
 
 Agent OS creates organized documentation:
 
-```text
+```markdown
 agent-os/
 ├── product/
 │   ├── mission.md              # Product definition
@@ -234,7 +252,7 @@ agent-os/
 
 ### Example 1: Planning a SaaS Product
 
-```bash
+```markdown
 User: /plan-product
 
 Claude: I'll help you plan your product. Let me gather some information first.
@@ -264,7 +282,7 @@ Your product planning is complete! Next: /shape-spec
 
 ### Example 2: Creating a Feature Spec
 
-```bash
+```markdown
 User: /shape-spec
 
 Claude: I'll help shape a feature specification. First, let me check the product mission and roadmap.
@@ -294,7 +312,7 @@ Ready to write the spec. Run: /write-spec
 
 ### Example 3: Implementing a Feature
 
-```bash
+```markdown
 User: Create tasks for the task-board spec
 
 Claude: Creating task breakdown...
@@ -326,6 +344,7 @@ Task Group 1 complete. Ready for Task Group 2.
 ### Custom Standards
 
 Create project-specific standards in:
+
 - `agent-os/standards/global/` - Universal standards
 - `agent-os/standards/backend/` - Backend-specific
 - `agent-os/standards/frontend/` - Frontend-specific
@@ -337,7 +356,7 @@ These guide implementation and ensure consistency.
 
 Launch multiple agents in parallel for efficiency:
 
-```text
+```markdown
 User: Write the spec for user authentication
 
 Claude: Launching 3 code-explorer agents in parallel...
@@ -358,6 +377,7 @@ Now launching code-architect agent...
 ### Custom Workflows
 
 Extend Agent OS with your own:
+
 - Commands in `.claude/commands/`
 - Skills in `.claude/skills/`
 - Agents in `.claude/agents/`
@@ -367,6 +387,7 @@ Extend Agent OS with your own:
 ### Command Not Found
 
 If `/plan-product` or other commands don't work:
+
 1. Verify plugin is installed: `/plugin list`
 2. Reinstall if needed: `/plugin install agent-os`
 3. Check `.claude/commands/agent-os/` exists
@@ -374,6 +395,7 @@ If `/plan-product` or other commands don't work:
 ### Skill Not Activating
 
 If skills don't activate automatically:
+
 1. Use more specific language: "I want to plan a product" instead of "help me"
 2. Invoke directly: "Use the product-planning skill"
 3. Check skill descriptions match your request
@@ -381,6 +403,7 @@ If skills don't activate automatically:
 ### Files Not Created
 
 If `agent-os/` directory missing:
+
 1. Create manually: `mkdir -p agent-os/product`
 2. Check write permissions
 3. Verify you're in project root
@@ -400,9 +423,8 @@ See LICENSE file for details.
 
 ## Support
 
-- Documentation: https://github.com/buildermethods/agent-os
-- Issues: https://github.com/buildermethods/agent-os/issues
-- Discord: [Coming soon]
+- Documentation: <https://github.com/schalappe/agent-os>
+- Issues: <https://github.com/schalappe/agent-os/issues>
 
 ---
 
