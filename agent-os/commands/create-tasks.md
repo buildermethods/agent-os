@@ -61,7 +61,52 @@ Now that you have the spec.md AND/OR requirements.md, break those down into an a
 1. **Analyze spec and requirements**: Read and analyze the spec.md and/or requirements.md thoroughly
 2. **Plan task execution order**: Break requirements into tasks ordered by dependencies
 3. **Group tasks by specialization**: Group tasks requiring the same skill/stack (backend, api, ui design, etc.)
-4. **Create Tasks list**: Generate markdown tasks list broken into groups with sub-tasks
+4. **Keep tasks small/medium**: CRITICAL - Break down large tasks into smaller ones
+5. **Create Tasks list**: Generate markdown tasks list broken into groups with sub-tasks
+
+### CRITICAL: Task Size Requirements
+
+**ALL TASKS MUST BE SMALL OR MEDIUM SIZED. LARGE TASKS ARE NOT ACCEPTABLE.**
+
+**Task Sizing Guidelines**:
+
+- **Small Task**: 15-45 minutes (1-3 file changes, 20-80 lines of code) - PREFERRED
+- **Medium Task**: 1-2 hours (3-6 file changes, 80-200 lines of code) - ACCEPTABLE
+- **Large Task**: 3+ hours (7+ files, 200+ lines) - **NOT ALLOWED**
+
+**Signs a task is too large** (must be broken down):
+
+- Requires changes to 7+ files
+- Involves 200+ lines of code
+- Takes more than 2 hours to complete
+- Has vague or multiple responsibilities
+- Cannot be tested in isolation
+
+**When creating tasks**:
+
+1. Start with logical breakdown
+2. Review each task for size
+3. If any task is large, STOP and decompose it into 3-7 smaller tasks
+4. Verify all tasks are small or medium before finalizing
+
+**Example - Breaking Down Large Tasks**:
+
+❌ **Bad (Large Task)**:
+
+```markdown
+- [ ] Build user authentication system
+```
+
+✅ **Good (Small/Medium Tasks)**:
+
+```markdown
+- [ ] Create User model with email/password fields (SMALL - 30 min)
+- [ ] Add password hashing with bcrypt (SMALL - 30 min)
+- [ ] Create login endpoint (MEDIUM - 90 min)
+- [ ] Create registration endpoint (MEDIUM - 90 min)
+- [ ] Add JWT token generation (MEDIUM - 60 min)
+- [ ] Create authentication middleware (SMALL - 45 min)
+```
 
 ### Step 1: Analyze Spec & Requirements
 
@@ -246,6 +291,11 @@ Recommended implementation sequence:
 
 When creating the tasks list:
 
+- **CRITICAL - Keep all tasks small or medium sized**: This is the #1 constraint - NO large tasks
+  - Review every task before finalizing
+  - Break down any task that would take 2+ hours
+  - Prefer small tasks (15-45 min) over medium tasks (1-2 hours)
+  - If a task seems large, decompose it into 3-7 smaller tasks
 - **Create tasks that are specific and verifiable**
 - **Group related tasks**: Group back-end engineering tasks together and front-end UI tasks together
 - **Limit test writing during development**:
@@ -277,12 +327,15 @@ NEXT STEP 👉 You can now implement these tasks manually, or use /implement-tas
 
 ## Tips for Success
 
+- **Keep Tasks Small/Medium**: This is CRITICAL - break down large tasks before finalizing
+- **Verify Task Size**: Review every task to ensure it's under 2 hours of work
 - **Be Thorough**: Analyze the spec completely before creating tasks
 - **Think in Phases**: Group related work together logically
 - **Consider Dependencies**: Order tasks so prerequisites come first
 - **Be Specific**: Each task should be clear and actionable
 - **Stay Focused**: Keep tests minimal and targeted during development
 - **Verify Alignment**: Ensure tasks match user's coding standards
+- **Final Check**: Before completing, scan all tasks one more time for size
 
 ## Common Task Groups
 

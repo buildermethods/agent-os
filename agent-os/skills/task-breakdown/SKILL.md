@@ -24,12 +24,73 @@ Activate this skill when users:
 
 The goal is to transform high-level specifications into concrete, actionable tasks that:
 
-1. **Are specific and verifiable** - Each task has clear completion criteria
-2. **Follow natural dependencies** - Tasks are ordered so prerequisites come first
-3. **Group by specialization** - Related work is grouped together (backend, frontend, testing)
-4. **Balance detail and clarity** - Tasks are detailed enough to execute but not overwhelming
-5. **Support focused testing** - Each phase includes targeted tests, not exhaustive coverage
-6. **Align with standards** - Tasks follow project coding conventions and best practices
+1. **Are small to medium in size** - Prefer multiple small tasks over one large task
+2. **Are specific and verifiable** - Each task has clear completion criteria
+3. **Follow natural dependencies** - Tasks are ordered so prerequisites come first
+4. **Group by specialization** - Related work is grouped together (backend, frontend, testing)
+5. **Balance detail and clarity** - Tasks are detailed enough to execute but not overwhelming
+6. **Support focused testing** - Each phase includes targeted tests, not exhaustive coverage
+7. **Align with standards** - Tasks follow project coding conventions and best practices
+
+### Task Size Principle
+
+**CRITICAL**: Always prefer small and medium tasks over large tasks.
+
+**Task Sizing Guidelines**:
+
+- **Small Task**: Can be completed in 15-45 minutes (1-3 file changes, 20-80 lines of code)
+- **Medium Task**: Can be completed in 1-2 hours (3-6 file changes, 80-200 lines of code)
+- **Large Task**: Takes 3+ hours (7+ file changes, 200+ lines of code) - **AVOID THESE**
+
+**Why Small/Medium Tasks Are Better**:
+
+1. **Easier to estimate** - More predictable completion time
+2. **Faster feedback loops** - See progress quickly
+3. **Simpler to test** - Each task has focused test scope
+4. **Better for tracking** - Clear checkpoints show real progress
+5. **Easier to debug** - Smaller scope when issues arise
+6. **Less overwhelming** - Builds momentum and confidence
+7. **Clearer acceptance criteria** - Simpler to verify completion
+
+**How to Break Down Large Tasks**:
+
+If you find yourself creating a large task, split it:
+
+❌ **Bad (Large Task)**:
+
+```markdown
+- [ ] Build entire user authentication system
+```
+
+✅ **Good (Small/Medium Tasks)**:
+
+```markdown
+- [ ] Create User model with email/password fields
+- [ ] Add password hashing with bcrypt
+- [ ] Create login endpoint
+- [ ] Create registration endpoint
+- [ ] Add JWT token generation
+- [ ] Create authentication middleware
+- [ ] Add password reset flow
+```
+
+❌ **Bad (Large Task)**:
+
+```markdown
+- [ ] Implement complete dashboard with all widgets
+```
+
+✅ **Good (Small/Medium Tasks)**:
+
+```markdown
+- [ ] Create Dashboard layout component
+- [ ] Build StatsCard widget
+- [ ] Build RecentActivity widget
+- [ ] Build UserProfile widget
+- [ ] Add dashboard data fetching
+- [ ] Connect widgets to data
+- [ ] Add dashboard responsive styling
+```
 
 ## Task Breakdown Process
 
@@ -177,6 +238,42 @@ Recommended implementation sequence:
 
 ## Important Constraints
 
+### Task Sizing
+
+**ENFORCE**: All tasks must be small or medium sized. Large tasks are NOT acceptable.
+
+- **Maximum task size**: Medium (1-2 hours)
+- **Preferred task size**: Small (15-45 minutes)
+- **Signs a task is too large**:
+  - Requires changes to 7+ files
+  - Involves 200+ lines of code
+  - Takes more than 2 hours to complete
+  - Has vague or multiple responsibilities
+  - Cannot be tested in isolation
+
+**When you encounter a large task**:
+
+1. **Stop** - Do not include it in the task list
+2. **Decompose** - Break it into 3-7 smaller tasks
+3. **Sequence** - Order the smaller tasks logically
+4. **Verify** - Ensure each smaller task is small or medium
+
+**Example Decomposition**:
+
+Instead of:
+
+- ❌ "Build payment system" (LARGE - 8+ hours)
+
+Create:
+
+- ✅ "Add Stripe API credentials to environment" (SMALL - 30 min)
+- ✅ "Create Payment model and migration" (SMALL - 45 min)
+- ✅ "Create payment intent endpoint" (MEDIUM - 90 min)
+- ✅ "Create payment confirmation endpoint" (MEDIUM - 90 min)
+- ✅ "Add Stripe webhook handler" (MEDIUM - 2 hours)
+- ✅ "Create PaymentForm component" (MEDIUM - 90 min)
+- ✅ "Add payment success/failure pages" (SMALL - 45 min)
+
 ### Testing Strategy
 
 - **Each development phase**: Write 2-8 focused tests maximum
@@ -296,16 +393,18 @@ NEXT STEP 👉 You can now implement these tasks manually, or use implementation
 
 ## Tips for Success
 
-1. **Read everything first**: Fully understand spec before creating tasks
-2. **Think in layers**: Organize by architectural layers or functional areas
-3. **Be concrete**: Include specific files, fields, methods, components
-4. **Show dependencies**: Make task order clear and logical
-5. **Reference patterns**: Point to existing code to follow
-6. **Keep tests focused**: Resist urge for comprehensive coverage
-7. **Add acceptance criteria**: Define clear "done" state
-8. **Check alignment**: Verify tasks match coding standards
-9. **Consider the developer**: Would someone else understand these tasks?
-10. **Adapt the template**: Don't force tasks into wrong structure
+1. **Keep tasks small/medium**: Break large tasks into smaller ones - this is CRITICAL
+2. **Read everything first**: Fully understand spec before creating tasks
+3. **Think in layers**: Organize by architectural layers or functional areas
+4. **Be concrete**: Include specific files, fields, methods, components
+5. **Show dependencies**: Make task order clear and logical
+6. **Reference patterns**: Point to existing code to follow
+7. **Keep tests focused**: Resist urge for comprehensive coverage
+8. **Add acceptance criteria**: Define clear "done" state
+9. **Check alignment**: Verify tasks match coding standards
+10. **Consider the developer**: Would someone else understand these tasks?
+11. **Verify task size**: Before finalizing, ensure no task is too large
+12. **Adapt the template**: Don't force tasks into wrong structure
 
 ## Example Applications
 
@@ -339,6 +438,8 @@ Complex features might need:
 
 ## Remember
 
+- **ALWAYS break down large tasks**: This is the #1 rule - no large tasks allowed
+- **Small/medium tasks only**: Each task should be completable in under 2 hours
 - **Adapt to the feature**: Don't force tasks into templates
 - **Stay focused**: Each task group should be cohesive
 - **Think dependencies**: Order matters for smooth implementation
@@ -346,3 +447,4 @@ Complex features might need:
 - **Test strategically**: Cover critical paths, not every edge case
 - **Align with standards**: Follow project conventions throughout
 - **Consider the builder**: Tasks should guide, not overwhelm
+- **Verify before finalizing**: Review all tasks to ensure none are too large
