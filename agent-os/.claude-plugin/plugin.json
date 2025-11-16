@@ -1,6 +1,6 @@
 {
-  "name": "spec-workflow",
-  "description": "Structured specification workflow for feature development - from shaping to writing comprehensive specs",
+  "name": "agent-os",
+  "description": "Spec-driven agentic development system with structured workflows for product planning, feature specification, and implementation",
   "version": "3.0.0",
   "author": {
     "name": "Brian Casel & Schalappe"
