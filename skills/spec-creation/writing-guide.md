@@ -11,6 +11,7 @@ Spec writing converts the requirements gathered during shaping into a clear, str
 ### 1. Load Requirements and Context
 
 **Find the spec folder**:
+
 ```bash
 # Get most recent spec (or user will specify which one)
 SPEC_PATH=$(ls -dt agent-os/specs/*/ 2>/dev/null | head -1 | sed 's:/$::')
@@ -18,16 +19,19 @@ echo "Working with: $SPEC_PATH"
 ```
 
 **Read requirements**:
+
 ```bash
 cat $SPEC_PATH/planning/requirements.md
 ```
 
 **Check for visuals**:
+
 ```bash
 ls -la $SPEC_PATH/planning/visuals/ 2>/dev/null | grep -v "^total" | grep -v "^d"
 ```
 
 **Analyze what you have**:
+
 - User's feature description and goals
 - All Q&A from requirements gathering
 - Existing similar features mentioned
@@ -40,6 +44,7 @@ ls -la $SPEC_PATH/planning/visuals/ 2>/dev/null | grep -v "^total" | grep -v "^d
 Before writing specifications, thoroughly search the codebase for existing patterns and components.
 
 **Identify search keywords** from requirements:
+
 - Feature names (e.g., "authentication", "dashboard", "form")
 - Technical terms (e.g., "validation", "service", "controller")
 - UI components mentioned (e.g., "button", "modal", "table")
@@ -63,6 +68,7 @@ find . -path "*/components/*" -type f
 ```
 
 **What to look for**:
+
 1. **Similar features**: Features doing something comparable
 2. **Reusable UI components**: Buttons, forms, modals, tables, etc.
 3. **Service objects**: Business logic you can extend or replicate
@@ -73,6 +79,7 @@ find . -path "*/components/*" -type f
 8. **Architecture patterns**: MVC, service layer, repository pattern, etc.
 
 **Document findings**:
+
 - Component names and file paths
 - What they do
 - How they could be reused or extended
@@ -83,6 +90,7 @@ find . -path "*/components/*" -type f
 If visual files exist in `planning/visuals/`:
 
 **For each visual file**:
+
 1. Use Read tool to view it
 2. Document systematically:
    - **Layout**: Grid structure, sections, positioning
@@ -94,10 +102,12 @@ If visual files exist in `planning/visuals/`:
    - **User flow**: Navigation paths, form submissions
 
 **Determine fidelity**:
+
 - **Low-fidelity** (wireframe/sketch): Focus on layout and structure, use existing styling
 - **High-fidelity** (polished mockup): Follow exact colors, typography, spacing
 
 **Check filename for clues**:
+
 - "lofi", "lo-fi", "wireframe", "sketch", "rough" → low-fidelity
 - Otherwise assume high-fidelity if visually polished
 
@@ -171,17 +181,20 @@ Create `$SPEC_PATH/spec.md` following this EXACT template:
 **Writing Guidelines**:
 
 **Goal section**:
+
 - 1-2 sentences maximum
 - Focus on user value, not implementation
 - Answers "Why are we building this?"
 
 **User Stories**:
+
 - Follow "As a [who], I want [what], so that [why]" format
 - Max 3 stories
 - Focus on different user types or key workflows
 - Keep concise
 
 **Specific Requirements**:
+
 - Name each requirement specifically (not "Database" but "User Authentication Schema")
 - Each requirement gets up to 8 concise sub-bullets
 - Cover: what, how, why, constraints, integrations
@@ -189,6 +202,7 @@ Create `$SPEC_PATH/spec.md` following this EXACT template:
 - Max 10 requirements total
 
 **Visual Design**:
+
 - ONLY include if visual files exist
 - One sub-section per visual file
 - Reference filename explicitly
@@ -198,6 +212,7 @@ Create `$SPEC_PATH/spec.md` following this EXACT template:
 - Up to 8 bullets per file
 
 **Existing Code to Leverage**:
+
 - Include file paths
 - Explain what it does
 - State how to reuse it
@@ -205,6 +220,7 @@ Create `$SPEC_PATH/spec.md` following this EXACT template:
 - Shows implementer what to build on vs. build new
 
 **Out of Scope**:
+
 - Be very explicit about what NOT to build
 - Prevents scope creep
 - Sets clear boundaries
@@ -216,18 +232,21 @@ Create `$SPEC_PATH/spec.md` following this EXACT template:
 Before finalizing, verify:
 
 **Requirements Coverage**:
+
 - [ ] All features from requirements.md are addressed
 - [ ] No new features added that weren't requested
 - [ ] User's constraints and preferences honored
 - [ ] Technical considerations from requirements included
 
 **Visual Alignment** (if visuals exist):
+
 - [ ] Every visual file is referenced
 - [ ] Design elements extracted and specified
 - [ ] Fidelity level understood and documented
 - [ ] No visual details missed
 
 **Reusability Check**:
+
 - [ ] Codebase was searched systematically
 - [ ] Existing similar features identified
 - [ ] Reusable components documented with paths
@@ -235,12 +254,14 @@ Before finalizing, verify:
 - [ ] Not specifying new components when existing ones work
 
 **Scope Clarity**:
+
 - [ ] In-scope features are specific and actionable
 - [ ] Out-of-scope matches user's exclusions
 - [ ] No over-engineering or unnecessary complexity
 - [ ] Keeps it simple and focused
 
 **Template Adherence**:
+
 - [ ] Follows exact template structure
 - [ ] No extra sections added
 - [ ] All sections are concise and skimmable
@@ -249,7 +270,8 @@ Before finalizing, verify:
 ### 6. Output Completion
 
 Display:
-```bash
+
+```markdown
 ✅ The spec has been created at `[spec-path]/spec.md`
 
 Review it closely to ensure everything aligns with your vision and requirements.
@@ -267,7 +289,8 @@ Next step: Implement the specification or refine if needed.
 
 ## Best Practices
 
-### DO:
+### DO
+
 ✅ Search codebase thoroughly before specifying new components
 ✅ Use Read tool on every visual file
 ✅ Include file paths for existing code to leverage
@@ -279,7 +302,8 @@ Next step: Implement the specification or refine if needed.
 ✅ Use user's exact terminology from requirements
 ✅ Note low-fidelity vs. high-fidelity for visuals
 
-### DON'T:
+### DON'T
+
 ❌ Write actual code in the specification
 ❌ Add features not requested in requirements
 ❌ Skip codebase search for reusable components
@@ -294,38 +318,47 @@ Next step: Implement the specification or refine if needed.
 ## Template Section Details
 
 ### Goal Section
+
 **Purpose**: Communicate the "why" in 1-2 sentences.
 
 **Good examples**:
+
 - "Enable users to securely authenticate and access personalized dashboards, reducing unauthorized access."
 - "Provide admins with bulk data export capabilities to support compliance reporting requirements."
 
 **Bad examples**:
+
 - "Build authentication system with JWT tokens, refresh logic, and session management." (too technical, too detailed)
 - "Make users happy." (too vague)
 
 ### User Stories Section
+
 **Purpose**: Capture key user workflows and value propositions.
 
 **Good examples**:
+
 - "As a new user, I want to sign up with email and password so that I can access the application."
 - "As an admin, I want to export all user data to CSV so that I can analyze trends."
 - "As a logged-in user, I want to update my profile picture so that I can personalize my account."
 
 **Bad examples**:
+
 - "As a user, I want the system to work." (too vague)
 - "As a developer, I want to implement JWT authentication..." (not user-facing)
 
 ### Specific Requirements Section
+
 **Purpose**: Detail what needs to be built, how, and why.
 
 **Naming**: Be specific, not generic.
+
 - ✅ "User Registration Form with Email Validation"
 - ❌ "Frontend"
 
 **Sub-bullets**: Up to 8 concise points per requirement.
 
 **Good example**:
+
 ```markdown
 **User Registration Form with Email Validation**
 - Form fields: email, password, password confirmation
@@ -339,6 +372,7 @@ Next step: Implement the specification or refine if needed.
 ```
 
 **Bad example**:
+
 ```markdown
 **Frontend**
 - Build the UI
@@ -348,9 +382,11 @@ Next step: Implement the specification or refine if needed.
 ```
 
 ### Visual Design Section
+
 **Purpose**: Translate visual mockups into actionable design specifications.
 
 **Good example** (high-fidelity):
+
 ```markdown
 **`planning/visuals/dashboard-mockup.png`**
 - Header: Logo left (140px width), navigation menu right
@@ -364,6 +400,7 @@ Next step: Implement the specification or refine if needed.
 ```
 
 **Good example** (low-fidelity):
+
 ```markdown
 **`planning/visuals/lofi-dashboard.png`**
 - Header with logo left, navigation right (use existing Header component)
@@ -375,9 +412,11 @@ Next step: Implement the specification or refine if needed.
 ```
 
 ### Existing Code to Leverage Section
+
 **Purpose**: Point implementer to reusable code, preventing duplication.
 
 **Good example**:
+
 ```markdown
 **UserValidator Service**
 - Located at: `app/services/user_validator.rb`
@@ -395,6 +434,7 @@ Next step: Implement the specification or refine if needed.
 ```
 
 **Bad example**:
+
 ```markdown
 **Some validation stuff**
 - There's validation somewhere in the app
@@ -402,9 +442,11 @@ Next step: Implement the specification or refine if needed.
 ```
 
 ### Out of Scope Section
+
 **Purpose**: Explicitly state what will NOT be built to prevent scope creep.
 
 **Good example**:
+
 ```markdown
 ## Out of Scope
 - Two-factor authentication (2FA) - planned for future release
@@ -418,6 +460,7 @@ Next step: Implement the specification or refine if needed.
 ```
 
 **Bad example**:
+
 ```markdown
 ## Out of Scope
 - Other stuff
@@ -432,6 +475,7 @@ Next step: Implement the specification or refine if needed.
 **Visual file**: `dashboard-final.png` (polished, shows exact colors/fonts)
 
 **Spec approach**:
+
 ```markdown
 ## Visual Design
 
@@ -450,6 +494,7 @@ Next step: Implement the specification or refine if needed.
 **Visual file**: `lofi-sketch.png` (rough, no colors, simple boxes)
 
 **Spec approach**:
+
 ```markdown
 ## Visual Design
 
@@ -469,6 +514,7 @@ Next step: Implement the specification or refine if needed.
 **Files**: `mobile-view.png`, `desktop-view.png`, `modal-detail.png`
 
 **Spec approach**:
+
 ```markdown
 ## Visual Design
 
@@ -496,6 +542,7 @@ Next step: Implement the specification or refine if needed.
 **Search results**: Found `UserForm`, `EmailInput`, `PasswordInput` components
 
 **Spec approach**:
+
 ```markdown
 ## Existing Code to Leverage
 
@@ -536,12 +583,14 @@ Next step: Implement the specification or refine if needed.
 Before finalizing spec.md:
 
 **Content Accuracy**:
+
 - [ ] All user answers from requirements.md reflected
 - [ ] No new features added beyond requirements
 - [ ] Technical constraints from requirements honored
 - [ ] Scope boundaries match user's exclusions
 
 **Visual Alignment**:
+
 - [ ] Every visual file in planning/visuals/ is referenced
 - [ ] Each visual analyzed with Read tool
 - [ ] Design elements extracted and specified
@@ -549,6 +598,7 @@ Before finalizing spec.md:
 - [ ] No visual details overlooked
 
 **Reusability**:
+
 - [ ] Codebase searched for similar features
 - [ ] Existing components identified and documented
 - [ ] File paths provided for reusable code
@@ -556,6 +606,7 @@ Before finalizing spec.md:
 - [ ] Not creating new components unnecessarily
 
 **Template Compliance**:
+
 - [ ] Goal: 1-2 sentences, user value focused
 - [ ] User Stories: Max 3, proper format
 - [ ] Specific Requirements: Max 10, each with max 8 bullets
@@ -566,6 +617,7 @@ Before finalizing spec.md:
 - [ ] No actual code written
 
 **Clarity**:
+
 - [ ] Each section is concise and skimmable
 - [ ] Requirements are specific, not vague
 - [ ] Technical approach is clear
@@ -573,6 +625,7 @@ Before finalizing spec.md:
 - [ ] Specifications are actionable
 
 **Simplicity**:
+
 - [ ] No over-engineering
 - [ ] Kept focused and minimal
 - [ ] Reuses existing code where possible
@@ -582,11 +635,13 @@ Before finalizing spec.md:
 ## Final Notes
 
 **The spec is a guide, not a prison**:
+
 - Implementers can ask questions during development
 - Minor details can be decided during implementation
 - The spec provides direction, not every tiny decision
 
 **Focus on what matters**:
+
 - Core functionality and user value
 - Visual design (if mockups provided)
 - Reusability and existing code
@@ -594,12 +649,14 @@ Before finalizing spec.md:
 - Technical approach and architecture
 
 **Keep it skimmable**:
+
 - Developers will read this quickly
 - Use bullets, not paragraphs
 - Be concise and direct
 - Make it easy to scan
 
 **Trust the template**:
+
 - The structure is proven and works
 - Don't add sections
 - Don't skip sections (if content exists)

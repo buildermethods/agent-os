@@ -13,6 +13,7 @@ Spec shaping transforms a vague feature idea into documented, validated requirem
 **If description provided**: Use it immediately to start the spec.
 
 **If no description**:
+
 1. Read `agent-os/product/roadmap.md`
 2. Find next planned feature
 3. Present to user: "The roadmap shows [X] is next. Go with that or provide your own?"
@@ -34,6 +35,7 @@ mkdir -p $SPEC_PATH/implementation
 ```
 
 **Naming conventions**:
+
 - Use YYYY-MM-DD date prefix
 - Feature name in kebab-case
 - Example: `2025-11-16-user-authentication`
@@ -43,23 +45,27 @@ mkdir -p $SPEC_PATH/implementation
 Before asking questions, read these files to understand context:
 
 **`agent-os/product/mission.md`**:
+
 - Product's overall mission and purpose
 - Target users and primary use cases
 - Core problems being solved
 - How users benefit
 
 **`agent-os/product/roadmap.md`**:
+
 - Already completed features
 - Current product state
 - Where this feature fits
 - Related features for context
 
 **`agent-os/product/tech-stack.md`**:
+
 - Technologies and frameworks in use
 - Technical constraints
 - Available libraries and tools
 
 **Why this matters**:
+
 - Your questions become more relevant
 - You identify existing features to reuse
 - You ensure feature aligns with product goals
@@ -68,17 +74,20 @@ Before asking questions, read these files to understand context:
 ### 4. Question Generation Strategy
 
 Generate 4-8 numbered questions that:
+
 - Propose sensible assumptions based on best practices
 - Make it easy for user to confirm or provide alternatives
 - Include specific suggestions they can respond to
 - Cover functional requirements, constraints, and exclusions
 
 **Question framing patterns**:
+
 - "I assume [specific assumption]. Is that correct, or [alternative]?"
 - "I'm thinking [specific approach]. Should we [alternative]?"
 - "For [aspect], I suggest [option]. Does that work, or would you prefer [other option]?"
 
 **Question categories to cover**:
+
 1. Core functionality (what the feature does)
 2. User interactions (how users engage with it)
 3. Data and state (what's stored, how it persists)
@@ -90,6 +99,7 @@ Generate 4-8 numbered questions that:
 **Always include at end**:
 
 **Reusability question**:
+
 ```bash
 Are there existing features in your codebase with similar patterns we should reference?
 For example:
@@ -102,6 +112,7 @@ Please provide file/folder paths or names of these features if they exist.
 ```
 
 **Visual assets request**:
+
 ```bash
 Do you have any design mockups, wireframes, or screenshots that could help guide the development?
 
@@ -124,12 +135,14 @@ When user responds:
 **Store answers**: Keep exact wording, don't interpret or rephrase.
 
 **MANDATORY visual check** (even if user said "no visuals"):
+
 ```bash
 # Users often add files without mentioning them!
 ls -la [spec-path]/planning/visuals/ 2>/dev/null | grep -E '\.(png|jpg|jpeg|gif|svg|pdf)$' || echo "No visual files found"
 ```
 
 **If visual files found**:
+
 1. Use Read tool on EACH file
 2. Document design elements: layouts, components, colors, typography, spacing
 3. Note user flows and interaction patterns
@@ -138,6 +151,7 @@ ls -la [spec-path]/planning/visuals/ 2>/dev/null | grep -E '\.(png|jpg|jpeg|gif|
    - High-fidelity if detailed colors, final copy, polished design
 
 **If user mentioned similar features**:
+
 - Note the paths/names they provided
 - DO NOT explore them yourself (saves time)
 - Document for spec-writer to reference later
@@ -147,16 +161,19 @@ ls -la [spec-path]/planning/visuals/ 2>/dev/null | grep -E '\.(png|jpg|jpeg|gif|
 Determine if follow-ups needed based on:
 
 **Visual-triggered**:
+
 - Visuals found but user didn't mention them → acknowledge and analyze
 - Low-fidelity filenames → clarify if wireframes or exact designs
 - Visual shows features not discussed → ask about them
 - Discrepancy between answers and visuals → resolve it
 
 **Reusability-triggered**:
+
 - User didn't provide similar features but spec seems common → ask
 - Provided paths seem incomplete → ask for related logic/services
 
 **Answer-triggered**:
+
 - Vague requirements → ask for specifics
 - Missing technical details → ask for clarification
 - Unclear scope boundaries → define them
@@ -164,6 +181,7 @@ Determine if follow-ups needed based on:
 **Keep follow-ups minimal**: 1-3 questions maximum.
 
 **Format**:
+
 ```bash
 Based on your answers [and the visual files I found], I have a few follow-up questions:
 
@@ -260,6 +278,7 @@ No visual assets provided.
 ```
 
 **Critical rules**:
+
 - Use user's exact words for answers
 - Base "Visual Assets" on bash check, not user claims
 - Document fidelity level of visuals
@@ -269,7 +288,8 @@ No visual assets provided.
 ### 8. Completion Output
 
 Display:
-```sql
+
+```markdown
 ✅ Spec initialized successfully!
 
 Spec folder created: `[spec-path]`
@@ -289,7 +309,8 @@ Requirements saved to: `[spec-path]/planning/requirements.md`
 
 ## Best Practices
 
-### DO:
+### DO
+
 ✅ Always check visuals folder via bash after receiving answers
 ✅ Ask about existing similar features for reusability
 ✅ Propose assumptions to make it easy for user to confirm
@@ -299,7 +320,8 @@ Requirements saved to: `[spec-path]/planning/requirements.md`
 ✅ Keep follow-ups minimal (1-3 max)
 ✅ Stop and wait for user responses at each interaction point
 
-### DON'T:
+### DON'T
+
 ❌ Skip the mandatory visual check
 ❌ Rephrase or interpret user answers
 ❌ Explore existing code yourself during shaping (save for writing phase)

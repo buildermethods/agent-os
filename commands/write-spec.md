@@ -30,33 +30,91 @@ ls -la $SPEC_PATH/planning/visuals/ 2>/dev/null | grep -v "^total" | grep -v "^d
 ```
 
 Parse and analyze:
+
 - User's feature description and goals
 - Requirements gathered during shaping
 - Visual mockups or screenshots (if present)
 - Any constraints or out-of-scope items mentioned
 
-### Step 2: Search for Reusable Code
+### Step 2: Launch Parallel Code Exploration
 
-Before creating specifications, search the codebase for existing patterns and components that can be reused.
+Before creating specifications, launch multiple **code-explorer** subagents in parallel to deeply analyze the codebase for reusable patterns.
 
-Based on the feature requirements, identify relevant keywords and search for:
-- Similar features or functionality
-- Existing UI components that match your needs
-- Models, services, or controllers with related logic
-- API patterns that could be extended
-- Database structures that could be reused
+**Identify exploration targets** from requirements:
 
-Use appropriate search tools to find:
-- Components that can be reused or extended
-- Patterns to follow from similar features
-- Naming conventions used in the codebase
-- Architecture patterns already established
+- Similar features mentioned by user
+- UI components needed (forms, tables, modals, etc.)
+- Backend patterns (services, controllers, validators)
+- Data models and database schemas
+- API patterns and integrations
 
-Document your findings for use in the specification.
+**Launch 2-3 code-explorer agents in parallel** using the Task tool:
 
-### Step 3: Create Core Specification
+```markdown
+Launch code-explorer agents in parallel to analyze:
 
-Write the main specification to `[spec-path]/spec.md`.
+1. **Similar Features Analysis**
+   - Target: [Similar feature mentioned in requirements, e.g., "user posts feature"]
+   - Goal: Understand architecture, components, patterns to replicate
+
+2. **Reusable Components Search**
+   - Target: UI components needed (e.g., forms, buttons, modals)
+   - Goal: Find existing components to reuse or extend
+
+3. **Backend Patterns Analysis**
+   - Target: Services, validators, models related to feature domain
+   - Goal: Identify reusable logic, validation patterns, data structures
+```
+
+**Example parallel launch**:
+
+Use a single message with multiple Task tool calls to launch all explorers simultaneously:
+
+- Task 1: code-explorer analyzing similar feature at `app/features/posts`
+- Task 2: code-explorer searching for reusable form components
+- Task 3: code-explorer analyzing authentication/authorization patterns
+
+**Wait for all explorers to complete**, then synthesize their findings.
+
+### Step 3: Launch Architecture Design
+
+After code exploration completes, launch the **code-architect** subagent to design the feature architecture based on:
+
+- Requirements from requirements.md
+- Patterns and components found by code-explorer agents
+- Visual designs (if provided)
+- Existing codebase conventions
+
+**Launch code-architect** using the Task tool:
+
+```markdown
+Launch code-architect to design feature architecture:
+
+**Input context**:
+- Feature requirements from planning/requirements.md
+- Reusable components identified: [list from explorers]
+- Similar features found: [list from explorers]
+- Visual designs: [if any exist in planning/visuals/]
+
+**Architect deliverables needed**:
+- Component design with responsibilities
+- Data flow and state management approach
+- Integration points with existing code
+- Recommended implementation approach
+
+**Focus**: Create architecture that maximizes code reuse and follows existing patterns.
+```
+
+**Wait for architect to complete**, then use the architecture blueprint for spec writing.
+
+### Step 4: Create Core Specification
+
+Write the main specification to `[spec-path]/spec.md` using:
+
+- Requirements from planning/requirements.md
+- Reusable code findings from code-explorer agents
+- Architecture design from code-architect
+- Visual asset analysis
 
 **DO NOT write actual code** in the spec.md document. Just describe the requirements clearly and concisely.
 
@@ -90,17 +148,34 @@ Follow this structure exactly:
 [repeat for each file in the `planning/visuals` folder]
 
 ## Existing Code to Leverage
+[Based on code-explorer findings]
 
-**Code, component, or existing logic found**
-- [up to 5 bullets that describe what this existing code does and how it should be re-used or replicated when building this spec]
+**[Component/Service/Pattern name] - `path/to/file.ext`**
+- What it does: [Description from code-explorer analysis]
+- How to reuse: [Extend, replicate pattern, import directly, etc.]
+- Key methods/exports: [Relevant APIs to leverage]
+- Found by: code-explorer analysis of [similar feature/component search]
 
-[repeat for up to 5 existing code areas]
+[repeat for up to 5 existing code areas identified by code-explorer agents]
+
+## Architecture Approach
+[Based on code-architect blueprint]
+
+**Component Design:**
+- [Key components from architect's design]
+- [Responsibilities and interfaces]
+
+**Data Flow:**
+- [Entry points → transformations → outputs from architect]
+
+**Integration Points:**
+- [How feature integrates with existing code]
 
 ## Out of Scope
 - [up to 10 concise descriptions of specific features that are out of scope and MUST NOT be built in this spec]
 ```
 
-### Step 4: Verify Specification Quality
+### Step 5: Verify Specification Quality
 
 After creating the specification, perform a self-check:
 
@@ -124,10 +199,11 @@ After creating the specification, perform a self-check:
    - Out-of-scope items match user's exclusions
    - No over-engineering or extra complexity
 
-### Step 5: Output Completion
+### Step 6: Output Completion
 
 Display:
-```bash
+
+```markdown
 ✅ The spec has been created at `[spec-path]/spec.md`
 
 Review it closely to ensure everything aligns with your vision and requirements.
@@ -137,28 +213,45 @@ Specification Summary:
 - User Stories: [X] stories defined
 - Specific Requirements: [Y] requirements detailed
 - Visual Design: [Z files analyzed / No visuals provided]
-- Existing Code: [N reusable components identified / Starting fresh]
+- Existing Code: [N reusable components identified by code-explorer agents]
+- Architecture: [code-architect design included]
 - Out of Scope: [M items explicitly excluded]
+
+Subagent Analysis:
+- code-explorer agents launched: [X] (analyzed similar features, components, patterns)
+- code-architect: Architecture blueprint created
+- Findings integrated into specification
 
 Next step: Implement the specification or refine if needed.
 ```
 
 ## Important Constraints
 
-1. **Always search for reusable code** before specifying new components
-2. **Reference visual assets** when available
-3. **Do NOT write actual code** in the spec
-4. **Keep each section short**, with clear, direct, skimmable specifications
-5. **Do NOT deviate from the template** and do not add additional sections
-6. **Focus on clarity over completeness** - implementers can ask questions
-7. **Verify alignment** with requirements.md before finalizing
+1. **Launch subagents in parallel** - Use a single message with multiple Task tool calls to launch 2-3 code-explorer agents simultaneously
+2. **Wait for subagents to complete** before proceeding to next steps
+3. **Use subagent findings** in the specification:
+   - code-explorer findings → "Existing Code to Leverage" section
+   - code-architect blueprint → "Architecture Approach" section
+4. **Do NOT write actual code** in the spec
+5. **Keep each section short**, with clear, direct, skimmable specifications
+6. **Do NOT deviate from the template** - include Architecture Approach section
+7. **Reference visual assets** when available
+8. **Focus on clarity over completeness** - implementers can ask questions
+9. **Verify alignment** with requirements.md and subagent findings before finalizing
 
 ## Quality Checklist
 
 Before completing, verify:
+
 - [ ] All requirements from requirements.md are addressed
 - [ ] Visual files (if any) are analyzed and referenced
-- [ ] Existing similar code is identified and noted
+- [ ] **code-explorer agents launched in parallel** (2-3 agents)
+- [ ] **code-architect agent launched** after explorers complete
+- [ ] Subagent findings integrated into spec:
+  - [ ] "Existing Code to Leverage" section populated from code-explorer findings
+  - [ ] "Architecture Approach" section populated from code-architect blueprint
+- [ ] Reusable components identified with file paths
+- [ ] Architecture design aligns with existing codebase patterns
 - [ ] Out-of-scope items are clearly stated
 - [ ] No unnecessary complexity added
 - [ ] Specification is skimmable and clear

@@ -14,6 +14,7 @@ You are helping the user shape and plan the scope for a new feature. This MULTI-
 IF you were given a description of the feature, use that to initiate a new spec.
 
 OTHERWISE:
+
 1. Check `agent-os/product/roadmap.md` to find the next feature
 2. Ask the user:
    ```bash
@@ -51,7 +52,8 @@ echo "Created spec folder: $SPEC_PATH"
 ### Step 3: Confirm Initialization
 
 Output:
-```bash
+
+```markdown
 ✅ Spec folder initialized: `[spec-path]`
 
 Structure created:
@@ -86,6 +88,7 @@ Before generating questions, understand the broader product context by reading:
    - Available libraries and tools
 
 This context helps you:
+
 - Ask more relevant and contextual questions
 - Identify existing features that might be reused
 - Ensure feature aligns with product goals
@@ -96,6 +99,7 @@ This context helps you:
 Generate 4-8 targeted, NUMBERED questions that explore requirements while suggesting reasonable defaults.
 
 **Question generation guidelines:**
+
 - Start each question with a number
 - Propose sensible assumptions based on best practices
 - Frame as "I'm assuming X, is that correct?"
@@ -104,7 +108,8 @@ Generate 4-8 targeted, NUMBERED questions that explore requirements while sugges
 - Always end with a question about exclusions
 
 **Required format:**
-```bash
+
+```markdown
 Based on your idea for [spec name], I have some clarifying questions:
 
 1. I assume [specific assumption]. Is that correct, or [alternative]?
@@ -161,27 +166,49 @@ After receiving user answers:
    - DO NOT explore them yourself (to save time)
    - Document their names for future reference
 
-### Step 4: Generate Follow-up Questions (if needed)
+### Step 4: Optional Code Exploration (if similar features mentioned)
+
+If user mentioned specific similar features or paths in their answers, optionally launch a **code-explorer** subagent to quickly understand that feature:
+
+```markdown
+Launch code-explorer to analyze similar feature:
+
+**Target**: [Path/feature mentioned by user, e.g., "app/features/posts"]
+**Goal**: Quick understanding of:
+- Key components and patterns used
+- File structure and organization
+- Reusable elements
+
+**Purpose**: Inform follow-up questions with concrete understanding of existing implementation.
+```
+
+**This is optional** - only if user provided specific feature paths/names and it would help formulate better follow-up questions.
+
+### Step 5: Generate Follow-up Questions (if needed)
 
 Determine if follow-ups are needed based on:
 
 **Visual-triggered follow-ups:**
+
 - If visuals found but not mentioned: "I found [filename(s)] in the visuals folder. Let me analyze these for the specification."
 - If filenames indicate low-fidelity: "I notice you've provided [filename(s)] which appear to be wireframes. Should we treat these as layout guides rather than exact design specifications, using our application's existing styling instead?"
 - If visuals show features not discussed in answers
 - If discrepancies exist between answers and visuals
 
 **Reusability follow-ups:**
+
 - If user didn't provide similar features but spec seems common: "This seems like it might share patterns with existing features. Could you point me to any similar forms/pages/logic in your app?"
 - If provided paths seem incomplete: "You mentioned [feature]. Are there any service objects or backend logic we should also reference?"
 
 **Answer-triggered follow-ups:**
+
 - Vague requirements need clarification
 - Missing technical details
 - Unclear scope boundaries
 
 **If follow-ups needed:**
-```bash
+
+```markdown
 Based on your answers [and the visual files I found], I have a few follow-up questions:
 
 1. [Specific follow-up question]
@@ -192,7 +219,7 @@ Please provide these additional details.
 
 **STOP and wait for responses.**
 
-### Step 5: Save Complete Requirements
+### Step 6: Save Complete Requirements
 
 After all questions are answered, save ALL gathered information to: `[spec-path]/planning/requirements.md`
 
@@ -276,10 +303,11 @@ No visual assets provided.
 - [Similar code patterns to follow]
 ```
 
-### Step 6: Output Completion
+### Step 7: Output Completion
 
 Return:
-```sql
+
+```markdown
 ✅ Spec initialized successfully!
 
 Spec folder created: `[spec-path]`

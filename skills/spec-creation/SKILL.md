@@ -10,6 +10,7 @@ This skill guides you through creating comprehensive, well-structured feature sp
 ## When to Use This Skill
 
 Use this skill when the user:
+
 - Asks to "create a spec" or "write a specification"
 - Wants to "plan a new feature" or "document requirements"
 - Says "let's spec out [feature]" or "help me plan [capability]"
@@ -20,6 +21,7 @@ Use this skill when the user:
 ## Core Philosophy
 
 **Spec-driven development** ensures:
+
 1. Clear understanding before coding begins
 2. Alignment between user vision and implementation
 3. Reuse of existing code and patterns
@@ -34,6 +36,7 @@ Use this skill when the user:
 **Purpose**: Transform a vague idea into documented, validated requirements.
 
 **Key Steps**:
+
 1. **Initialize structure**: Create dated spec folder (`YYYY-MM-DD-feature-name`)
 2. **Understand context**: Read product mission, roadmap, and tech stack
 3. **Ask clarifying questions**: Generate 4-8 targeted questions with sensible defaults
@@ -44,6 +47,7 @@ Use this skill when the user:
 8. **Document everything**: Save to `planning/requirements.md`
 
 **Critical Practices**:
+
 - Propose assumptions, make it easy for user to confirm or correct
 - Always check for visual assets via bash (`ls -la [spec-path]/planning/visuals/`)
 - Ask about existing code to reuse (components, patterns, logic)
@@ -52,16 +56,25 @@ Use this skill when the user:
 
 ### Phase 2: Spec Writing (Documentation)
 
-**Purpose**: Transform requirements into a clear, actionable specification.
+**Purpose**: Transform requirements into a clear, actionable specification with architectural guidance.
 
 **Key Steps**:
+
 1. **Read requirements**: Load and analyze `planning/requirements.md`
-2. **Search codebase**: Find reusable components, patterns, and similar features
-3. **Analyze visuals**: Read each visual file and extract design elements
-4. **Write specification**: Create `spec.md` following exact template structure
-5. **Verify quality**: Self-check for alignment, reusability, and scope clarity
+2. **Launch parallel code exploration**: Use 2-3 **code-explorer** subagents simultaneously to:
+   - Analyze similar features mentioned in requirements
+   - Search for reusable UI components
+   - Identify backend patterns and services
+3. **Launch architecture design**: Use **code-architect** subagent to:
+   - Design feature architecture based on requirements and explorer findings
+   - Create component design and data flow
+   - Provide implementation blueprint
+4. **Analyze visuals**: Read each visual file and extract design elements
+5. **Write specification**: Create `spec.md` integrating subagent findings
+6. **Verify quality**: Self-check for alignment, reusability, and scope clarity
 
 **Specification Template Structure**:
+
 ```markdown
 # Specification: [Feature Name]
 
@@ -84,26 +97,39 @@ Use this skill when the user:
 [One section per visual file]
 
 ## Existing Code to Leverage
-**[Component/code found]**
-- [Up to 5 bullets: what it does, how to reuse]
-[Max 5 code areas]
+[Based on code-explorer findings]
+**[Component/code found] - `path/to/file`**
+- What it does: [From code-explorer analysis]
+- How to reuse: [Extend, replicate, import]
+- Key methods: [Relevant APIs]
+[Max 5 code areas from code-explorer agents]
+
+## Architecture Approach
+[Based on code-architect blueprint]
+**Component Design:** [Key components and responsibilities]
+**Data Flow:** [Entry points → transformations → outputs]
+**Integration Points:** [How feature integrates with existing code]
 
 ## Out of Scope
 - [Up to 10 specific features that MUST NOT be built]
 ```
 
 **Critical Practices**:
+
+- **Launch subagents in parallel**: Use single message with multiple Task calls
+- Wait for code-explorer agents to complete before launching code-architect
+- Integrate subagent findings into specification
 - DO NOT write actual code in specs
 - Keep sections concise and skimmable
 - Reference visual files explicitly
-- Identify reusable code opportunities
 - State out-of-scope items clearly
-- Follow template exactly (no extra sections)
+- Follow template exactly (include Architecture Approach section)
 
 ## Folder Structure
 
 Every spec creates this structure:
-```text
+
+```markdown
 agent-os/specs/YYYY-MM-DD-feature-name/
 ├── planning/
 │   ├── requirements.md       # All gathered requirements
@@ -115,23 +141,28 @@ agent-os/specs/YYYY-MM-DD-feature-name/
 ## Key Principles
 
 ### 1. Context Before Questions
+
 Always read product mission, roadmap, and tech stack before asking questions. This makes questions more relevant and informed.
 
 ### 2. Visuals Are Critical
+
 - Always ask for visual assets
 - Always check visuals folder via bash (users often forget to mention files)
 - Analyze every visual file with Read tool
 - Reference visuals explicitly in spec
 - Check filenames for fidelity indicators (lofi, wireframe, etc.)
 
-### 3. Reusability First
-- Ask about existing similar features
-- Search codebase for reusable components
-- Document existing code to leverage
+### 3. Reusability First (via Subagents)
+
+- Launch **code-explorer** subagents in parallel to find reusable code
+- Analyze similar features, components, and patterns
+- Launch **code-architect** to design architecture leveraging existing code
+- Document subagent findings in specification
 - Avoid specifying new components when existing ones work
-- Follow established patterns and naming conventions
+- Follow established patterns identified by subagents
 
 ### 4. Scope Clarity
+
 - Define explicit in-scope features
 - State out-of-scope items clearly
 - Avoid over-engineering
@@ -139,6 +170,7 @@ Always read product mission, roadmap, and tech stack before asking questions. Th
 - No unnecessary complexity
 
 ### 5. Limited Testing Approach
+
 - Specs should call for focused, minimal tests
 - Implementation task groups: 2-8 tests each
 - Testing engineer adds max 10 additional tests
@@ -150,24 +182,28 @@ Always read product mission, roadmap, and tech stack before asking questions. Th
 After creating a spec, verify:
 
 **Requirements Accuracy**:
+
 - [ ] All user answers captured exactly
 - [ ] No missing or misrepresented answers
 - [ ] Reusability opportunities documented
 - [ ] Visual insights recorded
 
 **Visual Alignment** (if visuals exist):
+
 - [ ] All visual files analyzed with Read tool
 - [ ] Design elements specified in spec
 - [ ] Visual references in appropriate sections
 - [ ] Fidelity level understood and documented
 
 **Reusability Check**:
+
 - [ ] Existing similar features identified
 - [ ] Codebase searched for reusable components
 - [ ] No unnecessary new components specified
 - [ ] Existing patterns followed
 
 **Scope Validation**:
+
 - [ ] Only requested features included
 - [ ] Out-of-scope items match user exclusions
 - [ ] No over-engineering or extra complexity
@@ -176,6 +212,7 @@ After creating a spec, verify:
 ## Common Mistakes to Avoid
 
 ❌ **Don't**:
+
 - Skip the visual check (always run `ls -la visuals/`)
 - Write actual code in the spec
 - Add features not requested by user
@@ -187,6 +224,7 @@ After creating a spec, verify:
 - Interpret user answers (use their exact words)
 
 ✅ **Do**:
+
 - Always check visuals folder via bash
 - Ask about existing similar features
 - Search codebase before specifying new components
@@ -199,6 +237,7 @@ After creating a spec, verify:
 ## Integration with Development Workflow
 
 This skill prepares the foundation for:
+
 1. **Task creation**: Breaking spec into implementation tasks
 2. **Implementation**: Building the feature according to spec
 3. **Verification**: Validating implementation matches spec
@@ -228,20 +267,30 @@ Phase 1 - Shaping:
 
 Phase 2 - Writing:
 → Read planning/requirements.md
-→ Search codebase for existing auth patterns
-→ Find reusable SessionService and AuthForm components
-→ Create spec.md with Goal, User Stories, Requirements
-→ Reference login-mockup.png in Visual Design section
-→ Note SessionService and AuthForm in Existing Code section
-→ List out-of-scope items (2FA, OAuth, password reset)
-→ Verify alignment with requirements
+→ **Launch 3 code-explorer agents in parallel** (single message):
+  • Explorer 1: Analyze existing auth features (sessions, login)
+  • Explorer 2: Search for reusable form components
+  • Explorer 3: Find validation and service patterns
+→ Wait for all explorers to complete
+→ **Launch code-architect agent**:
+  • Input: Requirements + explorer findings + visual mockup
+  • Output: Architecture blueprint with component design, data flow
+→ Read login-mockup.png and analyze design elements
+→ Create spec.md integrating all findings:
+  • Goal, User Stories, Requirements sections
+  • Visual Design section referencing login-mockup.png
+  • Existing Code section with SessionService, AuthForm (from explorers)
+  • Architecture Approach section (from architect blueprint)
+  • Out of Scope: 2FA, OAuth, password reset
+→ Verify alignment with requirements and subagent findings
 → Output completion message
 
-Result: Comprehensive, actionable spec ready for implementation
+Result: Comprehensive, architecture-informed spec ready for implementation
 ```
 
 ## Additional Resources
 
 For detailed workflow instructions, see:
-- `shaping-guide.md` - Step-by-step shaping workflow details
-- `writing-guide.md` - Specification writing best practices and examples
+
+- [shaping-guide.md](shaping-guide.md) - Step-by-step shaping workflow details
+- [writing-guide.md](writing-guide.md) - Specification writing best practices and examples
