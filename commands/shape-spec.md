@@ -17,6 +17,7 @@ OTHERWISE:
 
 1. Check `agent-os/product/roadmap.md` to find the next feature
 2. Ask the user:
+
    ```bash
    Which feature would you like to initiate a new spec for?
 
@@ -150,6 +151,7 @@ After receiving user answers:
 1. Store the user's answers for later documentation
 
 2. **MANDATORY: Check for visual assets** (even if user says "no visuals"):
+
    ```bash
    # THIS IS MANDATORY - users often add files without mentioning them
    ls -la [spec-path]/planning/visuals/ 2>/dev/null | grep -E '\.(png|jpg|jpeg|gif|svg|pdf)$' || echo "No visual files found"
