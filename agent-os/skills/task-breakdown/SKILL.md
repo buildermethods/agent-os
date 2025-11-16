@@ -20,6 +20,24 @@ Activate this skill when users:
 - Want to group related tasks together
 - Ask how to structure development work
 
+## Available Resources
+
+This skill includes supplementary documentation to guide task breakdown creation:
+
+- **`task-template.md`** - Standard template structure for creating task breakdowns with detailed field descriptions and customization guidelines
+- **`examples.md`** - Real-world task breakdown examples across different complexity levels:
+  - Example 1: Simple CRUD Feature (12 tasks, Rails + React)
+  - Example 2: Integration Feature (20 tasks, Stripe Payment)
+  - Example 3: Frontend-Only Feature (8 tasks, Dark Mode)
+  - Example 4: Complex Multi-Layer Feature (35 tasks, Real-Time Notifications)
+
+**When to consult these resources:**
+
+- Reference [task-template.md](task-template.md) to understand the standard structure and required sections
+- Review [examples.md](examples.md) to see similar features and understand appropriate task sizing
+- Use examples as inspiration for organizing task groups and writing acceptance criteria
+- Check examples for patterns on how to handle different tech stacks and architectural layers
+
 ## Task Breakdown Philosophy
 
 The goal is to transform high-level specifications into concrete, actionable tasks that:
@@ -152,6 +170,8 @@ Common task group patterns (adapt based on actual needs):
 - End-to-end workflow verification
 
 ### Phase 3: Create Task Structure
+
+**Reference**: See `task-template.md` for the complete standard structure.
 
 For each task group:
 
@@ -395,18 +415,22 @@ NEXT STEP 👉 You can now implement these tasks manually, or use implementation
 
 1. **Keep tasks small/medium**: Break large tasks into smaller ones - this is CRITICAL
 2. **Read everything first**: Fully understand spec before creating tasks
-3. **Think in layers**: Organize by architectural layers or functional areas
-4. **Be concrete**: Include specific files, fields, methods, components
-5. **Show dependencies**: Make task order clear and logical
-6. **Reference patterns**: Point to existing code to follow
-7. **Keep tests focused**: Resist urge for comprehensive coverage
-8. **Add acceptance criteria**: Define clear "done" state
-9. **Check alignment**: Verify tasks match coding standards
-10. **Consider the developer**: Would someone else understand these tasks?
-11. **Verify task size**: Before finalizing, ensure no task is too large
-12. **Adapt the template**: Don't force tasks into wrong structure
+3. **Consult the examples**: Review `examples.md` to find similar features and patterns
+4. **Follow the template**: Use `task-template.md` as your structural guide
+5. **Think in layers**: Organize by architectural layers or functional areas
+6. **Be concrete**: Include specific files, fields, methods, components
+7. **Show dependencies**: Make task order clear and logical
+8. **Reference patterns**: Point to existing code to follow
+9. **Keep tests focused**: Resist urge for comprehensive coverage
+10. **Add acceptance criteria**: Define clear "done" state
+11. **Check alignment**: Verify tasks match coding standards
+12. **Consider the developer**: Would someone else understand these tasks?
+13. **Verify task size**: Before finalizing, ensure no task is too large
+14. **Adapt the template**: Don't force tasks into wrong structure
 
 ## Example Applications
+
+**Reference**: See [examples.md](examples.md) for complete real-world examples at each complexity level.
 
 ### Small Feature (5-10 tasks)
 
@@ -416,6 +440,8 @@ Simple features might only need:
 - One frontend task group (component + page)
 - One testing task group (integration tests)
 
+**See**: Example 3 in `examples.md` - Dark Mode Toggle (8 tasks)
+
 ### Medium Feature (15-25 tasks)
 
 Standard features typically include:
@@ -424,6 +450,8 @@ Standard features typically include:
 - API layer (controllers + services)
 - Frontend layer (components + pages + styling)
 - Testing layer (gap analysis + integration tests)
+
+**See**: Example 1 in `examples.md` - User Profile Management (12 tasks), Example 2 - Stripe Payment Integration (20 tasks)
 
 ### Large Feature (30+ tasks)
 
@@ -435,6 +463,8 @@ Complex features might need:
 - Integration task group (external services)
 - Background job task group (async processing)
 - Testing layer (comprehensive integration coverage)
+
+**See**: Example 4 in `examples.md` - Real-Time Notifications System (35 tasks)
 
 ## Remember
 
