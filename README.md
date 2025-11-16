@@ -1,3 +1,5 @@
+# Agent OS as Claude Code Plugin
+
 <img width="1280" height="640" alt="agent-os-og" src="https://github.com/user-attachments/assets/f70671a2-66e8-4c80-8998-d4318af55d10" />
 
 ## Personal Fork: Agent OS as Claude Code Plugin
