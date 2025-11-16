@@ -53,6 +53,13 @@ Agent OS is a Claude Code plugin that transforms AI coding agents into productiv
 - Leverages existing codebase patterns
 - Visual design integration
 
+**`/create-tasks`** - Create actionable tasks breakdown from spec
+
+- Transforms specifications into task groups
+- Orders tasks by dependencies
+- Includes focused testing approach
+- Groups by specialization (database, API, UI)
+
 ### Skills
 
 Skills are automatically invoked by Claude when relevant to your request:
@@ -68,6 +75,13 @@ Skills are automatically invoked by Claude when relevant to your request:
 - Activated when creating feature specs
 - Two-phase: shaping (gathering) and writing (documenting)
 - Reusability-focused with architecture design
+
+**`task-breakdown`** - Task list creation from specs
+
+- Activated when creating task lists or implementation plans
+- Breaks specs into grouped, ordered tasks
+- Strategic dependency management
+- Focused testing approach
 
 ### Agents
 
@@ -125,19 +139,22 @@ This creates:
 - Uses code-architect agent for architecture design
 - Integrates findings into comprehensive spec
 
-### 4. Implement the Feature
+### 4. Create Task Breakdown
 
-After spec is complete, implementation follows three phases:
-
-**Create Tasks Breakdown:**
-
-```markdown
-Ask Claude: "Create tasks for the [feature-name] spec"
+```bash
+/create-tasks
 ```
 
-- Breaks spec into task groups
-- Orders by dependencies
+This creates:
+
+- `agent-os/specs/YYYY-MM-DD-feature-name/tasks.md`
+- Breaks spec into strategic task groups
+- Orders tasks by dependencies
 - Includes focused testing approach
+
+### 5. Implement the Feature
+
+After tasks are defined, implementation follows structured phases:
 
 **Implement Task Groups:**
 
@@ -145,7 +162,8 @@ Ask Claude: "Create tasks for the [feature-name] spec"
 Ask Claude: "Implement Task Group 1"
 ```
 
-- Follows test-driven approach
+- Follows task breakdown order
+- Uses test-driven approach
 - Reuses existing patterns
 - Verifies against spec
 
@@ -310,12 +328,20 @@ Claude: Found 2 mockup files. Analyzing...
 Ready to write the spec. Run: /write-spec
 ```
 
-### Example 3: Implementing a Feature
+### Example 3: Creating Task Breakdown
 
 ```markdown
-User: Create tasks for the task-board spec
+User: /create-tasks
 
-Claude: Creating task breakdown...
+Claude: I'll create a tasks breakdown from the spec.
+
+Let me check for the spec and requirements files...
+
+✅ Found agent-os/specs/2025-11-16-task-board/spec.md
+✅ Found agent-os/specs/2025-11-16-task-board/planning/requirements.md
+
+Analyzing spec and requirements...
+Creating strategic task breakdown...
 
 ✅ Created agent-os/specs/2025-11-16-task-board/tasks.md
 
