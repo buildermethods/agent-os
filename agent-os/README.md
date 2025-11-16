@@ -68,6 +68,15 @@ Agent OS is a Claude Code plugin that transforms AI coding agents into productiv
 - Quality review with code-reviewer agents
 - Automated testing and verification reports
 
+**`/feature-dev`** - Guided feature development with deep codebase understanding
+
+- 7-phase comprehensive workflow from discovery to completion
+- Deep codebase exploration with parallel code-explorer agents
+- Explicit clarifying questions phase before design
+- Multiple architecture approaches with code-architect agents
+- Quality-focused review with parallel code-reviewer agents
+- Alternative to spec-driven workflow for direct feature implementation
+
 ### Skills
 
 Skills are automatically invoked by Claude when relevant to your request:
@@ -167,7 +176,7 @@ This creates:
 - Orders tasks by dependencies
 - Includes focused testing approach
 
-### 5. Implement Task Groups
+### 5a. Implement Task Groups (Spec-Driven)
 
 Use the `/implement-task` command for a guided, multi-agent implementation workflow:
 
@@ -175,33 +184,47 @@ Use the `/implement-task` command for a guided, multi-agent implementation workf
 /implement-task
 ```
 
+### 5b. Direct Feature Development (Alternative)
+
+Use the `/feature-dev` command for direct feature implementation with deep codebase understanding:
+
+```bash
+/feature-dev "Add user authentication with OAuth"
+```
+
 This orchestrates a 7-phase workflow:
 
-1. **Discovery** - Select which task group to implement
-2. **Codebase Exploration** - Parallel code-explorer agents find patterns
-3. **Read Files** - Deep dive into relevant code
-4. **Architecture Design** - Parallel code-architect agents design approaches
+1. **Discovery** - Understand what needs to be built
+2. **Codebase Exploration** - Parallel code-explorer agents analyze patterns and architecture
+3. **Clarifying Questions** - Fill in gaps and resolve ambiguities before design
+4. **Architecture Design** - Parallel code-architect agents design multiple approaches
 5. **Implementation** - Build following chosen architecture
-6. **Quality Review** - Parallel code-reviewer agents verify quality
-7. **Verification** - Run tests and create reports
+6. **Quality Review** - Parallel code-reviewer agents verify code quality
+7. **Summary** - Document what was accomplished
 
-Creates:
-
-- `agent-os/specs/[spec-name]/implementation/[task-group].md` - Implementation report
-- `agent-os/specs/[spec-name]/verification/[task-group]-verification.md` - Verification report
-- Updates `tasks.md` with completed checkboxes
+This workflow emphasizes deep codebase understanding and explicit clarification before implementation.
 
 ## Core Concepts
 
-### Spec-Driven Development
+### Two Development Approaches
 
-Agent OS follows a specification-driven philosophy:
+Agent OS provides two complementary workflows:
+
+**1. Spec-Driven Development** (Recommended for complex features)
 
 1. **Planning Phase** → Define product mission and roadmap
 2. **Specification Phase** → Shape requirements and write detailed specs
 3. **Implementation Phase** → Break specs into tasks, implement, verify
 
 Each phase has dedicated workflows, commands, and skills.
+
+**2. Direct Feature Development** (Alternative for well-defined features)
+
+Use `/feature-dev` for a streamlined workflow that emphasizes deep codebase understanding and explicit clarification:
+
+1. Discovery → Codebase Exploration → Clarifying Questions → Architecture Design → Implementation → Quality Review → Summary
+
+Choose spec-driven for large features requiring documentation and planning. Choose direct development for focused features where speed and codebase integration are priorities.
 
 ### Structured Workflows
 
@@ -447,6 +470,153 @@ Phase 7: Verification
 
 Remaining tasks: 3 task groups
 Would you like to implement another task group?
+```
+
+### Example 5: Direct Feature Development Workflow
+
+```markdown
+User: /feature-dev "Add email notification system for task updates"
+
+Claude: I'll guide you through developing this feature.
+
+Phase 1: Discovery
+Let me understand what needs to be built.
+
+What problem are you solving?
+User: Users need to be notified when tasks assigned to them are updated
+
+What should the feature do?
+User: Send email when task status changes or comments are added
+
+Any constraints or requirements?
+User: Use existing email service, keep it simple, allow users to opt out
+
+✅ Understanding confirmed. Let me explore the codebase.
+
+Phase 2: Codebase Exploration
+Launching 3 code-explorer agents in parallel...
+→ Explorer 1: Finding similar notification features
+→ Explorer 2: Analyzing email service integration
+→ Explorer 3: Understanding task update flows
+
+✅ Found existing email service at services/email/
+✅ Identified task update hooks in models/task.ts
+✅ Found user preferences pattern in models/user-settings.ts
+
+Key files to read:
+- services/email/email-service.ts
+- models/task.ts
+- models/user-settings.ts
+- utils/notification-queue.ts
+[... reads 8 identified files ...]
+
+✅ Summary: Existing email service uses SendGrid, task updates emit events, user settings use preference objects
+
+Phase 3: Clarifying Questions
+
+Based on the codebase analysis, I need clarification on:
+
+1. Should notifications be sent immediately or batched (daily digest)?
+2. Which task changes trigger emails? (status, assignee, comments, all fields?)
+3. Should we use the existing event bus or create new hooks?
+4. Do we need admin controls to disable notifications per project?
+5. What's the default opt-in state for existing users?
+
+User:
+1. Immediate for now
+2. Status and comments only
+3. Use existing event bus
+4. Not needed yet
+5. Opt-in (users must enable)
+
+Phase 4: Architecture Design
+Launching 3 code-architect agents in parallel...
+→ Architect 1: Minimal changes approach
+→ Architect 2: Clean architecture approach
+→ Architect 3: Pragmatic balance approach
+
+Recommendation: Pragmatic balance
+- Add notification preference to user settings
+- Create notification service that listens to task events
+- Reuse email templates pattern
+- Simple opt-in UI in settings page
+
+Trade-offs:
+- Minimal: Quick but tightly coupled to task model
+- Clean: Fully decoupled but requires new abstractions
+- Pragmatic: Balances speed with maintainability
+
+Which approach should we use?
+User: Pragmatic balance
+
+Phase 5: Implementation
+
+Ready to implement? This will create:
+- services/notifications/task-notification-service.ts
+- services/notifications/templates/task-update-email.tsx
+- Update models/user-settings.ts with notification preferences
+- Update models/task.ts event handlers
+- Add notification settings UI component
+
+User: Yes
+
+✅ Created services/notifications/task-notification-service.ts
+✅ Created services/notifications/templates/task-update-email.tsx
+✅ Updated models/user-settings.ts
+✅ Updated models/task.ts
+✅ Created components/settings/notification-preferences.tsx
+✅ Added tests for notification service
+
+Phase 6: Quality Review
+Launching 3 code-reviewer agents in parallel...
+→ Reviewer 1: Simplicity & DRY analysis
+→ Reviewer 2: Functional correctness review
+→ Reviewer 3: Project conventions check
+
+✅ Code follows existing patterns
+✅ Email templates consistent with style
+✅ Proper error handling for email failures
+⚠ Minor: Consider adding retry logic for failed emails
+
+What would you like to do?
+1. Fix the retry logic concern now
+2. Track as follow-up task
+3. Proceed as-is
+
+User: Fix now
+
+✅ Added retry logic with exponential backoff
+✅ Re-reviewed: All concerns addressed
+
+Phase 7: Summary
+
+🎉 Feature Complete!
+
+What was built:
+- Task notification service with event-based triggers
+- Email templates for status and comment updates
+- User notification preferences in settings
+- Opt-in UI component
+- Tests covering happy path and error scenarios
+
+Key decisions:
+- Used pragmatic architecture (balanced approach)
+- Immediate notifications (no batching)
+- Opt-in default for existing users
+- Leveraged existing event bus and email service
+
+Files modified:
+- services/notifications/task-notification-service.ts (new)
+- services/notifications/templates/task-update-email.tsx (new)
+- models/user-settings.ts (updated)
+- models/task.ts (updated)
+- components/settings/notification-preferences.tsx (new)
+- tests/services/task-notification-service.test.ts (new)
+
+Suggested next steps:
+- Test with real users
+- Consider adding daily digest option
+- Add admin controls for project-level settings
 ```
 
 ## Advanced Usage
