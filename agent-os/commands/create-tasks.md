@@ -320,7 +320,7 @@ After creating the tasks list, display:
 
 Review it closely to make sure it all looks good.
 
-NEXT STEP 👉 You can now implement these tasks manually, or use /implement-tasks or /orchestrate-tasks commands if available.
+NEXT STEP 👉 You can now implement these tasks manually by using /implement-task command.
 ```
 
 ---
