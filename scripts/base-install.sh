@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Agent OS Base Installation Script
-# Installs Agent OS from GitHub repository to ~/agent-os
+# QA Agent OS Base Installation Script
+# Installs QA Agent OS from GitHub repository to ~/qa-agent-os
 
 set -e
 
 # Repository configuration
-REPO_URL="https://github.com/buildermethods/agent-os"
+REPO_URL="https://github.com/figuedmundo/qa-agent-os"
 
 # Installation paths
-BASE_DIR="$HOME/agent-os"
+BASE_DIR="$HOME/qa-agent-os"
 TEMP_DIR=$(mktemp -d)
 COMMON_FUNCTIONS_TEMP="$TEMP_DIR/common-functions.sh"
 
@@ -263,7 +263,7 @@ install_all_files() {
             spinner &
             spinner_pid=$!
         else
-            print_status "Installing Agent OS files..."
+            print_status "Installing QA Agent OS files..."
         fi
     fi
 
@@ -283,7 +283,7 @@ install_all_files() {
 
     if [[ "$DRY_RUN" != "true" ]]; then
         if [[ $download_status -eq 0 && $file_count -gt 0 ]]; then
-            echo "✓ Installed $file_count files to ~/agent-os"
+            echo "✓ Installed $file_count files to ~/qa-agent-os"
         else
             print_error "No files were downloaded"
             return 1
@@ -311,7 +311,7 @@ prompt_overwrite_choice() {
     echo -e "${YELLOW}=== ⚠️  Existing Installation Detected ===${NC}"
     echo ""
 
-    echo "You already have a base installation of Agent OS"
+    echo "You already have a base installation of QA Agent OS"
 
     if [[ -n "$current_version" ]]; then
         echo -e "  Your installed version: ${YELLOW}$current_version${NC}"
@@ -332,44 +332,44 @@ prompt_overwrite_choice() {
     echo -e "${YELLOW}1) Full update${NC}"
     echo ""
     echo "    Updates & overwrites:"
-    echo "    - ~/agent-os/profiles/default/*"
-    echo "    - ~/agent-os/scripts/*"
-    echo "    - ~/agent-os/CHANGELOG.md"
+    echo "    - ~/qa-agent-os/profiles/default/*"
+    echo "    - ~/qa-agent-os/scripts/*"
+    echo "    - ~/qa-agent-os/CHANGELOG.md"
     echo ""
-    echo "    Updates your version number in ~/agent-os/config.yml but doesn't change anything else in this file."
+    echo "    Updates your version number in ~/qa-agent-os/config.yml but doesn't change anything else in this file."
     echo ""
-    echo "    Everything else in your ~/agent-os folder will remain intact."
+    echo "    Everything else in your ~/qa-agent-os folder will remain intact."
     echo ""
 
     echo -e "${YELLOW}2) Update default profile only${NC}"
     echo ""
     echo "    Updates & overwrites:"
-    echo "    - ~/agent-os/profiles/default/*"
+    echo "    - ~/qa-agent-os/profiles/default/*"
     echo ""
-    echo "    Everything else in your ~/agent-os folder will remain intact."
+    echo "    Everything else in your ~/qa-agent-os folder will remain intact."
     echo ""
 
     echo -e "${YELLOW}3) Update scripts only${NC}"
     echo ""
     echo "    Updates & overwrites:"
-    echo "    - ~/agent-os/scripts/*"
+    echo "    - ~/qa-agent-os/scripts/*"
     echo ""
-    echo "    Everything else in your ~/agent-os folder will remain intact."
+    echo "    Everything else in your ~/qa-agent-os folder will remain intact."
     echo ""
 
     echo -e "${YELLOW}4) Update config.yml only${NC}"
     echo ""
     echo "    Updates & overwrites:"
-    echo "    - ~/agent-os/config.yml"
+    echo "    - ~/qa-agent-os/config.yml"
     echo ""
-    echo "    Everything else in your ~/agent-os folder will remain intact."
+    echo "    Everything else in your ~/qa-agent-os folder will remain intact."
     echo ""
 
     echo -e "${YELLOW}5) Delete & reinstall fresh${NC}"
     echo ""
-    echo "    - Makes a backup of your current ~/agent-os folder at ~/agent-os.backup"
-    echo "    - Deletes your current ~/agent-os folder and all of its contents."
-    echo "    - Installs a fresh ~/agent-os base installation"
+    echo "    - Makes a backup of your current ~/qa-agent-os folder at ~/qa-agent-os.backup"
+    echo "    - Deletes your current ~/qa-agent-os folder and all of its contents."
+    echo "    - Installs a fresh ~/qa-agent-os base installation"
     echo ""
 
     echo -e "${YELLOW}6) Cancel and abort${NC}"
@@ -425,7 +425,7 @@ create_backup() {
         rm -rf "$BASE_DIR.backup"
     fi
     cp -R "$BASE_DIR" "$BASE_DIR.backup"
-    echo "✓ Backed up existing installation to ~/agent-os.backup"
+    echo "✓ Backed up existing installation to ~/qa-agent-os.backup"
     echo ""
 }
 
@@ -506,7 +506,7 @@ overwrite_all() {
         rm -rf "$BASE_DIR.backup"
     fi
     mv "$BASE_DIR" "$BASE_DIR.backup"
-    echo "✓ Backed up existing installation to ~/agent-os.backup"
+    echo "✓ Backed up existing installation to ~/qa-agent-os.backup"
     echo ""
 
     # Perform fresh installation
@@ -599,12 +599,12 @@ perform_fresh_installation() {
     echo ""
     print_status "Configuration:"
     echo -e "  Repository: ${YELLOW}${REPO_URL}${NC}"
-    echo -e "  Target: ${YELLOW}~/agent-os${NC}"
+    echo -e "  Target: ${YELLOW}~/qa-agent-os${NC}"
     echo ""
 
     # Create base directory
     ensure_dir "$BASE_DIR"
-    echo "✓ Created base directory: ~/agent-os"
+    echo "✓ Created base directory: ~/qa-agent-os"
     echo ""
 
     # Install all files from repository
@@ -618,15 +618,15 @@ perform_fresh_installation() {
     echo ""
     echo -e "${GREEN}Next steps:${NC}"
     echo ""
-    echo -e "${GREEN}1) Customize your profile's standards in ~/agent-os/profiles/default/standards${NC}"
+    echo -e "${GREEN}1) Customize your profile's standards in ~/qa-agent-os/profiles/default/standards${NC}"
     echo ""
     echo -e "${GREEN}2) Navigate to a project directory${NC}"
     echo -e "   ${YELLOW}cd path/to/project-directory${NC}"
     echo ""
     echo -e "${GREEN}3) Install Agent OS in your project by running:${NC}"
-    echo -e "   ${YELLOW}~/agent-os/scripts/project-install.sh${NC}"
+    echo -e "   ${YELLOW}~/qa-agent-os/scripts/project-install.sh${NC}"
     echo ""
-    echo -e "${GREEN}Visit the docs for guides on how to use Agent OS: https://buildermethods.com/agent-os${NC}"
+    echo -e "${GREEN}Visit the docs for guides on how to use Agent OS: https://buildermethods.com/qa-agent-os${NC}"
     echo ""
 }
 

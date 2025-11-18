@@ -32,3 +32,5 @@ node_modules/
 # Temporary files
 *.tmp
 *.temp
+
+.vibe/

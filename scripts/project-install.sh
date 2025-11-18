@@ -9,7 +9,7 @@ set -e  # Exit on error
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BASE_DIR="$HOME/agent-os"
+BASE_DIR="$HOME/qa-agent-os"
 PROJECT_DIR="$(pwd)"
 
 # Source common functions
@@ -181,7 +181,7 @@ install_standards() {
     while read file; do
         if [[ "$file" == standards/* ]]; then
             local source=$(get_profile_file "$EFFECTIVE_PROFILE" "$file" "$BASE_DIR")
-            local dest="$PROJECT_DIR/agent-os/$file"
+            local dest="$PROJECT_DIR/qa-agent-os/$file"
 
             if [[ -f "$source" ]]; then
                 local installed_file=$(copy_file "$source" "$dest")
@@ -208,7 +208,7 @@ install_claude_code_commands_with_delegation() {
     fi
 
     local commands_count=0
-    local target_dir="$PROJECT_DIR/.claude/commands/agent-os"
+    local target_dir="$PROJECT_DIR/.claude/commands/qa-agent-os"
 
     mkdir -p "$target_dir"
 
@@ -253,7 +253,7 @@ install_claude_code_commands_without_delegation() {
             if [[ -f "$source" ]]; then
                 # Handle orchestrate-tasks specially (flat destination)
                 if [[ "$file" == commands/orchestrate-tasks/orchestrate-tasks.md ]]; then
-                    local dest="$PROJECT_DIR/.claude/commands/agent-os/orchestrate-tasks.md"
+                    local dest="$PROJECT_DIR/.claude/commands/qa-agent-os/orchestrate-tasks.md"
                     # Compile without PHASE embedding for orchestrate-tasks
                     local compiled=$(compile_command "$source" "$dest" "$BASE_DIR" "$EFFECTIVE_PROFILE" "")
                     if [[ "$DRY_RUN" == "true" ]]; then
@@ -266,7 +266,7 @@ install_claude_code_commands_without_delegation() {
                     if [[ ! "$filename" =~ ^[0-9]+-.*\.md$ ]]; then
                         # Extract command name (e.g., commands/plan-product/single-agent/plan-product.md -> plan-product.md)
                         local cmd_name=$(echo "$file" | sed 's|commands/\([^/]*\)/single-agent/.*|\1|')
-                        local dest="$PROJECT_DIR/.claude/commands/agent-os/$cmd_name.md"
+                        local dest="$PROJECT_DIR/.claude/commands/qa-agent-os/$cmd_name.md"
 
                         # Compile with PHASE embedding (mode="embed")
                         local compiled=$(compile_command "$source" "$dest" "$BASE_DIR" "$EFFECTIVE_PROFILE" "embed")
@@ -294,7 +294,7 @@ install_claude_code_agents() {
     fi
 
     local agents_count=0
-    local target_dir="$PROJECT_DIR/.claude/agents/agent-os"
+    local target_dir="$PROJECT_DIR/.claude/agents/qa-agent-os"
     
     mkdir -p "$target_dir"
 
@@ -339,11 +339,11 @@ install_agent_os_commands() {
             if [[ -f "$source" ]]; then
                 # Handle orchestrate-tasks specially (preserve folder structure)
                 if [[ "$file" == commands/orchestrate-tasks/orchestrate-tasks.md ]]; then
-                    local dest="$PROJECT_DIR/agent-os/commands/orchestrate-tasks/orchestrate-tasks.md"
+                    local dest="$PROJECT_DIR/qa-agent-os/commands/orchestrate-tasks/orchestrate-tasks.md"
                 else
                     # Extract command name and preserve numbering
                     local cmd_path=$(echo "$file" | sed 's|commands/\([^/]*\)/single-agent/\(.*\)|\1/\2|')
-                    local dest="$PROJECT_DIR/agent-os/commands/$cmd_path"
+                    local dest="$PROJECT_DIR/qa-agent-os/commands/$cmd_path"
                 fi
 
                 # Compile with workflow and standards injection and PHASE embedding
@@ -370,7 +370,7 @@ create_agent_os_folder() {
     fi
 
     # Create the main agent-os folder
-    ensure_dir "$PROJECT_DIR/agent-os"
+    ensure_dir "$PROJECT_DIR/qa-agent-os"
 
     # Create the configuration file
     local config_file=$(write_project_config "$EFFECTIVE_VERSION" "$EFFECTIVE_PROFILE" \
@@ -477,7 +477,7 @@ perform_installation() {
     else
         print_success "Agent OS has been successfully installed in your project!"
         echo ""
-        echo -e "${GREEN}Visit the docs for guides on how to use Agent OS: https://buildermethods.com/agent-os${NC}"
+        echo -e "${GREEN}Visit the docs for guides on how to use Agent OS: https://buildermethods.com/qa-agent-os${NC}"
         echo ""
     fi
 }
@@ -490,10 +490,10 @@ handle_reinstallation() {
     echo ""
 
     # Check for Claude Code files
-    if [[ -d "$PROJECT_DIR/.claude/agents/agent-os" ]] || [[ -d "$PROJECT_DIR/.claude/commands/agent-os" ]]; then
+    if [[ -d "$PROJECT_DIR/.claude/agents/qa-agent-os" ]] || [[ -d "$PROJECT_DIR/.claude/commands/qa-agent-os" ]]; then
         print_warning "This will also DELETE:"
-        [[ -d "$PROJECT_DIR/.claude/agents/agent-os" ]] && echo "  - .claude/agents/agent-os/"
-        [[ -d "$PROJECT_DIR/.claude/commands/agent-os" ]] && echo "  - .claude/commands/agent-os/"
+        [[ -d "$PROJECT_DIR/.claude/agents/qa-agent-os" ]] && echo "  - .claude/agents/qa-agent-os/"
+        [[ -d "$PROJECT_DIR/.claude/commands/qa-agent-os" ]] && echo "  - .claude/commands/qa-agent-os/"
         echo ""
     fi
 
@@ -506,9 +506,9 @@ handle_reinstallation() {
 
     if [[ "$DRY_RUN" != "true" ]]; then
         print_status "Removing existing installation..."
-        rm -rf "$PROJECT_DIR/agent-os"
-        rm -rf "$PROJECT_DIR/.claude/agents/agent-os"
-        rm -rf "$PROJECT_DIR/.claude/commands/agent-os"
+        rm -rf "$PROJECT_DIR/qa-agent-os"
+        rm -rf "$PROJECT_DIR/.claude/agents/qa-agent-os"
+        rm -rf "$PROJECT_DIR/.claude/commands/qa-agent-os"
         echo "✓ Existing installation removed"
         echo ""
     fi

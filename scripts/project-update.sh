@@ -9,7 +9,7 @@ set -e  # Exit on error
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BASE_DIR="$HOME/agent-os"
+BASE_DIR="$HOME/qa-agent-os"
 PROJECT_DIR="$(pwd)"
 
 # Source common functions
@@ -150,14 +150,14 @@ validate_installations() {
     validate_base_installation
 
     # Check project installation
-    if [[ ! -f "$PROJECT_DIR/agent-os/config.yml" ]]; then
-        print_error "Agent OS not installed in this project"
+    if [[ ! -f "$PROJECT_DIR/qa-agent-os/config.yml" ]]; then
+        print_error "QA Agent OS not installed in this project"
         echo ""
         print_status "Please run project-install.sh first"
         exit 1
     fi
 
-    print_verbose "Project installation found at: $PROJECT_DIR/agent-os"
+    print_verbose "Project installation found at: $PROJECT_DIR/qa-agent-os"
 }
 
 # -----------------------------------------------------------------------------
@@ -187,7 +187,7 @@ load_configurations() {
     print_verbose "  Profile: $BASE_PROFILE"
     print_verbose "  Claude Code commands: $BASE_CLAUDE_CODE_COMMANDS"
     print_verbose "  Use Claude Code subagents: $BASE_USE_CLAUDE_CODE_SUBAGENTS"
-    print_verbose "  Agent OS commands: $BASE_AGENT_OS_COMMANDS"
+    print_verbose "  QA Agent OS commands: $BASE_AGENT_OS_COMMANDS"
     print_verbose "  Standards as Claude Code Skills: $BASE_STANDARDS_AS_CLAUDE_CODE_SKILLS"
 
     print_verbose "Project configuration:"
@@ -195,14 +195,14 @@ load_configurations() {
     print_verbose "  Profile: $PROJECT_PROFILE"
     print_verbose "  Claude Code commands: $PROJECT_CLAUDE_CODE_COMMANDS"
     print_verbose "  Use Claude Code subagents: $PROJECT_USE_CLAUDE_CODE_SUBAGENTS"
-    print_verbose "  Agent OS commands: $PROJECT_AGENT_OS_COMMANDS"
+    print_verbose "  QA Agent OS commands: $PROJECT_AGENT_OS_COMMANDS"
     print_verbose "  Standards as Claude Code Skills: $PROJECT_STANDARDS_AS_CLAUDE_CODE_SKILLS"
 
     print_verbose "Effective configuration:"
     print_verbose "  Profile: $EFFECTIVE_PROFILE"
     print_verbose "  Claude Code commands: $EFFECTIVE_CLAUDE_CODE_COMMANDS"
     print_verbose "  Use Claude Code subagents: $EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS"
-    print_verbose "  Agent OS commands: $EFFECTIVE_AGENT_OS_COMMANDS"
+    print_verbose "  QA Agent OS commands: $EFFECTIVE_AGENT_OS_COMMANDS"
     print_verbose "  Standards as Claude Code Skills: $EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS"
 }
 
@@ -236,7 +236,7 @@ update_standards() {
     while read file; do
         if [[ "$file" == standards/* ]]; then
             local source=$(get_profile_file "$PROJECT_PROFILE" "$file" "$BASE_DIR")
-            local dest="$PROJECT_DIR/agent-os/$file"
+            local dest="$PROJECT_DIR/qa-agent-os/$file"
 
             if [[ -f "$source" ]]; then
                 if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_STANDARDS" "standard"; then
@@ -288,11 +288,11 @@ update_single_agent_commands() {
             if [[ -f "$source" ]]; then
                 # Handle orchestrate-tasks specially (preserve folder structure)
                 if [[ "$file" == commands/orchestrate-tasks/orchestrate-tasks.md ]]; then
-                    local dest="$PROJECT_DIR/agent-os/commands/orchestrate-tasks/orchestrate-tasks.md"
+                    local dest="$PROJECT_DIR/qa-agent-os/commands/orchestrate-tasks/orchestrate-tasks.md"
                 else
                     # Strip the single-agent/ subfolder for agent-os/commands structure
                     local dest_file=$(echo "$file" | sed 's/\/single-agent//')
-                    local dest="$PROJECT_DIR/agent-os/$dest_file"
+                    local dest="$PROJECT_DIR/qa-agent-os/$dest_file"
                 fi
 
                 if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_COMMANDS" "command"; then
@@ -342,7 +342,7 @@ update_claude_code_files() {
     local agents_skipped=0
     local agents_new=0
 
-    # Update commands in .claude/commands/agent-os/
+    # Update commands in .claude/commands/qa-agent-os/
     # Determine which command mode to use based on subagents setting
     if [[ "$PROJECT_USE_CLAUDE_CODE_SUBAGENTS" == "true" ]]; then
         # Process multi-agent command files
@@ -356,7 +356,7 @@ update_claude_code_files() {
                     else
                         local command_name=$(echo "$file" | sed 's/commands\///' | sed 's/\/multi-agent.*//')
                     fi
-                    local dest="$PROJECT_DIR/.claude/commands/agent-os/${command_name}.md"
+                    local dest="$PROJECT_DIR/.claude/commands/qa-agent-os/${command_name}.md"
 
                     if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_COMMANDS" "command"; then
                         SKIPPED_FILES+=("$dest")
@@ -388,7 +388,7 @@ update_claude_code_files() {
                 if [[ -f "$source" ]]; then
                     # Handle orchestrate-tasks specially
                     if [[ "$file" == commands/orchestrate-tasks/orchestrate-tasks.md ]]; then
-                        local dest="$PROJECT_DIR/.claude/commands/agent-os/orchestrate-tasks.md"
+                        local dest="$PROJECT_DIR/.claude/commands/qa-agent-os/orchestrate-tasks.md"
 
                         if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_COMMANDS" "command"; then
                             SKIPPED_FILES+=("$dest")
@@ -413,7 +413,7 @@ update_claude_code_files() {
                         local filename=$(basename "$file")
                         if [[ ! "$filename" =~ ^[0-9]+-.*\.md$ ]]; then
                             local cmd_name=$(echo "$file" | sed 's|commands/\([^/]*\)/single-agent/.*|\1|')
-                            local dest="$PROJECT_DIR/.claude/commands/agent-os/$cmd_name.md"
+                            local dest="$PROJECT_DIR/.claude/commands/qa-agent-os/$cmd_name.md"
 
                             if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_COMMANDS" "command"; then
                                 SKIPPED_FILES+=("$dest")
@@ -447,7 +447,7 @@ update_claude_code_files() {
             local source=$(get_profile_file "$PROJECT_PROFILE" "$file" "$BASE_DIR")
             if [[ -f "$source" ]]; then
                 local agent_name=$(basename "$file" .md)
-                local dest="$PROJECT_DIR/.claude/agents/agent-os/${agent_name}.md"
+                local dest="$PROJECT_DIR/.claude/agents/qa-agent-os/${agent_name}.md"
 
                 if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_AGENTS" "agent"; then
                     SKIPPED_FILES+=("$dest")
@@ -474,7 +474,7 @@ update_claude_code_files() {
             local source=$(get_profile_file "$PROJECT_PROFILE" "$file" "$BASE_DIR")
             if [[ -f "$source" ]]; then
                 local agent_name=$(basename "$file" .md)
-                local dest="$PROJECT_DIR/.claude/agents/agent-os/${agent_name}.md"
+                local dest="$PROJECT_DIR/.claude/agents/qa-agent-os/${agent_name}.md"
 
                 if should_skip_file "$dest" "$OVERWRITE_ALL" "$OVERWRITE_AGENTS" "agent"; then
                     SKIPPED_FILES+=("$dest")
@@ -497,7 +497,7 @@ update_claude_code_files() {
 
     if [[ "$DRY_RUN" != "true" ]]; then
         # Count commands separately
-        local command_pattern=".claude/commands/agent-os"
+        local command_pattern=".claude/commands/qa-agent-os"
         local commands_actual_updated=0
         local commands_actual_skipped=0
         local commands_actual_new=0
@@ -525,7 +525,7 @@ update_claude_code_files() {
         fi
 
         # Count agent files by checking SKIPPED_FILES, UPDATED_FILES, NEW_FILES
-        local agent_pattern=".claude/agents/agent-os"
+        local agent_pattern=".claude/agents/qa-agent-os"
         local agents_updated=0
         local agents_skipped=0
         local agents_new=0
@@ -578,7 +578,7 @@ perform_update() {
     echo -e "  Claude Code commands: ${YELLOW}$PROJECT_CLAUDE_CODE_COMMANDS${NC}"
     echo -e "  Use Claude Code subagents: ${YELLOW}$PROJECT_USE_CLAUDE_CODE_SUBAGENTS${NC}"
     echo -e "  Standards as Claude Code Skills: ${YELLOW}$PROJECT_STANDARDS_AS_CLAUDE_CODE_SKILLS${NC}"
-    echo -e "  Agent OS commands: ${YELLOW}$PROJECT_AGENT_OS_COMMANDS${NC}"
+    echo -e "  QA Agent OS commands: ${YELLOW}$PROJECT_AGENT_OS_COMMANDS${NC}"
     echo ""
 
     # Update agent-os folder and configuration
@@ -650,9 +650,9 @@ perform_update() {
             perform_update
         fi
     else
-        print_success "Agent OS has been successfully updated!"
+        print_success "QA Agent OS has been successfully updated!"
         echo ""
-        echo -e "${GREEN}Visit the docs for guides on how to use Agent OS: https://buildermethods.com/agent-os${NC}"
+        echo -e "${GREEN}Visit the docs for guides on how to use QA Agent OS"
         echo ""
     fi
 }
@@ -751,14 +751,14 @@ prompt_update_confirmation() {
     echo ""
     echo "  - agent-os/config.yml"
     echo "  - agent-os/standards/"
-    if [[ "$EFFECTIVE_AGENT_OS_COMMANDS" == "true" ]] || [[ -d "$PROJECT_DIR/agent-os/commands" ]]; then
+    if [[ "$EFFECTIVE_AGENT_OS_COMMANDS" == "true" ]] || [[ -d "$PROJECT_DIR/qa-agent-os/commands" ]]; then
         echo "  - agent-os/commands/"
     fi
-    if [[ "$EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS" == "true" ]] || [[ -d "$PROJECT_DIR/.claude/agents/agent-os" ]]; then
-        echo "  - .claude/agents/agent-os/"
+    if [[ "$EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS" == "true" ]] || [[ -d "$PROJECT_DIR/.claude/agents/qa-agent-os" ]]; then
+        echo "  - .claude/agents/qa-agent-os/"
     fi
-    if [[ "$EFFECTIVE_CLAUDE_CODE_COMMANDS" == "true" ]] || [[ -d "$PROJECT_DIR/.claude/commands/agent-os" ]]; then
-        echo "  - .claude/commands/agent-os/"
+    if [[ "$EFFECTIVE_CLAUDE_CODE_COMMANDS" == "true" ]] || [[ -d "$PROJECT_DIR/.claude/commands/qa-agent-os" ]]; then
+        echo "  - .claude/commands/qa-agent-os/"
     fi
     if [[ "$EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS" == "true" ]] || [[ -d "$PROJECT_DIR/.claude/skills" ]]; then
         echo "  - .claude/skills/ (Agent OS skills)"
@@ -785,42 +785,42 @@ perform_update_cleanup() {
     fi
 
     # Delete agent-os/standards/ (will be reinstalled)
-    if [[ -d "$PROJECT_DIR/agent-os/standards" ]]; then
+    if [[ -d "$PROJECT_DIR/qa-agent-os/standards" ]]; then
         print_status "Removing agent-os/standards/"
         if [[ "$DRY_RUN" != "true" ]]; then
-            rm -rf "$PROJECT_DIR/agent-os/standards"
+            rm -rf "$PROJECT_DIR/qa-agent-os/standards"
         fi
     fi
 
     # Delete agent-os/commands/ if exists
-    if [[ -d "$PROJECT_DIR/agent-os/commands" ]]; then
+    if [[ -d "$PROJECT_DIR/qa-agent-os/commands" ]]; then
         print_status "Removing agent-os/commands/"
         if [[ "$DRY_RUN" != "true" ]]; then
-            rm -rf "$PROJECT_DIR/agent-os/commands"
+            rm -rf "$PROJECT_DIR/qa-agent-os/commands"
         fi
     fi
 
-    # Delete .claude/agents/agent-os/ if exists
-    if [[ -d "$PROJECT_DIR/.claude/agents/agent-os" ]]; then
-        print_status "Removing .claude/agents/agent-os/"
+    # Delete .claude/agents/qa-agent-os/ if exists
+    if [[ -d "$PROJECT_DIR/.claude/agents/qa-agent-os" ]]; then
+        print_status "Removing .claude/agents/qa-agent-os/"
         if [[ "$DRY_RUN" != "true" ]]; then
-            rm -rf "$PROJECT_DIR/.claude/agents/agent-os"
+            rm -rf "$PROJECT_DIR/.claude/agents/qa-agent-os"
         fi
     fi
 
-    # Delete .claude/commands/agent-os/ if exists
-    if [[ -d "$PROJECT_DIR/.claude/commands/agent-os" ]]; then
-        print_status "Removing .claude/commands/agent-os/"
+    # Delete .claude/commands/qa-agent-os/ if exists
+    if [[ -d "$PROJECT_DIR/.claude/commands/qa-agent-os" ]]; then
+        print_status "Removing .claude/commands/qa-agent-os/"
         if [[ "$DRY_RUN" != "true" ]]; then
-            rm -rf "$PROJECT_DIR/.claude/commands/agent-os"
+            rm -rf "$PROJECT_DIR/.claude/commands/qa-agent-os"
         fi
     fi
 
-    # Delete old .claude/skills/agent-os/ if exists (legacy location)
-    if [[ -d "$PROJECT_DIR/.claude/skills/agent-os" ]]; then
-        print_status "Removing legacy .claude/skills/agent-os/"
+    # Delete old .claude/skills/qa-agent-os/ if exists (legacy location)
+    if [[ -d "$PROJECT_DIR/.claude/skills/qa-agent-os" ]]; then
+        print_status "Removing legacy .claude/skills/qa-agent-os/"
         if [[ "$DRY_RUN" != "true" ]]; then
-            rm -rf "$PROJECT_DIR/.claude/skills/agent-os"
+            rm -rf "$PROJECT_DIR/.claude/skills/qa-agent-os"
         fi
     fi
 
@@ -841,10 +841,10 @@ perform_update_cleanup() {
     fi
 
     # Delete agent-os/roles/ if exists (legacy)
-    if [[ -d "$PROJECT_DIR/agent-os/roles" ]]; then
+    if [[ -d "$PROJECT_DIR/qa-agent-os/roles" ]]; then
         print_status "Removing legacy agent-os/roles/"
         if [[ "$DRY_RUN" != "true" ]]; then
-            rm -rf "$PROJECT_DIR/agent-os/roles"
+            rm -rf "$PROJECT_DIR/qa-agent-os/roles"
         fi
     fi
 

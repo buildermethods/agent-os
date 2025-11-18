@@ -1,7 +1,7 @@
 # Changelog
 
 Get notified of major releases by subscribing here:
-https://buildermethods.com/agent-os
+https://buildermethods.com/qa-agent-os
 
 ## [2.1.1] - 2025-10-29
 
@@ -18,7 +18,7 @@ Version 2.1 implemented a round of significant changes to how things work in Age
 
 ### TL;DR
 
-Here's the brief overview. It's all detailed below and the [docs](https://buildermethods.com/agent-os) have been updated to reflect all of this.
+Here's the brief overview. It's all detailed below and the [docs](https://buildermethods.com/qa-agent-os) have been updated to reflect all of this.
 
 - Option to leverage Claude Code's new "Skills" feature for reading standards
 - Option to enable or disable delegating to Claude Code subagents
@@ -56,7 +56,7 @@ While you lose some context efficiency of using subagents, you can token efficie
 
 2.0.x had introduced the concepts of multi-agent and single-agent modes, where multi-agent mode was designed for using Claude Code with subagents.  This naming and configuration design proved suboptimal and inflexible, so 2.1.0 does away with the terms "single-agent mode" and "multi-agent mode".
 
-Now we configure Agent OS using these boolean options in your base ~/agent-os/config.yml:
+Now we configure Agent OS using these boolean options in your base ~/qa-agent-os/config.yml:
 
 claude_code_commands: true/false
 use_claude_code_subagents: true/false
@@ -141,7 +141,7 @@ Now whenever you need to upgrade your Agent OS project installation (to a new ve
 - Clarified /create-spec command so that task list creation doesn't begin until spec.md has been written.
 - Clarified spec-writer workflow to ensure actual code isn't written in spec.md.
 - Fixed instructions to ensure spec-verification.md is stored in the spec's verication folder.
-- Ensured Claude Code subagents are installed to a project's .claude/agents/agent-os and not sub-folders within that.
+- Ensured Claude Code subagents are installed to a project's .claude/agents/qa-agent-os and not sub-folders within that.
 - Fixed compilation of Claude Code implementer and verifier agents not replacing their dynamic tags.
 - Added instruction in single-agent mode to inform user of next command to run during spec creation process.
 
@@ -159,14 +159,14 @@ Agent OS 2.0 is a major new release that brings several core architectural chang
 
 The big headline here is the dual mode architecture for supporting both multi-agent tools (Claude Code) and single-agent tools (every other tool).
 
-[this page](https://buildermethods.com/agent-os/version-2) documents:
+[this page](https://buildermethods.com/qa-agent-os/version-2) documents:
 
 - The new features in Agent OS 2.0
 - Architectural changes in 2.0
 - What changed from 1.x
 - Updating guide
 
-[The Agent OS docs](https://buildermethods.com/agent-os) also received a complete overhaul and expansion.  It's now broken out into multiple pages that document every detail of how to install, use and customize Agent OS.
+[The Agent OS docs](https://buildermethods.com/qa-agent-os) also received a complete overhaul and expansion.  It's now broken out into multiple pages that document every detail of how to install, use and customize Agent OS.
 
 ## [1.4.2] - 2025-08-24
 
@@ -228,11 +228,11 @@ To install the Agent OS base installation,
 
 2. Run one of these commands:
   - Agent OS with Claude Code support:
-  `curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup/base.sh | bash -s -- --claude-code`
+  `curl -sSL https://raw.githubusercontent.com/buildermethods/qa-agent-os/main/setup/base.sh | bash -s -- --claude-code`
   - Agent OS with Cursor support:
-  `curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup/base.sh | bash -s -- --cursor`
+  `curl -sSL https://raw.githubusercontent.com/buildermethods/qa-agent-os/main/setup/base.sh | bash -s -- --cursor`
   - Agent OS with Claude Code & Cursor support:
-  `curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup/base.sh | bash -s -- --claude-code --cursor`
+  `curl -sSL https://raw.githubusercontent.com/buildermethods/qa-agent-os/main/setup/base.sh | bash -s -- --claude-code --cursor`
 
 3. Customize your /standards (just like earlier versions)
 
@@ -245,12 +245,12 @@ To install the Agent OS base installation,
 
 Your project installation command will be based on where you installed the Agent OS base installation.
 - If you've installed it to your system's home folder, then your project installation command will be `~/.agent-os/setup/project.sh`.
-- If you've installed it elsewhere, your command will be `/path/to/agent-os/setup/project.sh`
+- If you've installed it elsewhere, your command will be `/path/to/qa-agent-os/setup/project.sh`
 (after your base installation, it will show you _your_ project installation command. It's a good idea to save it or make an alias if you work on many projects.)
 
 If (for whatever reason) you didn't install the base installation, you can still install Agent OS directly into a project, by pulling it directly off of the public github repo using the following command.
 - Note: This means your standards folder won't inherit your defaults from a base installation. You'd need to customize the files in the standards folder for this project.
-`curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup/project.sh | bash -s -- --no-base --claude-code --cursor`
+`curl -sSL https://raw.githubusercontent.com/buildermethods/qa-agent-os/main/setup/project.sh | bash -s -- --no-base --claude-code --cursor`
 
 ### Agent OS config.yml
 
@@ -289,7 +289,7 @@ Follow these steps to update a previous version to 1.4.0:
 2. Navigate to your home directory (or whichever location you want to have your Agent OS base installation)
 
 3. Run the following to command, which includes flags to overwrite your /instructions (remove the --cursor flag if not using Cursor):
-`curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup/base.sh | bash -s -- --overwrite-instructions --claude-code --cursor`
+`curl -sSL https://raw.githubusercontent.com/buildermethods/qa-agent-os/main/setup/base.sh | bash -s -- --overwrite-instructions --claude-code --cursor`
 
 4. If your ~/.claude/commands contain Agent OS commands, remove those and copy the versions that are now in your base installation's commands folder into your _project's_ `.claude/commands` folder.
 
@@ -435,11 +435,11 @@ Follow these steps to update a previous version to 1.4.0:
 - Task management with TDD workflow
 - Spec creation and organization system
 
-[1.4.1]: https://github.com/buildermethods/agent-os/compare/v1.4.0...v1.4.1
-[1.4.2]: https://github.com/buildermethods/agent-os/compare/v1.4.1...v1.4.2
-[1.4.0]: https://github.com/buildermethods/agent-os/compare/v1.3.1...v1.4.0
-[1.3.1]: https://github.com/buildermethods/agent-os/compare/v1.3.0...v1.3.1
-[1.3.0]: https://github.com/buildermethods/agent-os/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/buildermethods/agent-os/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/buildermethods/agent-os/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/buildermethods/agent-os/releases/tag/v1.0.0
+[1.4.1]: https://github.com/buildermethods/qa-agent-os/compare/v1.4.0...v1.4.1
+[1.4.2]: https://github.com/buildermethods/qa-agent-os/compare/v1.4.1...v1.4.2
+[1.4.0]: https://github.com/buildermethods/qa-agent-os/compare/v1.3.1...v1.4.0
+[1.3.1]: https://github.com/buildermethods/qa-agent-os/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/buildermethods/qa-agent-os/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/buildermethods/qa-agent-os/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/buildermethods/qa-agent-os/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/buildermethods/qa-agent-os/releases/tag/v1.0.0

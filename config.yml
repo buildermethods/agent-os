@@ -8,7 +8,7 @@ base_install: true
 
 # ================================================
 # Do you use Claude Code?
-# Set to true to install commands in your project's .claude/commands/agent-os/ folder
+# Set to true to install commands in your project's .claude/commands/qa-agent-os/ folder
 #
 # Override this default when running project-install.sh by using the flag --claude-code-commands=true/false
 # ================================================
@@ -26,7 +26,7 @@ agent_os_commands: false
 
 # ================================================
 # Do you want Claude Code to use subagents?
-# Set to true to install agents in .claude/agents/agent-os/ and have commands delegate to them
+# Set to true to install agents in .claude/agents/qa-agent-os/ and have commands delegate to them
 # Requires claude_code_commands: true
 #
 # Override this default when running project-install.sh by using the flag --use-claude-code-subagents true/false

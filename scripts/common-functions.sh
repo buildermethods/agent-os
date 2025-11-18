@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-# Agent OS Common Functions
+# QA Agent OS Common Functions
 # Shared utilities for Agent OS scripts
 # =============================================================================
 
@@ -689,7 +689,7 @@ process_workflows() {
             rm -f "$temp_content" "$temp_replacement"
         else
             # Instead of printing warning to stderr, insert it into the content
-            local warning_msg="⚠️ This workflow file was not found in your Agent OS base installation at ~/agent-os/profiles/$profile/workflows/${workflow_path}.md"
+            local warning_msg="⚠️ This workflow file was not found in your Agent OS base installation at ~/qa-agent-os/profiles/$profile/workflows/${workflow_path}.md"
             # Use perl for safer replacement with special characters
             local temp_content=$(mktemp)
             echo "$content" > "$temp_content"
@@ -1097,7 +1097,7 @@ check_needs_migration() {
 is_agent_os_installed() {
     local project_dir=$1
 
-    if [[ -f "$project_dir/agent-os/config.yml" ]]; then
+    if [[ -f "$project_dir/qa-agent-os/config.yml" ]]; then
         return 0
     else
         return 1
@@ -1109,7 +1109,7 @@ get_project_config() {
     local project_dir=$1
     local key=$2
 
-    get_yaml_value "$project_dir/agent-os/config.yml" "$key" ""
+    get_yaml_value "$project_dir/qa-agent-os/config.yml" "$key" ""
 }
 
 # -----------------------------------------------------------------------------
@@ -1119,10 +1119,10 @@ get_project_config() {
 # Validate base installation exists
 validate_base_installation() {
     if [[ ! -d "$BASE_DIR" ]]; then
-        print_error "Agent OS base installation not found at ~/agent-os/"
+        print_error "Agent OS base installation not found at ~/qa-agent-os/"
         echo ""
         print_status "Please run the base installation first:"
-        echo "  curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/scripts/base-install.sh | bash"
+        echo "  curl -sSL https://raw.githubusercontent.com/buildermethods/qa-agent-os/main/scripts/base-install.sh | bash"
         echo ""
         exit 1
     fi
@@ -1137,8 +1137,8 @@ validate_base_installation() {
 
 # Check if current directory is the base installation directory
 check_not_base_installation() {
-    if [[ -f "$PROJECT_DIR/agent-os/config.yml" ]]; then
-        if grep -q "base_install: true" "$PROJECT_DIR/agent-os/config.yml"; then
+    if [[ -f "$PROJECT_DIR/qa-agent-os/config.yml" ]]; then
+        if grep -q "base_install: true" "$PROJECT_DIR/qa-agent-os/config.yml"; then
             echo ""
             print_error "Cannot install Agent OS in base installation directory"
             echo ""
@@ -1149,7 +1149,7 @@ check_not_base_installation() {
             echo ""
             echo "And then run:"
             echo ""
-            echo "  ~/agent-os/scripts/project-install.sh"
+            echo "  ~/qa-agent-os/scripts/project-install.sh"
             echo ""
             exit 1
         fi
@@ -1256,7 +1256,7 @@ write_project_config() {
     local use_claude_code_subagents=$4
     local agent_os_commands=$5
     local standards_as_claude_code_skills=$6
-    local dest="$PROJECT_DIR/agent-os/config.yml"
+    local dest="$PROJECT_DIR/qa-agent-os/config.yml"
 
     local config_content="version: $version
 last_compiled: $(date '+%Y-%m-%d %H:%M:%S')
@@ -1264,7 +1264,7 @@ last_compiled: $(date '+%Y-%m-%d %H:%M:%S')
 # ================================================
 # Compiled with the following settings:
 #
-# To change these settings, run ~/agent-os/scripts/project-update.sh to re-compile your project with the new settings.
+# To change these settings, run ~/qa-agent-os/scripts/project-update.sh to re-compile your project with the new settings.
 # ================================================
 profile: $profile
 claude_code_commands: $claude_code_commands
@@ -1356,7 +1356,7 @@ convert_filename_to_human_name_capitalized() {
 # Create a Claude Code Skill from a standards file
 # Args: $1=standards file path (relative to profile, e.g., "standards/frontend/css.md")
 #       $2=dest base directory (project directory)
-#       $3=base directory (~/agent-os)
+#       $3=base directory (~/qa-agent-os)
 #       $4=profile name
 create_standard_skill() {
     local standards_file=$1
@@ -1449,7 +1449,7 @@ install_improve_skills_command() {
         return 0
     fi
 
-    local target_dir="$PROJECT_DIR/.claude/commands/agent-os"
+    local target_dir="$PROJECT_DIR/.claude/commands/qa-agent-os"
     mkdir -p "$target_dir"
 
     # Find the improve-skills command file
