@@ -1,4 +1,4 @@
-Generate `agent-os/product/roadmap.md` with an ordered feature checklist:
+Generate `qa-agent-os/product/roadmap.md` with an ordered feature checklist:
 
 Do not include any tasks for initializing a new codebase or bootstrapping a new application. Assume the user is already inside the project's codebase and has a bare-bones application initialized.
 
@@ -9,9 +9,7 @@ Do not include any tasks for initializing a new codebase or bootstrapping a new 
 2. **Identify Features** - Based on the mission, determine the list of concrete features needed to achieve the product vision.
 
 3. **Strategic Ordering** - Order features based on:
-   - Technical dependencies (foundational features first)
-   - Most direct path to achieving the mission
-   - Building incrementally from MVP to full product
+<!-- what stratey we will follow to complete the test of the feature?? -->
 
 4. **Create the Roadmap** - Use the structure below as your template. Replace all bracketed placeholders (e.g., `[FEATURE_NAME]`, `[DESCRIPTION]`, `[EFFORT]`) with real content that you create based on the mission.
 
