@@ -1,4 +1,4 @@
-# ✅ **QA Agent OS — Requirements List (Concise & Complete)**
+#**QA Agent OS — Requirements List**
 
 ## **1. Purpose**
 
@@ -167,62 +167,7 @@ You **do not** touch:
 
 You **extend**, not replace.
 
----
-
-# 6. **Enterprise Requirements**
-
-## 6.1 Privacy & Internal Use
-
-* QA Agent OS must run entirely:
-  * On-premise, or
-  * Inside internal GitLab pipelines
-  * Inside company’s private cloud / servers
-* No company data leaves the environment.
-
-## 6.2 Authentication / Access
-
-* OAuth to Jira, GitLab
-* RBAC:
-  * “Tester”
-  * “Test Lead”
-  * “Automation Lead”
-* Access logs
-
-## 6.3 Model Usage
-
-* Company may force:
-  * Claude Code
-  * Azure OpenAI
-  * Local LLM (Mixtral, Llama)
-  * Private inference endpoint
-* Framework must support model swapping.
-
 
 ---
 
-# 7. MVP Scope (Recommended)
-
-To deliver a fast prototype:
-
-### Phase 1 (MVP)
-
-* BRD Analyzer
-* Test Case Generator
-* Jira bug creator
-* Testmo exporter
-* Simple CLI interface
-
-### Phase 2
-
-* Evidence summarizer
-* Jira workflow automation
-* Advanced regression selector
-
-### Phase 3
-
-* Web UI
-* Multi-agent collaboration
-* Full integration with CI/CD (run agent automatically on new PRD / new feature branch)
-
----
 

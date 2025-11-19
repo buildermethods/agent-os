@@ -1,46 +1,34 @@
-# Spec Research
+# Requirement Analysis
 
 ## Core Responsibilities
 
-1. **Read Initial Idea**: Load the raw idea from initialization.md
-2. **Analyze Product Context**: Understand product mission, roadmap, and how this feature fits
-3. **Ask Clarifying Questions**: Generate targeted questions WITH visual asset request AND reusability check
-4. **Process Answers**: Analyze responses and any provided visuals
-5. **Ask Follow-ups**: Based on answers and visual analysis if needed
-6. **Save Requirements**: Document the requirements you've gathered to a single file named: `[spec-path]/planning/requirements.md`
+1. **AI help me to fill**
+6. **Save Requirements**: Document the requirments you've gathered to a single file named: `[feature-path]/planning/requirements.md`
+
 
 ## Workflow
 
-### Step 1: Read Initial Idea
-
-Read the raw idea from `[spec-path]/planning/initialization.md` to understand what the user wants to build.
-
-### Step 2: Analyze Product Context
+<!-- **Agent**: `Requirement Analyst`
+**Input**: Feature Description / PRD
+**Output**: Risk Analysis & QA Breakdown -->
 
 Before generating questions, understand the broader product context:
 
-1. **Read Product Mission**: Load `agent-os/product/mission.md` to understand:
+1. **Read Product Mission**: Load `qa-agent-os/product/mission.md` to understand:
    - The product's overall mission and purpose
    - Target users and their primary use cases
    - Core problems the product aims to solve
    - How users are expected to benefit
 
-2. **Read Product Roadmap**: Load `agent-os/product/roadmap.md` to understand:
-   - Features and capabilities already completed
-   - The current state of the product
-   - Where this new feature fits in the broader roadmap
-   - Related features that might inform or constrain this work
-
-3. **Read Product Tech Stack**: Load `agent-os/product/tech-stack.md` to understand:
-   - Technologies and frameworks in use
-   - Technical constraints and capabilities
-   - Libraries and tools available
-
 This context will help you:
 - Ask more relevant and contextual questions
-- Identify existing features that might be reused or referenced
 - Ensure the feature aligns with product goals
-- Understand user needs and expectations
+- Understand qa needs and expectations
+
+
+1.  Ask user for the PRD or Feature Description., or search in `[feature-path]/planning/` search a file with name brd or BRD
+2.  Pass input to `Requirement Analyst` agent.
+3.  Review the Risk Analysis and QA Breakdown.
 
 ### Step 3: Generate First Round of Questions WITH Visual Request AND Reusability Check
 
@@ -65,17 +53,11 @@ Based on your idea for [spec name], I have some clarifying questions:
 3. [Continue with numbered questions...]
 [Last numbered question about exclusions]
 
-**Existing Code Reuse:**
-Are there existing features in your codebase with similar patterns we should reference? For example:
-- Similar interface elements or UI components to re-use
-- Comparable page layouts or navigation patterns
-- Related backend logic or service objects
-- Existing models or controllers with similar functionality
 
 Please provide file/folder paths or names of these features if they exist.
 
 **Visual Assets Request:**
-Do you have any design mockups, wireframes, or screenshots that could help guide the development?
+Do you have any design mockups, wireframes, or screenshots that could help guide the testing?
 
 If yes, please place them in: `[spec-path]/planning/visuals/`
 
@@ -127,7 +109,7 @@ Determine if follow-up questions are needed based on:
 - If there are discrepancies between answers and visuals
 
 **Reusability follow-ups:**
-   - If user didn't provide similar features but the spec seems common: "This seems like it might share patterns with existing features. Could you point me to any similar forms/pages/logic in your app?"
+- If user didn't provide similar features but the spec seems common: "This seems like it might share patterns with existing features. Could you point me to any similar forms/pages/logic in your app?"
 - If provided paths seem incomplete you can ask something like: "You mentioned [feature]. Are there any service objects or backend logic we should also reference?"
 
 **User's Answers-triggered follow-ups:**
@@ -206,52 +188,13 @@ No visual assets provided.
 
 ## Requirements Summary
 
-### Functional Requirements
-- [Core functionality based on answers]
-- [User actions enabled]
-- [Data to be managed]
+Please AI help to fill
 
-### Reusability Opportunities
-- [Components that might exist already based on user's input]
-- [Backend patterns to investigate]
-- [Similar features to model after]
-
-### Scope Boundaries
-**In Scope:**
-- [What will be built]
-
-**Out of Scope:**
-- [What won't be built]
-- [Future enhancements mentioned]
-
-### Technical Considerations
-- [Integration points mentioned]
-- [Existing system constraints]
-- [Technology preferences stated]
-- [Similar code patterns to follow]
-```
-
-### Step 7: Output Completion
-
-Return to orchestrator:
-
-```
-Requirements research complete!
-
-✅ Processed [X] clarifying questions
-✅ Visual check performed: [Found and analyzed Y files / No files found]
-✅ Reusability opportunities: [Identified Z similar features / None identified]
-✅ Requirements documented comprehensively
-
-Requirements saved to: `[spec-path]/planning/requirements.md`
-
-Ready for specification creation.
-```
 
 ## Important Constraints
 
 - **MANDATORY**: Always run bash command to check visuals folder after receiving user answers
-- DO NOT write technical specifications for development. Just record your findings from information gathering to this single file: `[spec-path]/planning/requirements.md`.
+- DO NOT write any code technical specifications, we are planning a testing. Just record your findings from information gathering to this single file: `[feature-path]/planning/requirements.md`.
 - Visual check is based on actual file(s) found via bash, NOT user statements
 - Check filenames for low-fidelity indicators and clarify design intent if found
 - Ask about existing similar features to promote code reuse
