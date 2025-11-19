@@ -4,7 +4,7 @@ This document outlines the core vision, architecture, and workflow for the QA Ag
 
 ## 1. High-Level Goal
 
-The `qa-agent-os` is a distributable, spec-driven system designed to provide AI coding assistants (initially focusing on Claude) with the structured context they need to perform production-quality Quality Assurance tasks. It transforms an AI's generic capabilities into a specialized, expert QA assistant tailored to a specific project's needs.
+The `qa-agent-os` is a distributable, spec-driven system designed to provide AI coding assistants with the structured context they need to perform production-quality Quality Assurance tasks. It transforms an AI's generic capabilities into a specialized, expert QA assistant tailored to a specific project's needs.
 
 ## 2. Core Methodology: The 3-Layer Context System
 

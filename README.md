@@ -32,4 +32,4 @@ Read the [changelog](CHANGELOG.md)
 
 ### Credits
 
-Spec workflows adapted from Agent-OS by Brian Casel @ Builder Methods (ISC License).
+QA workflows adapted from Agent-OS by Brian Casel @ Builder Methods (ISC License).
