@@ -7,11 +7,9 @@ Now that we've have planned, anilised , and got the requireents    for a the fea
 Display the following message to the user:
 
 ```
-The testcases has been created at `qa-agent-os/feature/[this-feature]/feature.md`.
+The testcases has been created at `qa-agent-os/features/[this-feature]/[ticket-id]/artifacts/testcases.md`.
 
 Review it closely to ensure everything aligns with your vision and requirements.
-
-[WIP] Next step: Run the command, 2-export-csv.md [WIP]
 ```
 
 {{UNLESS standards_as_claude_code_skills}}

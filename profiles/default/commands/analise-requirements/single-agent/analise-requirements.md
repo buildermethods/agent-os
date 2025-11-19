@@ -6,8 +6,6 @@ Instructions to follow in sequence:
 
 {{PHASE 1: @qa-agent-os/commands/analise-requirements/1-initialize-feature.md}}
 
-{{PHASE 2: @qa-agent-os/commands/analise-requirements/2-requirement-analysis.md}} [AI in the requiement analysis we are going to create test matrix, for exmaple??]
+{{PHASE 2: @qa-agent-os/commands/analise-requirements/2-requirement-analysis.md}}
 
-{{PHASE 3: @qa-agent-os/commands/analise-requirements/3-generate-testcases.md}}.  [AI please help to organize this part]
-
- 
+{{PHASE 3: @qa-agent-os/commands/analise-requirements/3-generate-testcases.md}}

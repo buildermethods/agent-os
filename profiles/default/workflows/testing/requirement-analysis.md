@@ -1,205 +1,107 @@
-# Requirement Analysis
+# Requirement Analysis Workflow
+
+This workflow guides the agent in performing a detailed analysis of the requirements for a specific ticket.
 
 ## Core Responsibilities
 
-1. **AI help me to fill**
-6. **Save Requirements**: Document the requirments you've gathered to a single file named: `[feature-path]/planning/requirements.md`
+1.  **Context Gathering**: Understand the high-level product mission.
+2.  **Input Analysis**: Process the BRD, PRD, or feature description provided by the user.
+3.  **Clarification**: Ask targeted questions to resolve ambiguities and gather visual assets.
+4.  **Documentation**: Save all gathered information into a structured `requirements.md` file within the ticket's directory.
 
+**Note:** The placeholder `[ticket-path]` in this workflow refers to the full path to the ticket being analyzed, for example: `qa-agent-os/features/2025-11-19-feature-name/TICKET-123`.
+
+---
 
 ## Workflow
 
-<!-- **Agent**: `Requirement Analyst`
-**Input**: Feature Description / PRD
-**Output**: Risk Analysis & QA Breakdown -->
+### Step 1: Understand Product Context
 
-Before generating questions, understand the broader product context:
+Before analyzing the specific ticket, understand the broader product context. This will help you ask more relevant questions and ensure the feature aligns with overall product goals.
 
-1. **Read Product Mission**: Load `qa-agent-os/product/mission.md` to understand:
-   - The product's overall mission and purpose
-   - Target users and their primary use cases
-   - Core problems the product aims to solve
-   - How users are expected to benefit
+1.  **Read Product Mission**: Load and review `qa-agent-os/product/mission.md` to understand:
+    -   The product's overall mission and purpose.
+    -   Target users and their primary use cases.
+    -   Core problems the product aims to solve.
 
-This context will help you:
-- Ask more relevant and contextual questions
-- Ensure the feature aligns with product goals
-- Understand qa needs and expectations
+### Step 2: Analyze Initial Requirements
 
+1.  Ask the user for the Product Requirements Document (PRD), feature description, or any other relevant information for the ticket.
+2.  You can also search for a high-level BRD in the feature's parent `documentation/` folder.
 
-1.  Ask user for the PRD or Feature Description., or search in `[feature-path]/planning/` search a file with name brd or BRD
-2.  Pass input to `Requirement Analyst` agent.
-3.  Review the Risk Analysis and QA Breakdown.
+### Step 3: Generate First Round of Questions
 
-### Step 3: Generate First Round of Questions WITH Visual Request AND Reusability Check
+Based on the initial requirements, generate 4-8 targeted, **numbered** questions to explore the requirements and suggest reasonable defaults.
 
-Based on the initial idea, generate 4-8 targeted, NUMBERED questions that explore requirements while suggesting reasonable defaults.
+**CRITICAL: Always include the visual asset request at the end of your questions.**
 
-**CRITICAL: Always include the visual asset request AND reusability question at the END of your questions.**
+**Guidelines for Questions:**
+- Frame questions as "I'm assuming X, is that correct?" to make them easy to answer.
+- Propose sensible assumptions based on best practices.
+- Always end with an open-ended question about what might be out of scope.
 
-**Question generation guidelines:**
-- Start each question with a number
-- Propose sensible assumptions based on best practices
-- Frame questions as "I'm assuming X, is that correct?"
-- Make it easy for users to confirm or provide alternatives
-- Include specific suggestions they can say yes/no to
-- Always end with an open question about exclusions
-
-**Required output format:**
+**Required Output Format:**
 ```
-Based on your idea for [spec name], I have some clarifying questions:
+Based on the requirements for this ticket, I have some clarifying questions:
 
-1. I assume [specific assumption]. Is that correct, or [alternative]?
-2. I'm thinking [specific approach]. Should we [alternative]?
-3. [Continue with numbered questions...]
-[Last numbered question about exclusions]
+1. I assume [specific assumption about a requirement]. Is that correct, or should [alternative approach] be considered?
+2. I'm thinking [specific technical or user flow approach]. Should we proceed with this, or is there another preferred method?
+3. (Continue with your numbered questions...)
+[Last question about what is out of scope.]
 
-
-Please provide file/folder paths or names of these features if they exist.
-
+---
 **Visual Assets Request:**
-Do you have any design mockups, wireframes, or screenshots that could help guide the testing?
+Do you have any design mockups, wireframes, or screenshots that could help guide the testing for this ticket?
 
-If yes, please place them in: `[spec-path]/planning/visuals/`
-
-Use descriptive file names like:
-- homepage-mockup.png
-- dashboard-wireframe.jpg
-- lofi-form-layout.png
-- mobile-view.png
-- existing-ui-screenshot.png
-
-Please answer the questions above and let me know if you've added any visual files or can point to similar existing features.
+If yes, please place them in the ticket's documentation folder: `[ticket-path]/documentation/`
 ```
 
-**OUTPUT these questions to the orchestrator and STOP - wait for user response.**
+**After outputting these questions, STOP and wait for the user's response.**
 
-### Step 4: Process Answers and MANDATORY Visual Check
+### Step 4: Process User's Answers & Visuals
 
-After receiving user's answers from the orchestrator:
+After receiving the user's answers:
 
-1. Store the user's answers for later documentation
+1.  **Store the Answers**: Keep the user's exact answers for later documentation.
+2.  **Check for Visuals**: Run the following `ls` command to check for visual assets in the ticket's documentation folder, even if the user didn't mention any.
+    ```bash
+    # List all image files in the ticket's documentation folder.
+    ls -1 "[ticket-path]/documentation/" | grep -E '\.(png|jpg|jpeg|gif|svg|pdf)$' || echo "No visual files found"
+    ```
+3.  **Analyze Visuals**: If files are found, analyze each one and document your key observations. Note if they appear to be low-fidelity (e.g., wireframes, sketches).
 
-2. **MANDATORY: Check for visual assets regardless of user's response:**
+### Step 5: Save Complete Requirements
 
-**CRITICAL**: You MUST run the following bash command even if the user says "no visuals" or doesn't mention visuals (Users often add files without mentioning them):
+After all questions are answered, compile all the information you have gathered into a single file named `requirements.md` inside the ticket's `planning` directory: `[ticket-path]/planning/requirements.md`.
 
-```bash
-# List all files in visuals folder - THIS IS MANDATORY
-ls -la [spec-path]/planning/visuals/ 2>/dev/null | grep -E '\.(png|jpg|jpeg|gif|svg|pdf)$' || echo "No visual files found"
-```
-
-3. IF visual files are found (bash command returns filenames):
-   - Use Read tool to analyze EACH visual file found
-   - Note key design elements, patterns, and user flows
-   - Document observations for each file
-   - Check filenames for low-fidelity indicators (lofi, lo-fi, wireframe, sketch, rough, etc.)
-
-4. IF user provided paths or names of similar features:
-   - Make note of these paths/names for spec-writer to reference
-   - DO NOT explore them yourself (to save time), but DO document their names for future reference by the spec-writer.
-
-### Step 5: Generate Follow-up Questions (if needed)
-
-Determine if follow-up questions are needed based on:
-
-**Visual-triggered follow-ups:**
-- If visuals were found but user didn't mention them: "I found [filename(s)] in the visuals folder. Let me analyze these for the specification."
-- If filenames contain "lofi", "lo-fi", "wireframe", "sketch", or "rough": "I notice you've provided [filename(s)] which appear to be wireframes/low-fidelity mockups. Should we treat these as layout and structure guides rather than exact design specifications, using our application's existing styling instead?"
-- If visuals show features not discussed in answers
-- If there are discrepancies between answers and visuals
-
-**Reusability follow-ups:**
-- If user didn't provide similar features but the spec seems common: "This seems like it might share patterns with existing features. Could you point me to any similar forms/pages/logic in your app?"
-- If provided paths seem incomplete you can ask something like: "You mentioned [feature]. Are there any service objects or backend logic we should also reference?"
-
-**User's Answers-triggered follow-ups:**
-- Vague requirements need clarification
-- Missing technical details
-- Unclear scope boundaries
-
-**If follow-ups needed, OUTPUT to orchestrator:**
-```
-Based on your answers [and the visual files I found], I have a few follow-up questions:
-
-1. [Specific follow-up question]
-2. [Another follow-up if needed]
-
-Please provide these additional details.
-```
-
-**Then STOP and wait for responses.**
-
-### Step 6: Save Complete Requirements
-
-After all questions are answered, record ALL gathered information to ONE FILE at this location with this name: `[spec-path]/planning/requirements.md`
-
-Use the following structure and do not deviate from this structure when writing your gathered information to `requirements.md`.  Include ONLY the items specified in the following structure:
+Use the following Markdown structure for the file:
 
 ```markdown
-# Spec Requirements: [Spec Name]
+# Requirements for Ticket: [Ticket ID]
 
-## Initial Description
-[User's original spec description from initialization.md]
+## 1. Initial Description
+(User's original description of the ticket requirements)
 
-## Requirements Discussion
+## 2. Requirements Discussion
 
-### First Round Questions
+### Round 1 Questions
 
-**Q1:** [First question asked]
-**Answer:** [User's answer]
+**Q1:** (First question you asked)
+**A:** (User's answer)
 
-**Q2:** [Second question asked]
-**Answer:** [User's answer]
+**Q2:** (Second question you asked)
+**A:** (User's answer)
 
-[Continue for all questions]
+(Continue for all questions)
 
-### Existing Code to Reference
-[Based on user's response about similar features]
+## 3. Visual Assets
 
-**Similar Features Identified:**
-- Feature: [Name] - Path: `[path provided by user]`
-- Components to potentially reuse: [user's description]
-- Backend logic to reference: [user's description]
+### Files Found:
+- `filename.png`: (Your description of what the image shows)
+- `filename2.jpg`: (Key elements you observed from your analysis)
 
-[If user provided no similar features]
-No similar existing features identified for reference.
+(If no files were found, state: "No visual assets were provided for this ticket.")
 
-### Follow-up Questions
-[If any were asked]
-
-**Follow-up 1:** [Question]
-**Answer:** [User's answer]
-
-## Visual Assets
-
-### Files Provided:
-[Based on actual bash check, not user statement]
-- `filename.png`: [Description of what it shows from your analysis]
-- `filename2.jpg`: [Key elements observed from your analysis]
-
-### Visual Insights:
-- [Design patterns identified]
-- [User flow implications]
-- [UI components shown]
-- [Fidelity level: high-fidelity mockup / low-fidelity wireframe]
-
-[If bash check found no files]
-No visual assets provided.
-
-## Requirements Summary
-
-Please AI help to fill
-
-
-## Important Constraints
-
-- **MANDATORY**: Always run bash command to check visuals folder after receiving user answers
-- DO NOT write any code technical specifications, we are planning a testing. Just record your findings from information gathering to this single file: `[feature-path]/planning/requirements.md`.
-- Visual check is based on actual file(s) found via bash, NOT user statements
-- Check filenames for low-fidelity indicators and clarify design intent if found
-- Ask about existing similar features to promote code reuse
-- Keep follow-ups minimal (1-3 questions max)
-- Save user's exact answers, not interpretations
-- Document all visual findings including fidelity level
-- Document paths to similar features for spec-writer to reference
-- OUTPUT questions and STOP to wait for orchestrator to relay responses
+## 4. Final Requirements Summary
+(Provide a concise, bulleted summary of the final, agreed-upon requirements for the ticket based on all the information gathered.)
+```

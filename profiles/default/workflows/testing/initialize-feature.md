@@ -1,78 +1,81 @@
-# Feature testing Initialization Specs
+# Feature Initialization Workflow
+
+This workflow guides the agent in setting up the complete directory structure for testing a new feature, including the first ticket.
 
 ## Core Responsibilities
 
-1. **Get the description of the feature:** Receive it from the user 
-2. **Initialize Feature Testing Structure**: Create the feature testing folder with date prefix
-3. **Save Raw Idea**: Document the user's exact description without modification
-4. **Create Create Implementation & Verification Folders**: Setup folder structure for tracking implementation of this feature testing.
-5. **Prepare for Requirements**: Set up structure for next phase
+1.  **Gather Inputs**: Get the name of the feature and the ID of the first ticket.
+2.  **Create Feature Directory**: Create the main feature folder with a date prefix.
+3.  **Create Documentation Folder**: Create a folder for high-level documents (BRD, mockups).
+4.  **Create Ticket Sub-Directory**: Create the nested structure for the first ticket to hold its specific planning and testing artifacts.
 
 ## Workflow
 
-### Step 1: Get the description of the feature
+### Step 1: Get Feature Name and First Ticket ID
 
-IF you were given a description of the feature, then use that to initiate a new feature to testing specs.
+IF you were given a name for the feature and the ID for the first ticket, use them.
 
-OTHERWISE ask the use what is going to be the new feature to test:
+OTHERWISE, ask the user for the required information:
 
 ```
-What feature to test would you like to start testing?
+I can initialize the directory structure for a new feature. Please provide the following:
 
-- provide a description of the feature you'd like to start testing.
+- **Feature Name:** A short, descriptive name for the feature (e.g., "User Profile Redesign").
+- **First Ticket ID:** The ID of the first ticket associated with this feature (e.g., "PROJ-123").
 ```
 
-**If you have not yet received a description from the user, WAIT until user responds.**
+**If you have not yet received both pieces of information from the user, WAIT until the user responds.**
 
-### Step 2: Initialize Spec Structure
+### Step 2: Initialize Directory Structure
 
-Determine a kebab-case spec name from the user's description, then create the spec folder:
+Once you have the feature name and ticket ID, execute the following to create the full directory structure.
 
 ```bash
 # Get today's date in YYYY-MM-DD format
 TODAY=$(date +%Y-%m-%d)
 
-# Determine kebab-case spec name from user's description
-FEAUTRE_NAME="[kebab-case-name]"
+# Get user inputs (replace placeholders with actual values)
+USER_FEATURE_NAME="[User-provided feature name]"
+TICKET_ID="[User-provided ticket ID]"
 
-# Create dated folder name
-DATED_FEAUTRE_NAME="${TODAY}-${FEAUTRE_NAME}"
+# Create a kebab-case name for the directory from the user's feature name
+KEBAB_FEATURE_NAME=$(echo "$USER_FEATURE_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[ _]/-/g' | sed 's/[^a-z0-9-]//g')
 
-# Store this path for output
-FEATURE_PATH="qa-agent-os/features/$DATED_FEAUTRE_NAME"
+# Create the dated top-level feature directory name
+DATED_FEATURE_NAME="${TODAY}-${KEBAB_FEATURE_NAME}"
 
-# Create folder structure following architecture
-mkdir -p $FEATURE_PATH/planning
-mkdir -p $FEATURE_PATH/planning/visuals
+# Define the full paths
+FEATURE_PATH="qa-agent-os/features/$DATED_FEATURE_NAME"
+TICKET_PATH="$FEATURE_PATH/$TICKET_ID"
 
-echo "Created feature testing spec folder: $FEATURE_PATH"
+# Create all directories
+mkdir -p "$FEATURE_PATH/documentation"
+mkdir -p "$TICKET_PATH/planning"
+mkdir -p "$TICKET_PATH/artifacts"
+
+echo "Created feature directory structure: $FEATURE_PATH"
+echo "Created ticket subdirectory: $TICKET_PATH"
+
+# Pass the full feature path back to the parent command
+echo "FEATURE_PATH=$FEATURE_PATH"
 ```
 
-### Step 3: Create artifacts testing Folder
+### Step 3: Output Confirmation
 
-Create 2 folders:
-- `$FEATURE_PATH/artifacts/`
-
-Leave this folder empty, for now. Later, this folder will be populated with testing artifacts, documention from agents.
-
-### Step 4: Output Confirmation
-
-Return or output the following:
+Return or output the following confirmation message, replacing placeholders with the actual paths you created:
 
 ```
-Feature testing folder initialized: `[feature-path]`
+Feature folder initialized at: `[FEATURE_PATH]`
 
-Structure created:
-- planning/ - For requirements and specifications
-- planning/visuals/ - For mockups and screenshots
-- artifacts/ - For artifacts testing documentation
-
-Ready for requirements research phase.
+The following structure has been created:
+- `documentation/` - For the main BRD and mockups.
+- `[TICKET_ID]/planning/` - For this ticket's requirement analysis.
+- `[TICKET_ID]/artifacts/` - For this ticket's test cases and other artifacts.
 ```
 
 ## Important Constraints
 
-- Always use dated folder names (YYYY-MM-DD-spec-name)
-- Pass the exact featyre path back to the orchestrator
-- Follow folder structure exactly
-- Implementation folder should be empty, for now
+- Always use the `YYYY-MM-DD-feature-name` format for the main feature folder.
+- Follow the specified directory structure exactly.
+- Wait for all required inputs before creating directories.
+- Return the created paths clearly in the final confirmation.

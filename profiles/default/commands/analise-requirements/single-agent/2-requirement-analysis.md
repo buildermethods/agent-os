@@ -4,6 +4,7 @@ Follow these instructions for researching this feature's requirements:
 
 {{workflows/testing/requirement-analysis}}
 
+{{UNLESS compiled_single_command}}
 ## Display confirmation and next step
 
 Once you've completed your research and documented it, output the following message:
@@ -11,20 +12,9 @@ Once you've completed your research and documented it, output the following mess
 ```
 ✅ I have documented this feature testing research and requirements in `qa-agent-os/features/[this-feature]/planning`.
 
-Next step: Run the command, `1-create-feature.md`. [AI Please check this part, I dont undrestand the logic here]
+NEXT STEP 👉 Run the command, `3-generate-testcases`.
 ```
-
-After all steps complete, inform the user:
-
-```
-feature initialized successfully!
-
-✅ feature folder created: `[feature-path]`
-✅ Requirements gathered
-✅ Visual assets: [Found X files / No files provided]
-
-👉 Run `/generate-testcases` to create the feature.md document.
-```
+{{ENDUNLESS compiled_single_command}}
 
 {{UNLESS standards_as_claude_code_skills}}
 ## User Standards & Preferences Compliance

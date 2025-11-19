@@ -722,7 +722,7 @@ process_standards() {
             local search_dir="standards/$base_path"
             get_profile_files "$profile" "$base_dir" "$search_dir" | while read file; do
                 if [[ "$file" == standards/* ]] && [[ "$file" == *.md ]]; then
-                    echo "@agent-os/$file"
+                    echo "@qa-agent-os/$file"
                 fi
             done
         else
@@ -730,7 +730,7 @@ process_standards() {
             local file_path="standards/${pattern}.md"
             local full_file=$(get_profile_file "$profile" "$file_path" "$base_dir")
             if [[ -f "$full_file" ]]; then
-                echo "@agent-os/$file_path"
+                echo "@qa-agent-os/$file_path"
             fi
         fi
     done | sort -u
@@ -769,7 +769,7 @@ process_phase_tags() {
             # To get: PHASE 1, plan-product/1-product-concept.md, "Product Concept"
 
             local phase_label=$(echo "$phase_ref" | sed 's/{{//' | sed 's/:.*$//')  # "PHASE 1"
-            local file_ref=$(echo "$phase_ref" | sed 's/.*@agent-os\/commands\///' | sed 's/}}$//')  # "plan-product/1-product-concept.md"
+            local file_ref=$(echo "$phase_ref" | sed 's/.*@qa-agent-os\/commands\///' | sed 's/}}$//')  # "plan-product/1-product-concept.md"
             local file_name=$(basename "$file_ref" .md)  # "1-product-concept"
 
             # Convert "1-product-concept" to "Product Concept"
