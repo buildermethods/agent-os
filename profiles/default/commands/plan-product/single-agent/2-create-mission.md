@@ -12,7 +12,7 @@ Once you've created mission.md, output the following message:
 
 Review it to ensure it matches your vision and strategic goals for this product.
 
-You're ready to start planning the testing of a feature! You can do so by running `shape-spec.md` or `write-spec.md`.
+You're ready to start planning the testing of a feature! You can do so by running `analise-requirements`.
 ```
 {{ENDUNLESS compiled_single_command}}
 

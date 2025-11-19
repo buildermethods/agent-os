@@ -48,6 +48,15 @@ This results in [MEASURABLE_BENEFIT].
 - **[FEATURE_NAME]:** [USER_BENEFIT_DESCRIPTION]
 ```
 
+#### Directory Creation
+
+Before creating the mission.md file, ensure the directory exists:
+
+```bash
+# Create the qa-agent-os/product directory if it doesn't exist
+mkdir -p qa-agent-os/product
+```
+
 #### Important Constraints
 
 - **Focus on user benefits** in feature descriptions, not technical details

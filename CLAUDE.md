@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-QA Agent OS is a distributable, spec-driven system that provides AI coding assistants with structured context to perform production-quality QA tasks. It transforms generic AI capabilities into a specialized QA assistant tailored to a specific project's needs using a 3-layer context system: **Standards** (how we build), **Product** (what we're building and why), and **Specs/Features** (what we're building next).
+QA Agent OS is a distributable, spec-driven system that provides AI coding assistants with structured context to perform production-quality QA tasks. It transforms generic AI capabilities into a specialized QA assistant tailored to a specific project's needs using a 3-layer context system: **Standards** (how we test), **Product** (what we're testing and why), and **Features** (what we're testing next).
 
 ## Core Architecture
 

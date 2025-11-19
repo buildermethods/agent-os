@@ -1,4 +1,4 @@
-You are helping to plan and document the mission, roadmap and tech stack for the current product.  This will include:
+You are helping to plan and document the mission for the current product.  This will include:
 
 - **Gathering Information**: The user's product vision, user personas, problems and key features
 - **Mission Document**: Take what you've gathered and create a concise mission document

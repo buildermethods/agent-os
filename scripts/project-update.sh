@@ -740,7 +740,7 @@ prompt_update_confirmation() {
     echo ""
     echo -e "${GREEN}✔ These will remain intact:${NC}"
     echo ""
-    echo "  - agent-os/specs/*"
+    echo "  - agent-os/features/*"
     echo "  - agent-os/product/*"
     echo ""
     if [[ "$DRY_RUN" == "true" ]]; then
@@ -774,7 +774,7 @@ prompt_update_confirmation() {
     fi
 }
 
-# Perform cleanup before update - delete everything except specs/ and product/
+# Perform cleanup before update - delete everything except features/ and product/
 perform_update_cleanup() {
     if [[ "$DRY_RUN" == "true" ]]; then
         print_warning "Dry run: Would prepare for update..."
