@@ -44,10 +44,11 @@
 - **Command System:** Custom commands installed to `.claude/commands/qa-agent-os/`
 - **Command Format:** Markdown files with structured prompts, phase orchestration, and standards references
 - **Key Commands:**
-  - `/plan-product` - Product mission and roadmap creation
-  - `/analise-requirements` - Multi-phase requirement analysis and test case generation
+  - `/plan-product` - Product mission/spec creation (vision + team ownership map)
   - `/init-feature` - Feature/ticket directory initialization
-  - `/generate-testcases` - Test case generation from requirements
+  - `/create-ticket` - Chains requirement analysis + test case workflows for a ticket
+  - `/analise-requirements` - Standalone requirement-analysis workflow (also used inside `/create-ticket`)
+  - `/generate-testcases` - Standalone test case generation from requirements
   - `/improve-skills` - Claude Code skills enhancement
 - **Subagent Support:** Optional multi-agent setup with agents installed to `.claude/agents/qa-agent-os/`
 - **Subagent Roles:**

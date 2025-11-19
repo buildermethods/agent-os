@@ -1,7 +1,5 @@
 Create `qa-agent-os/product/mission.md` with comprehensive product definition following this structure for its' content:
 
-<!-- The mission in qa should be the specification of the product under test, a great vision of what is about our product, in medirect we can think that the mission is highly related with the teams, cows, chicks, etc, each team is in charge of a specifc part of the product, for example cows is investment, and chichs is cards and onboarding, so as first approach , it should be get as much info so the AI is aware of it ?? -->
-
 #### Mission Structure:
 ```markdown
 # Product Mission
@@ -46,6 +44,19 @@ This results in [MEASURABLE_BENEFIT].
 
 ### Advanced Features
 - **[FEATURE_NAME]:** [USER_BENEFIT_DESCRIPTION]
+
+## Product Areas & Team Ownership
+
+| Team / Squad | Domain | Responsibilities | Notes |
+|--------------|--------|------------------|-------|
+| Cows | Investments flows (example) | [WHAT THEY OWN] | [Escalation notes / SME] |
+| Chicks | Cards & Onboarding (example) | [WHAT THEY OWN] | [Escalation notes / SME] |
+| [TEAM_NAME] | [PRODUCT_AREA] | [KEY RESPONSIBILITIES] | [DEPENDENCIES / RUNBOOKS] |
+
+## Epic & Ticket Alignment
+- **Primary Epics:** [List active/ upcoming epics or initiatives that live under this mission]
+- **Example Tickets:** [Ticket IDs or themes that will likely run through this mission]
+- **Cross-Team Dependencies:** [Any shared components, APIs, or workflows to track]
 ```
 
 #### Directory Creation

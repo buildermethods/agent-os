@@ -26,12 +26,17 @@ This document outlines the directory structure of the QA Agent OS project.
 │       │   └── `testcase-writer.md`: Agent for generating test cases.
 │       │
 │       ├── **commands/**: Commands executable by the AI agent, adapted for single-agent (compiled) or multi-agent use.
-│       │   ├── **analise-requirements/**: Command for analyzing requirements and generating test cases for a ticket.
+│       │   ├── **analise-requirements/**: Command for the deep requirement-analysis workflow (still available standalone and reused inside `/create-ticket`).
 │       │   │   └── **single-agent/**: Single-agent version, compiled into one prompt.
 │       │   │       ├── `1-initialize-feature.md`: First phase of requirement analysis.
 │       │   │       ├── `2-requirement-analysis.md`: Second phase of requirement analysis.
 │       │   │       ├── `3-generate-testcases.md`: Third phase for test case generation.
 │       │   │       └── `analise-requirements.md`: Orchestrator for the phases.
+│       │   ├── **create-ticket/**: Command that chains requirement analysis + test case generation for a specific ticket.
+│       │   │   └── **single-agent/**:
+│       │   │       ├── `1-requirements.md`: Runs the requirement-analysis workflow inside an existing feature/ticket folder.
+│       │   │       ├── `2-testcases.md`: Generates the test suite from the analyzed requirements.
+│       │   │       └── `create-ticket.md`: Orchestrator for the phases.
 │       │   ├── **generate-testcases/**: Command for generating test cases based on analyzed requirements.
 │       │   │   └── **single-agent/**: Single-agent version.
 │       │   │       └── `generate-testcases.md`: Generates test cases.
@@ -43,7 +48,7 @@ This document outlines the directory structure of the QA Agent OS project.
 │       │   ├── **integrations/**: Commands for integrating with external tools.
 │       │   │   ├── `jira-integration.md`: Integrates with Jira.
 │       │   │   └── `testmo-integration.md`: Integrates with Testmo.
-│       │   └── **plan-product/**: Command to create product documentation including mission and roadmap.
+│       │   └── **plan-product/**: Command to create the QA mission/spec (product vision + team ownership).
 │       │       └── **single-agent/**: Single-agent version, compiled into one prompt.
 │       │           ├── `1-product-concept.md`: First phase of product planning.
 │       │           ├── `2-create-mission.md`: Second phase for creating the mission document.
@@ -85,6 +90,7 @@ This document outlines the directory structure of the QA Agent OS project.
 │           │   └── `gather-product-info.md`
 │           └── **testing/**: Workflows for various testing-related activities.
 │               ├── `compile-testing-standards.md`
+│               ├── `create-ticket.md`: End-to-end flow chaining requirement analysis + test cases.
 │               ├── `initialize-feature.md`: Workflow for setting up new feature/ticket directories.
 │               ├── `requirement-analysis.md`: Workflow for detailed requirement analysis.
 │               └── `testcase-generation.md`: Workflow for generating test cases.

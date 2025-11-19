@@ -23,6 +23,7 @@ Before analyzing the specific ticket, understand the broader product context. Th
     -   The product's overall mission and purpose.
     -   Target users and their primary use cases.
     -   Core problems the product aims to solve.
+    -   The **Product Areas & Team Ownership** table (e.g., Cows = Investments, Chicks = Cards & Onboarding) so you can route open questions to the right squad.
 
 ### Step 2: Analyze Initial Requirements
 
