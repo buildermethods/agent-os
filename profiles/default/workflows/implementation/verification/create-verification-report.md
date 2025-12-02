@@ -1,4 +1,4 @@
-Create your final verification report in `agent-os/specs/[this-spec]/verifications/final-verification.html`.
+Create your final verification report in `agent-os/specs/[this-spec]/verifications/final-verification.md`.
 
 The content of this report should follow this structure:
 
