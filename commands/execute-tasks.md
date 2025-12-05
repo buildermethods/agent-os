@@ -479,6 +479,54 @@ CYCLE:
   4. COMMIT: After each passing test
 ```
 
+### Step 7.5.1: TDD Skill Invocation Gate (MANDATORY)
+
+**VALIDATION CHECKPOINT - Verify TDD skill was properly invoked:**
+
+```
+GATE CHECK: Before proceeding past implementation
+─────────────────────────────────────────────────
+VERIFY each of the following exists in this task's execution:
+
+☐ RED Phase Evidence:
+  - A test file was created/modified BEFORE production code
+  - Test was executed and FAILED (expected failure)
+  - Failure reason documented (e.g., "function does not exist")
+
+☐ GREEN Phase Evidence:
+  - Production code was written AFTER failing test
+  - Test was re-executed and PASSED
+  - Implementation is minimal (only what's needed to pass)
+
+☐ REFACTOR Phase Evidence:
+  - Code cleanup occurred (if applicable)
+  - Tests remained GREEN during refactor
+  - No new functionality added during refactor
+
+VALIDATION:
+  IF all checkboxes verified:
+    ✓ TDD skill properly invoked - PROCEED
+  ELSE IF missing RED phase:
+    ✗ HALT - Delete any production code written without failing test
+    ACTION: Return to Step 7.5, invoke tdd skill explicitly
+  ELSE IF missing evidence:
+    ⚠ WARNING - Document deviation and reason
+    ASK: "TDD cycle appears incomplete. Continue anyway? (yes/no)"
+─────────────────────────────────────────────────
+```
+
+**TDD Gate Failure Recovery:**
+```
+IF TDD gate fails:
+  1. IDENTIFY: What was skipped (RED/GREEN/REFACTOR)
+  2. DOCUMENT: Why it was skipped (if intentional)
+  3. REMEDIATE:
+     - If code exists without test: Write test first, verify it fails
+       with current code commented out, then uncomment
+     - If test never failed: Verify test actually tests the new behavior
+  4. RE-VERIFY: Run gate check again
+```
+
 **Typical Task Structure:**
 1. **First subtask**: Write tests for [feature] (RED phase)
 2. **Middle subtasks**: Implementation steps (GREEN phase)
@@ -714,6 +762,53 @@ IF decision == "COMMIT":
 - Prevents breaking changes from being committed
 - Provides context about which future tasks will resolve issues
 
+### Step 9.6: Build-Check Skill Invocation Gate (MANDATORY)
+
+**VALIDATION CHECKPOINT - Verify build-check skill was properly invoked:**
+
+```
+GATE CHECK: Before proceeding to git workflow
+─────────────────────────────────────────────────
+VERIFY the following evidence exists:
+
+☐ Build Verification Evidence:
+  - Build command was executed (npm run build, cargo build, etc.)
+  - Build output was captured and analyzed
+  - Exit code was checked (0 = success, non-zero = failure)
+
+☐ Diagnostics Check Evidence:
+  - mcp__ide__getDiagnostics was called (or equivalent lint check)
+  - Type errors were identified and classified
+  - Lint warnings were reviewed
+
+☐ Decision Documentation:
+  - Clear decision recorded: COMMIT | FIX_REQUIRED | DOCUMENT_AND_COMMIT
+  - If FIX_REQUIRED: All fixes applied and re-verified
+  - If DOCUMENT_AND_COMMIT: Addendum prepared for commit message
+
+VALIDATION:
+  IF all evidence present AND decision is COMMIT or DOCUMENT_AND_COMMIT:
+    ✓ Build-check skill properly invoked - PROCEED to git workflow
+  ELSE IF missing build verification:
+    ✗ HALT - Run build-check skill explicitly
+    COMMAND: "Invoke build-check skill for [SPEC_NAME]"
+  ELSE IF decision is FIX_REQUIRED:
+    ✗ HALT - Fixes required before proceeding
+    ACTION: Return to Step 9.5, address all FIX_REQUIRED errors
+─────────────────────────────────────────────────
+```
+
+**Build-Check Gate Failure Recovery:**
+```
+IF build-check gate fails:
+  1. RUN: Build command manually if not executed
+  2. RUN: mcp__ide__getDiagnostics if not checked
+  3. CLASSIFY: Each error as MUST_FIX or ACCEPTABLE
+  4. FIX: All MUST_FIX errors
+  5. DOCUMENT: All ACCEPTABLE errors in commit addendum
+  6. RE-VERIFY: Run gate check again
+```
+
 ### Step 10: Git Workflow
 Use the git-workflow subagent to create git commit, push to GitHub, and create pull request.
 
@@ -883,30 +978,294 @@ try {
 
 ### Error Recovery Procedures
 
-1. **State Corruption**:
-   - Attempt recovery from `.agent-os/state/recovery/`
-   - Use most recent valid backup
-   - Reinitialize if no valid backups
+**Recovery Philosophy**: Save state early, save often. Every step should be resumable.
 
-2. **Lock Timeout**:
-   - Force acquire after 30 seconds with warning
-   - Log process that held lock too long
-   - Continue with caution
+---
 
-3. **Cache Expiration**:
-   - Reload from source specifications if auto-extension fails
-   - Rebuild spec_cache and context_cache
-   - Continue with fresh cache
+#### 1. State Corruption Recovery
+```
+SYMPTOMS:
+- JSON parse errors in workflow.json or session-cache.json
+- Unexpected null values or missing fields
+- "Invalid state" errors during load
 
-4. **Partial Failure**:
-   - Save progress to recovery point
-   - Document blocking issues in tasks.md
-   - Allow resume from last successful step
+RECOVERY PROCEDURE:
+1. CHECK: .agent-os/state/recovery/ for backups
+   COMMAND: ls -la .agent-os/state/recovery/
 
-5. **Subagent Failures**:
-   - Retry subagent invocation once
-   - Fall back to manual approach if critical
-   - Document failure and continue if non-critical
+2. IF backup exists (sorted by date):
+   - Identify most recent valid backup
+   - Validate JSON: jq empty [backup-file]
+   - Copy to main location: cp [backup] .agent-os/state/workflow.json
+
+3. IF no valid backup:
+   - Reinitialize state:
+   ```json
+   {
+     "state_version": "1.0.0",
+     "current_workflow": null,
+     "recovery_note": "Reinitialized due to corruption on [DATE]"
+   }
+   ```
+
+4. DOCUMENT: Note in tasks.md what was lost (if anything)
+5. RESUME: From task discovery (Step 1)
+```
+
+---
+
+#### 2. Git Workflow Failures
+```
+SYMPTOMS:
+- Branch checkout fails (uncommitted changes)
+- Merge conflicts during branch switch
+- Push rejected (force push needed)
+- PR creation fails
+
+RECOVERY PROCEDURES:
+
+A. Uncommitted Changes:
+   1. CHECK: git status for changes
+   2. DECISION:
+      - If changes belong to current task: git stash
+      - If changes should be committed: create WIP commit
+      - If changes can be discarded: git checkout -- .
+   3. RETRY: Branch operation
+   4. RESTORE: git stash pop (if stashed)
+
+B. Merge Conflicts:
+   1. IDENTIFY: Conflicting files (git status)
+   2. ANALYZE: Nature of conflicts
+   3. OPTIONS:
+      - Accept theirs: git checkout --theirs [file]
+      - Accept ours: git checkout --ours [file]
+      - Manual merge: Edit conflict markers
+   4. RESOLVE: git add [resolved-files]
+   5. CONTINUE: git merge --continue
+
+C. Push Rejected:
+   1. FETCH: git fetch origin
+   2. CHECK: If behind remote: git pull --rebase
+   3. RESOLVE: Any rebase conflicts
+   4. RETRY: git push
+   5. NEVER: Force push without explicit user permission
+
+D. PR Creation Fails:
+   1. VERIFY: gh auth status (GitHub CLI authenticated)
+   2. CHECK: Repository permissions
+   3. ALTERNATIVE: Provide PR URL construction for manual creation
+```
+
+---
+
+#### 3. Test Failures During Execution
+```
+SYMPTOMS:
+- Tests fail after implementation
+- Flaky tests (pass sometimes, fail others)
+- Test timeouts
+- Missing test dependencies
+
+RECOVERY PROCEDURES:
+
+A. Implementation-Related Failures:
+   1. ANALYZE: Test output for specific failure reason
+   2. CLASSIFY:
+      - Logic error: Fix implementation
+      - Missing feature: Verify against spec
+      - Wrong assertion: Verify test correctness
+   3. FIX: Address root cause
+   4. RE-RUN: Specific failing test first
+   5. VERIFY: Full test suite after fix
+
+B. Flaky Tests:
+   1. IDENTIFY: Which tests are flaky (run 3x)
+   2. ISOLATE: Run test alone vs in suite
+   3. COMMON CAUSES:
+      - Race conditions: Add proper waits/locks
+      - Shared state: Reset state between tests
+      - External dependencies: Mock or stabilize
+   4. FIX: Or mark as known flaky with skip annotation
+
+C. Test Timeouts:
+   1. CHECK: Is test actually hanging or just slow?
+   2. INCREASE: Timeout for slow tests if legitimate
+   3. INVESTIGATE: Infinite loops or deadlocks
+   4. ADD: Debug logging to identify hang point
+
+D. Missing Dependencies:
+   1. CHECK: Test setup/fixtures are present
+   2. VERIFY: Test database/services running
+   3. RUN: npm install / pip install / etc.
+   4. DOCUMENT: Required test environment setup
+```
+
+---
+
+#### 4. Build Failures
+```
+SYMPTOMS:
+- Type errors in modified files
+- Type errors in unmodified files
+- Missing imports
+- Configuration errors
+
+RECOVERY PROCEDURES:
+
+A. Type Errors in Modified Files:
+   1. CLASSIFY: Each error
+   2. FIX: Immediately before proceeding
+   3. RE-RUN: Build to verify fix
+   4. CONTINUE: Only when clean
+
+B. Type Errors in Unmodified Files:
+   1. CHECK: If error existed before changes
+   2. DETERMINE: If current task should fix it
+   3. OPTIONS:
+      - Fix now if quick (<5 min)
+      - Document and defer if future task addresses it
+      - Create new task if out of scope
+   4. USE: DOCUMENT_AND_COMMIT decision if deferring
+
+C. Missing Imports:
+   1. SEARCH: codebase for correct import path
+   2. CHECK: imports.md in codebase references
+   3. VERIFY: Module actually exports the item
+   4. FIX: Import statement
+
+D. Configuration Errors:
+   1. IDENTIFY: Which config file is problematic
+   2. COMPARE: With working version (git diff)
+   3. VALIDATE: Against schema if available
+   4. TEST: Config in isolation
+```
+
+---
+
+#### 5. Subagent/Skill Invocation Failures
+```
+SYMPTOMS:
+- Task tool returns error
+- Skill doesn't produce expected output
+- Timeout waiting for subagent
+- Subagent returns partial results
+
+RECOVERY PROCEDURES:
+
+A. Task Tool Errors:
+   1. RETRY: Once with same parameters
+   2. SIMPLIFY: Break request into smaller parts
+   3. FALLBACK: Execute manually if critical path
+
+B. Skill Output Issues:
+   1. VERIFY: Skill description matches use case
+   2. CHECK: allowed-tools are sufficient
+   3. INVOKE: Explicitly if auto-invoke failed
+   4. DOCUMENT: For skill improvement
+
+C. Timeouts:
+   1. BREAK: Large request into chunks
+   2. ADD: Progress indicators if possible
+   3. RETRY: With smaller scope
+
+D. Partial Results:
+   1. IDENTIFY: What's missing
+   2. SUPPLEMENT: With manual approach
+   3. COMBINE: Results for complete picture
+```
+
+---
+
+#### 6. Cache Expiration Recovery
+```
+SYMPTOMS:
+- "Cache expired" warnings
+- Stale spec references
+- Session restart mid-task
+
+RECOVERY PROCEDURE:
+1. IF within same session:
+   - Rebuild cache from source files
+   - Use native Explore agent to rediscover specs
+   - Continue from current step
+
+2. IF new session:
+   - Check tasks.md for completion status
+   - Identify last completed task
+   - Resume from next incomplete task
+   - Rebuild context via Step 3-4 (Context Analysis)
+```
+
+---
+
+#### 7. Partial Task Failure (Resume Protocol)
+```
+SITUATION: Task execution interrupted mid-way (crash, timeout, user stop)
+
+RESUME PROCEDURE:
+1. CHECK: tasks.md for last completed checkpoint
+   - Look for [x] completed tasks
+   - Identify first [ ] incomplete task
+
+2. CHECK: git status for uncommitted changes
+   - If clean: Resume from incomplete task
+   - If changes: Evaluate if changes are complete for any task
+
+3. CHECK: Test status
+   COMMAND: npm test (or equivalent)
+   - If passing: Implementation may be complete
+   - If failing: Determine scope of failure
+
+4. RECONSTRUCT: Context
+   - Re-run Steps 3-4 (Spec Discovery, Context Analysis)
+   - Skip completed tasks
+   - Resume from first incomplete
+
+5. DOCUMENT: Resume point in session notes
+```
+
+---
+
+#### 8. Development Server Conflicts
+```
+SYMPTOMS:
+- "Port already in use" errors
+- Multiple server instances
+- Zombie processes
+
+RECOVERY PROCEDURE:
+1. IDENTIFY: Process using port
+   COMMAND: lsof -i :[PORT]
+
+2. VERIFY: Is it our dev server or something else?
+
+3. IF our server:
+   - Kill gracefully: kill [PID]
+   - Or force: kill -9 [PID]
+
+4. IF unknown process:
+   - ASK: User before killing
+   - ALTERNATIVE: Use different port
+
+5. VERIFY: Port is free before starting new server
+```
+
+---
+
+### Quick Reference: Error → Recovery
+```
+| Error Type                    | First Action                        | Escalation              |
+|-------------------------------|-------------------------------------|-------------------------|
+| State corruption              | Load from recovery/                 | Reinitialize            |
+| Git checkout fails            | Stash changes                       | Manual resolution       |
+| Tests fail                    | Analyze output, fix implementation  | Skip with documentation |
+| Build errors (own files)      | Fix immediately                     | -                       |
+| Build errors (other files)    | DOCUMENT_AND_COMMIT                 | Create new task         |
+| Subagent timeout              | Retry once                          | Manual fallback         |
+| Cache expired                 | Rebuild from source                 | Full context reload     |
+| Partial execution             | Check tasks.md, resume             | Restart with context    |
+| Port conflict                 | Kill process                        | Use alternate port      |
+```
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:

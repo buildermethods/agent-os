@@ -78,6 +78,124 @@ When updating existing references:
 3. If new: Append to appropriate location
 4. Preserve references for unchanged files
 
+## Staleness Detection
+
+### Purpose
+Detect when the codebase index is out of sync with actual source files to prevent referencing incorrect line numbers or outdated function signatures.
+
+### Index Metadata File
+Maintain `.agent-os/codebase/.index-metadata.json` with file tracking:
+
+```json
+{
+  "index_version": "1.0.0",
+  "last_full_index": "2025-12-05T10:30:00Z",
+  "files": {
+    "src/auth/utils.js": {
+      "hash": "a1b2c3d4",
+      "indexed_at": "2025-12-05T10:30:00Z",
+      "line_count": 156,
+      "function_count": 8
+    },
+    "src/components/Button.jsx": {
+      "hash": "e5f6g7h8",
+      "indexed_at": "2025-12-05T10:30:00Z",
+      "line_count": 42,
+      "function_count": 1
+    }
+  },
+  "staleness_threshold_hours": 24
+}
+```
+
+### Hash Calculation
+Use a fast hash of file contents for change detection:
+```bash
+# Quick hash using first and last 1KB + file size
+HASH=$(head -c 1024 [FILE] | md5 | cut -c1-8)
+SIZE=$(wc -c < [FILE])
+echo "${HASH}-${SIZE}"
+```
+
+### Staleness Check Protocol
+```
+WHEN referencing codebase index:
+
+1. CHECK: Does .index-metadata.json exist?
+   IF NOT: Warn "Index metadata missing - consider running /index-codebase"
+
+2. CHECK: File modification time vs indexed_at
+   COMMAND: stat -f %m [FILE] (macOS) or stat -c %Y [FILE] (Linux)
+   IF file modified after indexed_at:
+     WARN: "File [FILE] may have changed since indexing"
+
+3. CHECK: Time since last_full_index
+   IF > staleness_threshold_hours:
+     WARN: "Index is over 24 hours old - line numbers may be inaccurate"
+
+4. QUICK VERIFY (optional):
+   - Check if line count still matches
+   - Check if file hash changed
+   IF mismatch:
+     FLAG: File as "STALE - needs re-indexing"
+```
+
+### Staleness Indicators in Output
+Add staleness warnings to reference output:
+
+```markdown
+## src/auth/utils.js ⏰ POTENTIALLY STALE
+validateUser(email, password): Promise<User> ::line:15 ⚠️
+hashPassword(plaintext): string ::line:42 ⚠️
+::indexed: 2025-12-04T08:00:00Z
+::file_modified: 2025-12-05T14:30:00Z
+::action_needed: Re-run indexer on this file
+```
+
+### Automatic Staleness Handling
+```
+DURING task execution (execute-tasks.md):
+
+1. BEFORE using codebase references:
+   - Run quick staleness check on files to be modified
+   - If stale, re-index those specific files first
+
+2. AFTER modifying files:
+   - Update index for modified files only
+   - Update hash in metadata
+
+3. IF staleness detected mid-task:
+   - Pause and re-index affected files
+   - Verify function signatures haven't changed
+   - Update reference sheet if needed
+```
+
+### Integration with index-codebase Command
+```
+WHEN /index-codebase runs:
+
+1. FULL INDEX MODE:
+   - Hash all files
+   - Create/update .index-metadata.json
+   - Record timestamp for each file
+
+2. INCREMENTAL MODE (during tasks):
+   - Only index files with changed hashes
+   - Update only affected sections
+   - Preserve unchanged file metadata
+```
+
+### Staleness Severity Levels
+```
+| Level    | Condition                          | Action                    |
+|----------|------------------------------------|-----------------------------|
+| FRESH    | File hash matches, < 1 hour old   | Use index confidently       |
+| AGING    | Hash matches, 1-24 hours old      | Use with minor caution      |
+| STALE    | Hash matches, > 24 hours old      | Verify critical refs        |
+| CHANGED  | Hash mismatch detected            | Re-index before using       |
+| UNKNOWN  | No metadata available             | Re-index or verify manually |
+```
+
 ## Important Constraints
 
 - Focus on signatures only, not implementations

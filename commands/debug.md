@@ -266,6 +266,67 @@ OUTPUT: Root cause analysis with evidence
 REQUIRE: Identified root cause BEFORE proceeding to fix
 ```
 
+### Step 4.1: Systematic-Debugging Skill Invocation Gate (MANDATORY)
+
+**VALIDATION CHECKPOINT - Verify systematic-debugging skill was properly invoked:**
+
+```
+GATE CHECK: Before attempting any fix
+─────────────────────────────────────────────────
+VERIFY the following evidence exists:
+
+☐ Phase 1 - Root Cause Investigation Evidence:
+  - Complete error messages and stack traces read
+  - Issue reproduced at least once
+  - Recent changes reviewed (git log/diff)
+  - Data flow traced from source to error point
+
+☐ Phase 2 - Pattern Analysis Evidence:
+  - Working examples found in codebase
+  - Comparison between working vs broken code documented
+  - Key differences identified (config, types, dependencies, timing)
+
+☐ Phase 3 - Hypothesis Formation Evidence:
+  - Root cause hypothesis stated in format:
+    "The error occurs because [specific cause] which leads to [observed behavior]"
+  - At least one test performed to validate hypothesis
+  - Hypothesis confirmed or alternative identified
+
+☐ Root Cause Statement:
+  - Clear, specific root cause identified (not symptoms)
+  - Evidence supporting the root cause documented
+  - Confidence level noted (high/medium/low)
+
+VALIDATION:
+  IF all checkboxes verified:
+    ✓ Systematic debugging complete - PROCEED to fix
+  ELSE IF missing root cause:
+    ✗ HALT - Do NOT attempt fix without root cause
+    ACTION: Return to Phase 1, complete investigation
+  ELSE IF hypothesis untested:
+    ⚠ WARNING - Test hypothesis before proceeding
+    ACTION: Run at least one confirming test
+─────────────────────────────────────────────────
+```
+
+**Debugging Gate Failure Recovery:**
+```
+IF systematic-debugging gate fails:
+  1. STOP: Do not attempt any fixes
+  2. IDENTIFY: Which phase is incomplete
+  3. EXECUTE: Missing investigation steps
+  4. DOCUMENT: Findings at each phase
+  5. RE-VERIFY: Run gate check again
+
+ESCALATION (after 3+ failed fix attempts):
+  STOP IMMEDIATELY
+  ASK:
+    1. Am I treating a symptom instead of the cause?
+    2. Is there an architectural problem?
+    3. Do I need to step back and re-examine assumptions?
+  NOTE: Multiple failed fixes = incomplete root cause analysis
+```
+
 ### Step 5: Issue Reproduction
 
 Attempt to reproduce the issue with scope-appropriate methods.

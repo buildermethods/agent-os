@@ -5,6 +5,70 @@
 
 set -e  # Exit on error
 
+# Version information
+AGENT_OS_VERSION="1.6.0"
+AGENT_OS_RELEASE_DATE="2025-12-05"
+
+# Track installation progress for cleanup
+INSTALL_STARTED=false
+DIRECTORIES_CREATED=()
+FILES_CREATED=()
+
+# Cleanup function for failed installations
+cleanup_on_failure() {
+    local exit_code=$?
+
+    # Only cleanup if installation actually started and failed
+    if [ "$INSTALL_STARTED" = true ] && [ $exit_code -ne 0 ]; then
+        echo ""
+        echo "⚠️  Installation failed! Cleaning up partial installation..."
+        echo ""
+
+        # Remove created files (in reverse order)
+        for ((i=${#FILES_CREATED[@]}-1; i>=0; i--)); do
+            if [ -f "${FILES_CREATED[$i]}" ]; then
+                rm -f "${FILES_CREATED[$i]}" 2>/dev/null || true
+                echo "   Removed: ${FILES_CREATED[$i]}"
+            fi
+        done
+
+        # Remove created directories (in reverse order, only if empty)
+        for ((i=${#DIRECTORIES_CREATED[@]}-1; i>=0; i--)); do
+            if [ -d "${DIRECTORIES_CREATED[$i]}" ]; then
+                rmdir "${DIRECTORIES_CREATED[$i]}" 2>/dev/null || true
+            fi
+        done
+
+        echo ""
+        echo "❌ Installation was rolled back. Please check the error above and try again."
+        echo ""
+        echo "If this problem persists, please report it at:"
+        echo "https://github.com/buildermethods/agent-os/issues"
+        echo ""
+    fi
+
+    # Clean up temp files if any
+    rm -f /tmp/agent-os-functions-$$.sh 2>/dev/null || true
+}
+
+# Set trap to cleanup on error, interrupt, or termination
+trap cleanup_on_failure EXIT INT TERM
+
+# Helper function to track created directories
+create_tracked_dir() {
+    local dir="$1"
+    if [ ! -d "$dir" ]; then
+        mkdir -p "$dir"
+        DIRECTORIES_CREATED+=("$dir")
+    fi
+}
+
+# Helper function to track created files
+track_file() {
+    local file="$1"
+    FILES_CREATED+=("$file")
+}
+
 # Initialize flags
 NO_BASE=false
 OVERWRITE_INSTRUCTIONS=false
@@ -111,9 +175,15 @@ fi
 echo ""
 echo "📁 Creating project directories..."
 echo ""
-mkdir -p "$INSTALL_DIR"
-mkdir -p "$INSTALL_DIR/state/recovery"
-mkdir -p "$INSTALL_DIR/standards"
+
+# Mark installation as started for cleanup tracking
+INSTALL_STARTED=true
+
+# Create directories with tracking for rollback
+create_tracked_dir "$INSTALL_DIR"
+create_tracked_dir "$INSTALL_DIR/state"
+create_tracked_dir "$INSTALL_DIR/state/recovery"
+create_tracked_dir "$INSTALL_DIR/standards"
 
 # Configure tools and project type based on installation type
 if [ "$IS_FROM_BASE" = true ]; then
@@ -203,9 +273,10 @@ fi
 if [ "$CLAUDE_CODE" = true ]; then
     echo ""
     echo "📥 Installing Claude Code support..."
-    mkdir -p "./.claude/commands"
-    mkdir -p "./.claude/agents"
-    mkdir -p "./.claude/skills"
+    create_tracked_dir "./.claude"
+    create_tracked_dir "./.claude/commands"
+    create_tracked_dir "./.claude/agents"
+    create_tracked_dir "./.claude/skills"
 
     if [ "$IS_FROM_BASE" = true ]; then
         # Copy from base installation
@@ -242,7 +313,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         if [ "$FULL_SKILLS" = true ]; then
             echo ""
             echo "  📂 Skills (Tier 2 - Optional):"
-            mkdir -p "./.claude/skills/optional"
+            create_tracked_dir "./.claude/skills/optional"
             for skill in code-review verification skill-creator mcp-builder; do
                 if [ -f "$BASE_AGENT_OS/claude-code/skills/optional/${skill}.md" ]; then
                     copy_file "$BASE_AGENT_OS/claude-code/skills/optional/${skill}.md" "./.claude/skills/optional/${skill}.md" "false" "skills/optional/${skill}.md"
@@ -285,7 +356,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         if [ "$FULL_SKILLS" = true ]; then
             echo ""
             echo "  📂 Skills (Tier 2 - Optional):"
-            mkdir -p "./.claude/skills/optional"
+            create_tracked_dir "./.claude/skills/optional"
             for skill in code-review verification skill-creator mcp-builder; do
                 download_file "${BASE_URL}/claude-code/skills/optional/${skill}.md" \
                     "./.claude/skills/optional/${skill}.md" \
@@ -307,11 +378,60 @@ cat > "$INSTALL_DIR/state/workflow.json" << 'EOF'
 }
 EOF
 
+# Create version tracking file
+echo ""
+echo "📥 Creating version tracking..."
+
+# Determine features installed
+FEATURES_ARRAY="[]"
+if [ "$CLAUDE_CODE" = true ] && [ "$CURSOR" = true ]; then
+    if [ "$WITH_HOOKS" = true ]; then
+        FEATURES_ARRAY='["claude-code", "cursor", "hooks"]'
+    else
+        FEATURES_ARRAY='["claude-code", "cursor"]'
+    fi
+elif [ "$CLAUDE_CODE" = true ]; then
+    if [ "$WITH_HOOKS" = true ]; then
+        FEATURES_ARRAY='["claude-code", "hooks"]'
+    else
+        FEATURES_ARRAY='["claude-code"]'
+    fi
+elif [ "$CURSOR" = true ]; then
+    FEATURES_ARRAY='["cursor"]'
+fi
+
+# Determine skills tier
+SKILLS_TIER="default"
+if [ "$FULL_SKILLS" = true ]; then
+    SKILLS_TIER="full"
+fi
+
+# Get installation timestamp
+INSTALL_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+cat > "$INSTALL_DIR/version.json" << EOF
+{
+  "agent_os_version": "$AGENT_OS_VERSION",
+  "release_date": "$AGENT_OS_RELEASE_DATE",
+  "installed_at": "$INSTALL_TIMESTAMP",
+  "project_type": "$PROJECT_TYPE",
+  "skills_tier": "$SKILLS_TIER",
+  "features": $FEATURES_ARRAY,
+  "installation_source": "$([ "$IS_FROM_BASE" = true ] && echo "base" || echo "github")",
+  "upgrade_info": {
+    "last_checked": null,
+    "available_version": null,
+    "breaking_changes": false
+  }
+}
+EOF
+echo "  ✓ Created version tracking file (v$AGENT_OS_VERSION)"
+
 # Handle optional hooks installation
 if [ "$WITH_HOOKS" = true ]; then
     echo ""
     echo "📥 Installing validation hooks..."
-    mkdir -p "./.claude/hooks"
+    create_tracked_dir "./.claude/hooks"
     
     # Pre-write hook for JSON validation
     cat > "./.claude/hooks/pre-write.sh" << 'EOF'
@@ -374,7 +494,8 @@ fi
 if [ "$CURSOR" = true ]; then
     echo ""
     echo "📥 Installing Cursor support..."
-    mkdir -p "./.cursor/rules"
+    create_tracked_dir "./.cursor"
+    create_tracked_dir "./.cursor/rules"
 
     echo "  📂 Rules:"
 
@@ -401,11 +522,44 @@ if [ "$CURSOR" = true ]; then
     fi
 fi
 
+# Verify installation
+echo ""
+echo "🔍 Verifying installation..."
+
+VERIFICATION_PASSED=true
+
+# Check critical files exist
+if [ ! -f "$INSTALL_DIR/version.json" ]; then
+    echo "  ⚠️  Warning: version.json not created"
+    VERIFICATION_PASSED=false
+fi
+
+if [ ! -f "$INSTALL_DIR/state/workflow.json" ]; then
+    echo "  ⚠️  Warning: workflow.json not created"
+    VERIFICATION_PASSED=false
+fi
+
+if [ "$CLAUDE_CODE" = true ]; then
+    # Verify at least one command exists
+    if [ ! -f "./.claude/commands/execute-tasks.md" ]; then
+        echo "  ⚠️  Warning: Claude Code commands not fully installed"
+        VERIFICATION_PASSED=false
+    fi
+fi
+
+if [ "$VERIFICATION_PASSED" = true ]; then
+    echo "  ✓ All critical files verified"
+fi
+
+# Mark installation as complete (prevents cleanup on exit)
+INSTALL_STARTED=false
+
 # Success message
 echo ""
-echo "✅ Agent OS has been installed in your project ($PROJECT_NAME)!"
+echo "✅ Agent OS v$AGENT_OS_VERSION has been installed in your project ($PROJECT_NAME)!"
 echo ""
 echo "📍 Project-level files installed to:"
+echo "   .agent-os/version.json     - Installation version and metadata"
 echo "   .agent-os/standards/       - Development standards"
 echo "   .agent-os/state/           - State management and caching"
 
