@@ -126,13 +126,12 @@ IF context_unclear:
 
 ### Step 2: Get Current Date and Time
 
-Use the date-checker subagent to determine the current date for timestamps in debug reports.
+Use the current date from the environment context for timestamps in debug reports.
 
 **Instructions:**
 ```
-ACTION: Use date-checker subagent via Task tool
-REQUEST: "Determine today's date in YYYY-MM-DD format for 
-          debug report timestamps and file naming"
+ACTION: Get today's date from environment context
+NOTE: Claude Code provides "Today's date: YYYY-MM-DD" in every session
 STORE: Date for use in debug report generation
 ```
 
@@ -188,11 +187,39 @@ IF scope == "task" OR scope == "spec":
 - CHECK: Content mapping if debugging file/content issues
 - DOCUMENT: Issue details and affected areas
 
-### Step 4: Targeted Investigation
+### Step 4: Targeted Investigation (systematic-debugging skill)
 
-Use the debug-helper subagent to investigate based on detected scope.
+The systematic-debugging skill auto-invokes to enforce root cause analysis before attempting fixes.
 
-**Investigation Approach:**
+**Core Principle:** NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
+
+**Systematic Investigation Phases:**
+
+**Phase 1: Root Cause Investigation**
+```
+ACTION: systematic-debugging skill auto-invokes
+WORKFLOW:
+  1. Read complete error messages and stack traces
+  2. Reproduce issue consistently
+  3. Check recent changes (git log, git diff)
+  4. Trace data flow from source to error point
+```
+
+**Phase 2: Pattern Analysis**
+```
+SEARCH: Find working examples in codebase
+COMPARE: Working vs broken code
+IDENTIFY: Key differences (config, types, dependencies, timing)
+```
+
+**Phase 3: Hypothesis Formation**
+```
+FORMAT: "The error occurs because [specific cause] which leads to [observed behavior]"
+TEST: Change ONE variable at a time
+VERIFY: Each test confirms or refutes hypothesis
+```
+
+**Scope-Specific Focus:**
 
 **Task Investigation:**
 ```
@@ -221,14 +248,22 @@ IF scope == "general":
   ANALYZE: System-wide impacts
 ```
 
+**Escalation Protocol:**
+```
+IF 3+ fix attempts have failed:
+  STOP - Do not attempt another fix
+  ASK:
+    1. Am I treating a symptom instead of the cause?
+    2. Is there an architectural problem?
+    3. Do I need to step back and re-examine assumptions?
+  EVIDENCE: Multiple failed fixes indicate deeper problem
+```
+
 **Instructions:**
 ```
-ACTION: Use debug-helper subagent
-REQUEST: "Investigate [SCOPE] issue: [DESCRIPTION]
-          Context: [RELEVANT_CONTEXT]
-          Focus: [SCOPE_SPECIFIC_AREAS]"
-ANALYZE: Returned findings
-IDENTIFY: Root cause
+ACTION: Use systematic-debugging skill
+OUTPUT: Root cause analysis with evidence
+REQUIRE: Identified root cause BEFORE proceeding to fix
 ```
 
 ### Step 5: Issue Reproduction
@@ -275,7 +310,7 @@ Before implementing any code changes, verify existing function/variable/componen
 ```
 ACTION: Check if .agent-os/codebase/ exists
 IF exists AND fix involves modifying existing code:
-  MANDATORY: Retrieve existing names via context-fetcher
+  MANDATORY: Retrieve existing names via codebase-names skill
   REASON: Prevents incorrect names in debug fixes
 ELSE:
   SKIP: Name verification (new code or no index)
@@ -284,7 +319,7 @@ ELSE:
 **Retrieve Existing Names:**
 ```
 IF name verification required:
-  ACTION: Use context-fetcher subagent via Task tool
+  ACTION: Use codebase-names skill via Task tool
   REQUEST: "Retrieve codebase references for debug fix:
 
     FROM .agent-os/codebase/:
@@ -302,7 +337,7 @@ IF name verification required:
 **Retrieve Content References (if content-related fix):**
 ```
 IF content-mapping.md exists AND fix_involves_content:
-  ACTION: Use context-fetcher subagent via Task tool
+  ACTION: Use codebase-names skill via Task tool
   REQUEST: "Retrieve content references for debug fix:
 
     FROM .agent-os/specs/[SPEC]/sub-specs/content-mapping.md:
@@ -416,7 +451,7 @@ IF scope == "general":
 
 ### Step 7: Scoped Test Verification
 
-Use the test-runner subagent to verify fix at appropriate level.
+The test-check skill auto-invokes to verify fix at appropriate level.
 
 **Test Scope:**
 
@@ -446,7 +481,7 @@ IF scope == "general":
 
 **Instructions:**
 ```
-ACTION: Use test-runner subagent
+ACTION: test-check skill auto-invokes
 REQUEST: "Run [SCOPE] tests for debugging fix"
 VERIFY: All relevant tests pass
 CONFIRM: Issue resolved
@@ -489,28 +524,28 @@ IF scope == "general":
 
 ### Step 9: Create Debug Documentation
 
-Use the file-creator subagent to document debugging based on scope.
+Create debug documentation based on scope using the Write tool.
 
 **Documentation Paths:**
 
 **Task Documentation:**
 ```
 IF scope == "task":
-  PATH: .agent-os/debugging/tasks/[SPEC]-[TASK]-[CURRENT_DATE from date-checker].md
+  PATH: .agent-os/debugging/tasks/[SPEC]-[TASK]-[CURRENT_DATE from environment].md
   INCLUDE: Task context, issue, fix
 ```
 
 **Spec Documentation:**
 ```
 IF scope == "spec":
-  PATH: .agent-os/debugging/specs/[SPEC]-[CURRENT_DATE from date-checker].md
+  PATH: .agent-os/debugging/specs/[SPEC]-[CURRENT_DATE from environment].md
   INCLUDE: Integration issues, cross-task fixes
 ```
 
 **General Documentation:**
 ```
 IF scope == "general":
-  PATH: .agent-os/debugging/[CURRENT_DATE from date-checker]-[ISSUE].md
+  PATH: .agent-os/debugging/[CURRENT_DATE from environment]-[ISSUE].md
   INCLUDE: Full investigation and fix
 ```
 
@@ -520,7 +555,7 @@ IF scope == "general":
 
 **Scope:** [task/spec/general]
 **Context:** [Implementation/Production]
-**Date:** [CURRENT_DATE from date-checker]
+**Date:** [CURRENT_DATE from environment]
 
 ## Issue
 [Description of the problem]
@@ -540,7 +575,7 @@ IF scope == "general":
 
 **Instructions:**
 ```
-ACTION: Use file-creator subagent
+ACTION: Create file using Write tool
 CREATE: Debug report at appropriate path
 INCLUDE: Context-relevant information
 FOCUS: Lessons learned and prevention
@@ -830,10 +865,8 @@ debugState.errors_encountered = [];
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:
-- `date-checker` for determining current date in proper format for timestamps
-- `context-fetcher` for retrieving existing codebase names before implementing fixes
-- `test-runner` for running scope-appropriate test verification
-- `build-checker` for build verification and diagnostics before commits
+- `codebase-names` skill (auto-invoked) for validating existing function/variable names before implementing fixes
+- `test-check` skill (auto-invoked) for running test verification
+- Use `build-check` skill (auto-invoked) for build verification before commits
 - `codebase-indexer` for updating code references after fixes
-- `file-creator` for creating debug documentation with proper context paths
 - `git-workflow` for complete git workflow including commits, pushes, and PRs

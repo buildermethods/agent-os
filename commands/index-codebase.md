@@ -94,13 +94,12 @@ ELSE:
 
 ### Step 2: Get Current Date
 
-Use the date-checker subagent to determine the current date for timestamps.
+Use the current date from the environment context for timestamps.
 
 **Instructions:**
 ```
-ACTION: Use date-checker subagent via Task tool
-REQUEST: "Determine today's date in YYYY-MM-DD format for 
-          codebase indexing timestamps"
+ACTION: Get today's date from environment context
+NOTE: Claude Code provides "Today's date: YYYY-MM-DD" in every session
 STORE: Date for use in index.md generation
 ```
 
@@ -121,8 +120,8 @@ CREATE: .agent-os/codebase/schemas.md
 ```markdown
 # Codebase Reference Index
 
-Generated: [CURRENT_DATE from date-checker]
-Last Updated: [CURRENT_DATE from date-checker]
+Generated: [CURRENT_DATE from environment]
+Last Updated: [CURRENT_DATE from environment]
 
 ## Reference Files
 - functions.md: Function and method signatures
@@ -265,7 +264,7 @@ Update the index.md file with scan statistics and directory list.
 - Functions: [COUNT]
 - Classes: [COUNT]
 - Exports: [COUNT]
-- Last Updated: [CURRENT_DATE from date-checker]
+- Last Updated: [CURRENT_DATE from environment]
 ```
 
 ### Step 9: Configure Auto-Update

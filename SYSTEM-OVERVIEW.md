@@ -42,14 +42,23 @@ Target Project/
 │   │   └── debug.md            # (~550 lines with embedded instructions)
 │   │
 │   ├── agents/             # Specialized subagents
-│   │   ├── spec-cache-manager.md  # Specification discovery and caching
-│   │   ├── context-fetcher.md     # Batched context retrieval
 │   │   ├── git-workflow.md        # Git operations and PR creation
-│   │   ├── test-runner.md         # Test execution and analysis
 │   │   ├── codebase-indexer.md    # Code reference management
-│   │   ├── project-manager.md     # Task and roadmap management
-│   │   ├── file-creator.md        # File and directory creation
-│   │   └── date-checker.md        # Date and time utilities
+│   │   └── project-manager.md     # Task and roadmap management
+│   │
+│   ├── skills/             # Model-invoked skills (auto-triggered by Claude)
+│   │   ├── build-check.md         # Build verification before commits
+│   │   ├── test-check.md          # Test execution and analysis
+│   │   ├── codebase-names.md      # Name validation against codebase
+│   │   ├── systematic-debugging.md # 4-phase root cause analysis
+│   │   ├── tdd.md                 # Test-driven development enforcement
+│   │   ├── brainstorming.md       # Socratic design refinement
+│   │   ├── writing-plans.md       # Detailed micro-task planning
+│   │   └── optional/              # Tier 2 skills (--full-skills flag)
+│   │       ├── code-review.md     # Code review guidance
+│   │       ├── verification.md    # Completion verification
+│   │       ├── skill-creator.md   # Custom skill creation guide
+│   │       └── mcp-builder.md     # MCP server creation guide
 │   │
 │   └── hooks/              # Optional validation hooks
 │       ├── pre-write.sh    # JSON validation before writes
@@ -273,6 +282,31 @@ REQUEST: "Perform specification discovery for project:
 | **project-manager** | Task/roadmap updates, notifications | execute-tasks, create-spec |
 | **file-creator** | Batch file/directory creation | All commands |
 | **date-checker** | Current date/time information | create-spec, plan-product |
+
+### Skills (Model-Invoked)
+
+Skills are auto-invoked by Claude based on context. They live in `.claude/skills/`.
+
+**Tier 1 - Default Skills (Always Installed):**
+
+| Skill | Purpose | Auto-Invoke Trigger |
+|-------|---------|---------------------|
+| **build-check** | Verify build, classify errors | Before git commits |
+| **test-check** | Run tests, analyze failures | After code implementation |
+| **codebase-names** | Validate names against codebase index | Before writing code |
+| **systematic-debugging** | 4-phase root cause analysis | When debugging issues |
+| **tdd** | Enforce RED-GREEN-REFACTOR cycle | Before implementing features |
+| **brainstorming** | Socratic design refinement | During spec creation |
+| **writing-plans** | Create detailed micro-task plans | During task breakdown |
+
+**Tier 2 - Optional Skills (Installed with `--full-skills`):**
+
+| Skill | Purpose | Location |
+|-------|---------|----------|
+| **code-review** | Pre-review checklist, feedback integration | `.claude/skills/optional/` |
+| **verification** | Evidence-based completion verification | `.claude/skills/optional/` |
+| **skill-creator** | Guide for creating custom skills | `.claude/skills/optional/` |
+| **mcp-builder** | Guide for creating MCP servers | `.claude/skills/optional/` |
 
 ---
 

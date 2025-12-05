@@ -78,7 +78,7 @@ Generate product docs for new projects: mission, tech-stack and roadmap files fo
 
 ### Step 1: Gather User Input
 
-Use the context-fetcher subagent to collect all required inputs from the user including main idea, key features (minimum 3), target users (minimum 1), and tech stack preferences with blocking validation before proceeding.
+Use the Explore agent (native) to collect all required inputs from the user including main idea, key features (minimum 3), target users (minimum 1), and tech stack preferences with blocking validation before proceeding.
 
 **Data Sources:**
 - **Primary**: user_direct_input
@@ -99,19 +99,25 @@ Please provide the following missing information:
 
 ### Step 2: Get Current Date
 
-Use the date-checker subagent to determine the current date for documentation timestamps.
+Use the current date from the environment context for documentation timestamps.
 
 **Instructions:**
 ```
-ACTION: Use date-checker subagent via Task tool
-REQUEST: "Determine today's date in YYYY-MM-DD format for 
-          product documentation timestamps"
+ACTION: Get today's date from environment context
+NOTE: Claude Code provides "Today's date: YYYY-MM-DD" in every session
 STORE: Date for use in roadmap creation date
 ```
 
 ### Step 3: Create Documentation Structure
 
-Use the file-creator subagent to create the following file_structure with validation for write permissions and protection against overwriting existing files:
+Create the following directory structure using Bash mkdir:
+
+**Directory Creation:**
+```bash
+mkdir -p .agent-os/product
+```
+
+Create files with validation for write permissions and protection against overwriting existing files:
 
 **File Structure:**
 ```
@@ -125,7 +131,7 @@ Use the file-creator subagent to create the following file_structure with valida
 
 ### Step 4: Create mission.md
 
-Use the file-creator subagent to create the file: .agent-os/product/mission.md and use the following template:
+Create the file: .agent-os/product/mission.md using the Write tool with the following template:
 
 **File Template:**
 ```markdown
@@ -240,7 +246,7 @@ ELSE:
 
 ### Step 5: Create tech-stack.md
 
-Use the file-creator subagent to create the file: .agent-os/product/tech-stack.md and use the following template:
+Create the file: .agent-os/product/tech-stack.md using the Write tool with the following template:
 
 **File Template:**
 ```markdown
@@ -266,7 +272,7 @@ Use the file-creator subagent to create the file: .agent-os/product/tech-stack.m
 ```
 IF has_context_fetcher:
   FOR missing tech stack items:
-    USE: @agent:context-fetcher
+    USE: Explore agent
     REQUEST: "Find [ITEM_NAME] from tech-stack.md"
     PROCESS: Use found defaults
 ELSE:
@@ -293,7 +299,7 @@ You can respond with the technology choice or "n/a" for each item.
 
 ### Step 6: Create mission-lite.md
 
-Use the file-creator subagent to create the file: .agent-os/product/mission-lite.md for the purpose of establishing a condensed mission for efficient AI context usage.
+Create the file: .agent-os/product/mission-lite.md using the Write tool. Purpose: condensed mission for efficient AI context usage.
 
 **File Template:**
 ```markdown
@@ -325,13 +331,13 @@ TaskFlow serves distributed software teams who need seamless task coordination a
 
 ### Step 7: Create roadmap.md
 
-Use the file-creator subagent to create the following file: .agent-os/product/roadmap.md using the following template:
+Create the file: .agent-os/product/roadmap.md using the Write tool with the following template:
 
 **File Template:**
 ```markdown
 # Product Roadmap
 
-Created: [CURRENT_DATE from date-checker]
+Created: [CURRENT_DATE from environment]
 ```
 
 **Phase Structure:**
@@ -449,5 +455,4 @@ const productState = {
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:
-- `context-fetcher` for gathering user requirements and tech stack defaults
-- `file-creator` for creating all product documentation files and directory structure
+- Use native Explore agent for gathering context and tech stack defaults

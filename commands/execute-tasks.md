@@ -45,7 +45,7 @@ const todos = [
   { content: "Setup git branch", status: "pending", activeForm: "Setting up git branch" },
   { content: "Execute assigned tasks", status: "pending", activeForm: "Executing assigned tasks" },
   { content: "Run test suite", status: "pending", activeForm: "Running test suite" },
-  { content: "Verify build with build-checker agent", status: "pending", activeForm: "Verifying build with build-checker agent" },
+  { content: "Verify build (build-check skill auto-invoked)", status: "pending", activeForm: "Verifying build" },
   { content: "Complete git workflow", status: "pending", activeForm: "Completing git workflow" },
   { content: "Generate documentation", status: "pending", activeForm: "Generating documentation" },
   { content: "Save state and cleanup", status: "pending", activeForm: "Saving state and cleanup" }
@@ -87,22 +87,21 @@ Identify which tasks to execute from the spec (using spec_srd_reference file pat
 3. CONFIRM: Task selection with user
 
 ### Step 2: Get Current Date and Initialize Cache
-Use the date-checker subagent to get the current date for timestamps and cache management.
+Use the current date from the environment context for timestamps and cache management.
 
 **Instructions:**
 ```
-ACTION: Use date-checker subagent via Task tool
-REQUEST: "Determine today's date in YYYY-MM-DD format for 
-          workflow timestamps and cache management"
+ACTION: Get today's date from environment context
+NOTE: Claude Code provides "Today's date: YYYY-MM-DD" in every session
 STORE: Date for use in cache metadata and file naming
 ```
 
 ### Step 3: Specification Discovery and Caching
-Use the spec-cache-manager subagent to perform comprehensive specification discovery once and cache for entire session.
+Use the native Explore agent to perform specification discovery.
 
 **Instructions:**
 ```
-ACTION: Use spec-cache-manager subagent via Task tool
+ACTION: Use native Explore agent
 REQUEST: "Perform specification discovery for project:
           - Search all specification directories
           - Create lightweight index of spec files
@@ -126,11 +125,11 @@ NOTE: This happens ONCE for entire task session
 ```
 
 ### Step 4: Initial Context Analysis
-Use the context-fetcher subagent to gather minimal context for task understanding by loading core documents.
+Use the Explore agent (native) to gather minimal context for task understanding by loading core documents.
 
 **Instructions:**
 ```
-ACTION: Use context-fetcher subagent via Task tool to:
+ACTION: Use Explore agent (native) via Task tool to:
   - REQUEST: "Get product pitch from mission-lite.md"
   - REQUEST: "Get spec summary from spec-lite.md"
   - REQUEST: "Get technical approach from technical-spec.md"
@@ -228,7 +227,7 @@ Read and analyze tasks from tasks.md while mapping requirements to discovered sp
    - Document spec-to-requirement relationships
 
 ### Step 7.3: Batched Context Retrieval
-Use the context-fetcher subagent to retrieve ALL relevant context in a SINGLE batched request, reducing overhead and improving performance.
+Use the Explore agent (native) to retrieve ALL relevant context in a SINGLE batched request, reducing overhead and improving performance.
 
 **Codebase Reference Check:**
 ```
@@ -252,7 +251,7 @@ ELSE:
 
 **Batched Request:**
 ```
-ACTION: Use context-fetcher subagent via Task tool
+ACTION: Use Explore agent (native) via Task tool
 REQUEST: "Batch retrieve the following context for task execution:
 
   FROM technical-spec.md:
@@ -339,7 +338,7 @@ IF .agent-os/codebase/ exists AND references were retrieved:
   VALIDATION GATE:
   - ✓ Do NOT guess or approximate names
   - ✓ Do NOT write code until names are verified
-  - ✓ If unsure, use context-fetcher to grep specifically
+  - ✓ If unsure, use Explore agent to search specifically
   - ✓ Create mental checklist or brief comment with correct names
   - HALT if critical names are missing or ambiguous
 ```
@@ -464,12 +463,25 @@ Document implementation approach and validate against specifications BEFORE codi
 - ✓ All required function/component/variable names verified
 - HALT if approach conflicts with specifications OR critical names are missing
 
-### Step 7.5: Task and Sub-task Execution with TDD
-Execute the parent task and all sub-tasks in order using test-driven development (TDD) approach with specification compliance checks.
+### Step 7.5: Task and Sub-task Execution with TDD (tdd skill)
+
+The tdd skill auto-invokes to enforce test-driven development discipline.
+
+**Core Principle:** NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
+
+**TDD Workflow (tdd skill):**
+```
+ACTION: tdd skill auto-invokes before implementation
+CYCLE:
+  1. RED:    Write failing test for desired behavior
+  2. GREEN:  Write minimal code to pass test
+  3. REFACTOR: Clean up while tests stay green
+  4. COMMIT: After each passing test
+```
 
 **Typical Task Structure:**
-1. **First subtask**: Write tests for [feature]
-2. **Middle subtasks**: Implementation steps
+1. **First subtask**: Write tests for [feature] (RED phase)
+2. **Middle subtasks**: Implementation steps (GREEN phase)
 3. **Final subtask**: Verify all tests pass
 
 **TodoWrite Example for Each Task:**
@@ -478,7 +490,7 @@ Execute the parent task and all sub-tasks in order using test-driven development
 const taskTodos = [
   { content: "Implement [feature/fix from task]", status: "pending", activeForm: "Implementing [feature/fix from task]" },
   { content: "Write/update tests", status: "pending", activeForm: "Writing/updating tests" },
-  { content: "Verify build with build-checker agent", status: "pending", activeForm: "Verifying build with build-checker agent" },
+  { content: "Verify build (build-check skill auto-invoked)", status: "pending", activeForm: "Verifying build" },
   { content: "Commit via git-workflow", status: "pending", activeForm: "Committing via git-workflow" }
 ];
 ```
@@ -512,11 +524,11 @@ IF final sub-task is "Verify all tests pass":
 - Mark final sub-task complete
 
 ### Step 7.6: Task-Specific Test Verification
-Use the test-runner subagent to run and verify only the tests specific to this parent task.
+The test-check skill auto-invokes to run and verify tests specific to this parent task.
 
 **Focused Test Execution:**
 ```
-ACTION: Use test-runner subagent via Task tool
+ACTION: test-check skill auto-invokes
 REQUEST: "Run tests for [this parent task's test files]"
 CACHE: Results in session-cache.json
 VERIFY: 100% pass rate for task-specific tests
@@ -555,8 +567,20 @@ Update task statuses in real-time as work progresses.
 - **Incomplete**: `- [ ] Task description`
 - **Blocked**: `- [ ] Task description ⚠️ Blocking issue: [DESCRIPTION]`
 
-### Step 7.9: Output Validation Against Specifications
-Validate ALL outputs against specifications before marking tasks complete.
+### Step 7.9: Output Validation Against Specifications (verification skill)
+
+Validate ALL outputs against specifications before marking tasks complete. The verification skill (if installed) auto-invokes to ensure evidence-based completion claims.
+
+**Core Principle:** NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
+
+**Verification Gate (5-Step Process):**
+```
+1. IDENTIFY: What command validates this completion?
+2. EXECUTE: Run the verification command freshly
+3. READ: Full output and exit codes
+4. VERIFY: Output confirms the claim
+5. CLAIM: Only now mark task complete
+```
 
 **Validation Checklist:**
 
@@ -574,6 +598,12 @@ Validate ALL outputs against specifications before marking tasks complete.
 - ✓ Performance meets specified criteria
 - ✓ No specification requirements missed
 
+**Evidence Requirements:**
+```
+INVALID: "Tests should pass now" (assumption)
+VALID:   "Tests pass: npm test exit code 0" (evidence)
+```
+
 **Failure Handling:**
 IF validation fails:
 1. Document specific specification violations
@@ -587,7 +617,7 @@ ONLY after output validation passes, mark this task and its sub-tasks complete b
 ## Phase 3: Task Completion and Delivery
 
 ### Step 8: Run All Tests
-Use the test-runner subagent to run ALL tests in the application's test suite to ensure no regressions.
+Run ALL tests in the application's test suite to ensure no regressions (test-check skill).
 
 **Smart Test Execution:**
 ```
@@ -607,7 +637,7 @@ ELSE:
 ```
 ACTION: Check for cached test results first
 IF CACHED AND PASSING: Skip test execution
-ELSE: Use test-runner subagent via Task tool
+ELSE: test-check skill auto-invokes
 REQUEST: "Run the full test suite"
 VERIFY: 100% pass rate
 FIX: Any failures before proceeding
@@ -628,7 +658,7 @@ ELSE IF validation was skipped or incomplete:
 ```
 
 ### Step 9.5: Build Verification and Diagnostics Check
-Use the build-checker subagent to verify build status and check for type/lint errors before committing.
+The build-check skill is auto-invoked to verify build status and check for type/lint errors before committing.
 
 **Instructions:**
 ```
@@ -639,8 +669,8 @@ ACTION: Get remaining tasks for context
 READ: .agent-os/tasks/[SPEC_FOLDER]/tasks.md
 EXTRACT: Uncompleted tasks that might fix build issues
 
-ACTION: Use build-checker subagent via Task tool
-REQUEST: "Check build status before commit for [SPEC_NAME]:
+ACTION: build-check skill auto-invokes before commit
+CONTEXT: "Check build status before commit for [SPEC_NAME]:
           - Context: spec
           - Modified files: [LIST_OF_MODIFIED_FILES]
           - Current task: [COMPLETED_TASKS]
@@ -657,7 +687,7 @@ ANALYZE: Returned decision (COMMIT | FIX_REQUIRED | DOCUMENT_AND_COMMIT)
 IF decision == "FIX_REQUIRED":
   DISPLAY: List of must-fix errors to user
   ACTION: Fix each error
-  VERIFY: Re-run build-checker until COMMIT decision
+  VERIFY: Re-run build-check until COMMIT decision
   THEN: Proceed to git workflow
 ```
 
@@ -801,13 +831,13 @@ const workflow = loadState(stateFile, {
 });
 
 // Create session cache for task execution
-// Note: [CURRENT_DATE] should be replaced with the date from date-checker agent
+// Note: [CURRENT_DATE] should be replaced with today's date from environment context
 // Note: Cache expiration is managed by file modification time, not JavaScript dates
 const sessionCache = {
   spec_cache: {},
   context_cache: {},
   metadata: {
-    created_date: "[CURRENT_DATE from date-checker]",
+    created_date: "[CURRENT_DATE from environment]",
     workflow_id: "tasks-[CURRENT_DATE]-[SESSION_NUMBER]",
     access_count: 1,
     auto_extend: true,
@@ -880,10 +910,11 @@ try {
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:
-- `spec-cache-manager` for specification discovery and caching
-- `context-fetcher` for batched context retrieval
+- Use native Explore agent for specification discovery
+- `codebase-names` skill (auto-invoked) for validating existing function/variable names
+- Use native Explore agent for document retrieval
 - `git-workflow` for branch and commit management
-- `test-runner` for test execution
-- `build-checker` for build verification and diagnostics before commits
+- `test-check` skill (auto-invoked) for test execution
+- `build-check` skill (auto-invoked) for build verification before commits
 - `codebase-indexer` for code reference updates
 - `project-manager` for documentation and notifications

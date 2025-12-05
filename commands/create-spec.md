@@ -78,7 +78,7 @@ Generate detailed feature specifications aligned with product roadmap and missio
 
 ### Step 1: Spec Initiation
 
-Use the context-fetcher subagent to identify spec initiation method by either finding the next uncompleted roadmap item when user asks "what's next?" or accepting a specific spec idea from the user.
+Use the Explore agent (native) to identify spec initiation method by either finding the next uncompleted roadmap item when user asks "what's next?" or accepting a specific spec idea from the user.
 
 **Option A Flow:**
 - **Trigger phrases**: "what's next?"
@@ -95,7 +95,7 @@ Use the context-fetcher subagent to identify spec initiation method by either fi
 
 ### Step 2: Context Gathering (Conditional)
 
-Use the context-fetcher subagent to read @.agent-os/product/mission-lite.md and @.agent-os/product/tech-stack.md only if not already in context to ensure minimal context for spec alignment.
+Use the Explore agent (native) to read @.agent-os/product/mission-lite.md and @.agent-os/product/tech-stack.md only if not already in context to ensure minimal context for spec alignment.
 
 **Conditional Logic:**
 ```
@@ -113,9 +113,37 @@ ELSE:
 - **mission_lite**: core product purpose and value
 - **tech_stack**: technical requirements
 
-### Step 3: Requirements Clarification
+### Step 3: Requirements Clarification (brainstorming skill)
 
-Use the context-fetcher subagent to clarify scope boundaries and technical considerations by asking numbered questions as needed to ensure clear requirements before proceeding.
+Use the brainstorming skill to explore approaches and refine requirements through Socratic questioning.
+
+**Core Principle:** UNDERSTAND BEFORE DESIGNING
+
+**Brainstorming Workflow:**
+```
+ACTION: brainstorming skill invoked for complex features
+APPROACH:
+  1. Ask ONE question at a time (avoid overwhelming)
+  2. Provide multiple-choice options when possible
+  3. Present 2-3 approaches with trade-offs
+  4. Validate understanding incrementally
+```
+
+**Questions to Explore:**
+- What problem does this feature solve?
+- Who are the primary users?
+- What are the success criteria?
+- Are there hard constraints (performance, compatibility)?
+- What's explicitly out of scope?
+
+**Approach Exploration (for complex features):**
+```
+IF multiple_valid_approaches:
+  GENERATE: 2-3 distinct approaches
+  PRESENT: Trade-offs for each (pros, cons, complexity)
+  RECOMMEND: One approach with reasoning
+  VALIDATE: User agreement before proceeding
+```
 
 **Clarification Areas:**
 - **Scope**:
@@ -129,7 +157,7 @@ Use the context-fetcher subagent to clarify scope boundaries and technical consi
 **Decision Tree:**
 ```
 IF clarification_needed:
-  ASK numbered_questions
+  ASK numbered_questions (one at a time)
   WAIT for_user_response
 ELSE:
   PROCEED to_date_determination
@@ -137,14 +165,19 @@ ELSE:
 
 ### Step 4: Date Determination
 
-Use the date-checker subagent to determine the current date in YYYY-MM-DD format for folder naming. The subagent will output today's date which will be used in subsequent steps.
+Use the current date from the environment context in YYYY-MM-DD format for folder naming.
 
-**Subagent Output:**
-The date-checker subagent will provide the current date in YYYY-MM-DD format at the end of its response. Store this date for use in folder naming in step 5.
+**Date Source:**
+Claude Code provides "Today's date: YYYY-MM-DD" in every session context. Use this date for folder naming in step 5.
 
 ### Step 5: Spec Folder Creation
 
-Use the file-creator subagent to create directory: .agent-os/specs/YYYY-MM-DD-spec-name/ using the date from step 4.
+Create the directory: .agent-os/specs/YYYY-MM-DD-spec-name/ using the date from step 4.
+
+**Directory Creation:**
+```bash
+mkdir -p .agent-os/specs/YYYY-MM-DD-spec-name/sub-specs
+```
 
 Use kebab-case for spec name. Maximum 5 words in name.
 
@@ -163,7 +196,7 @@ Use kebab-case for spec name. Maximum 5 words in name.
 
 ### Step 6: Create spec.md
 
-Use the file-creator subagent to create the file: .agent-os/specs/YYYY-MM-DD-spec-name/spec.md using this template:
+Create the file: .agent-os/specs/YYYY-MM-DD-spec-name/spec.md using the Write tool with this template:
 
 **File Template Header:**
 ```markdown
@@ -238,7 +271,7 @@ As a [USER_TYPE], I want to [ACTION], so that [BENEFIT].
 
 ### Step 7: Create spec-lite.md
 
-Use the file-creator subagent to create the file: .agent-os/specs/YYYY-MM-DD-spec-name/spec-lite.md for the purpose of establishing a condensed spec for efficient AI context usage.
+Create the file: .agent-os/specs/YYYY-MM-DD-spec-name/spec-lite.md using the Write tool. Purpose: condensed spec for efficient AI context usage.
 
 **File Template:**
 ```markdown
@@ -259,7 +292,7 @@ Implement secure password reset via email verification to reduce support tickets
 
 ### Step 8: Create Technical Specification
 
-Use the file-creator subagent to create the file: sub-specs/technical-spec.md using this template:
+Create the file: sub-specs/technical-spec.md using the Write tool with this template:
 
 **File Template:**
 ```markdown
@@ -304,7 +337,7 @@ ELSE:
 
 ### Step 9: Create Database Schema (Conditional)
 
-Use the file-creator subagent to create the file: sub-specs/database-schema.md ONLY IF database changes needed for this task.
+Create the file: sub-specs/database-schema.md using the Write tool ONLY IF database changes needed for this task.
 
 **Decision Tree:**
 ```
@@ -338,7 +371,7 @@ This is the database schema implementation for the spec detailed in @.agent-os/s
 
 ### Step 10: Create API Specification (Conditional)
 
-Use the file-creator subagent to create file: sub-specs/api-spec.md ONLY IF API changes needed.
+Create the file: sub-specs/api-spec.md using the Write tool ONLY IF API changes needed.
 
 **Decision Tree:**
 ```
@@ -383,7 +416,7 @@ This is the API specification for the spec detailed in @.agent-os/specs/YYYY-MM-
 
 ### Step 10.5: Create Content Mapping (Conditional)
 
-Use the file-creator subagent to create file: sub-specs/content-mapping.md ONLY IF external content is referenced.
+Create the file: sub-specs/content-mapping.md using the Write tool ONLY IF external content is referenced.
 
 **Decision Tree:**
 ```
@@ -420,7 +453,7 @@ IF any_content_mentioned OR user_provides_content_files:
   WAIT: For user response
 
   IF user_provides_content_details:
-    ACTION: Use file-creator subagent
+    ACTION: Create file using Write tool
     CREATE: sub-specs/content-mapping.md
     NOTE: Add reference to content-mapping.md in spec.md
   ELSE:
@@ -632,6 +665,4 @@ const creationState = {
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:
-- `context-fetcher` for reading product documentation and gathering requirements
-- `date-checker` for determining current date in proper format
-- `file-creator` for creating specification files and directory structure
+- Use native Explore agent for reading product documentation and gathering requirements

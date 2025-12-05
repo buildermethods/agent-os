@@ -121,19 +121,18 @@ Perform a deep codebase analysis of the current codebase to understand current s
 
 ### Step 2: Get Current Date
 
-Use the date-checker subagent to determine the current date for analysis timestamps.
+Use the current date from the environment context for analysis timestamps.
 
 **Instructions:**
 ```
-ACTION: Use date-checker subagent via Task tool
-REQUEST: "Determine today's date in YYYY-MM-DD format for 
-          product analysis timestamps"
+ACTION: Get today's date from environment context
+NOTE: Claude Code provides "Today's date: YYYY-MM-DD" in every session
 STORE: Date for use in analysis documentation
 ```
 
 ### Step 3: Gather Product Context
 
-Use the context-fetcher subagent to supplement codebase analysis with business context and future plans.
+Use the Explore agent (native) to supplement codebase analysis with business context and future plans.
 
 **Context Questions:**
 ```
@@ -207,7 +206,7 @@ Refine the generated documentation to ensure accuracy for the existing product b
 ```markdown
 ## Phase 0: Already Completed
 
-_Analysis Date: [CURRENT_DATE from date-checker]_
+_Analysis Date: [CURRENT_DATE from environment]_
 
 The following features have been implemented:
 
@@ -345,6 +344,5 @@ const analysisState = {
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:
-- `context-fetcher` for gathering user requirements and supplementing codebase analysis
-- `file-creator` for creating all product documentation files and directory structure
+- Use native Explore agent for gathering user requirements and supplementing codebase analysis
 - Execute plan-product.md workflow with analyzed context and user input

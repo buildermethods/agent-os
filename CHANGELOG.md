@@ -5,6 +5,108 @@ All notable changes to Agent OS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-12-05
+
+### Extended Skills Library
+
+Major skills expansion integrating battle-tested development workflow skills from the community (obra/superpowers) and official Anthropic skills.
+
+**New Tier 1 Skills (Default - Always Installed):**
+
+| Skill | Purpose | Source |
+|-------|---------|--------|
+| systematic-debugging | 4-phase root cause analysis before fixes | obra/superpowers |
+| tdd | RED-GREEN-REFACTOR cycle enforcement | obra/superpowers |
+| brainstorming | Socratic design refinement through questioning | obra/superpowers |
+| writing-plans | Detailed micro-task breakdown (2-5 min tasks) | obra/superpowers |
+
+**New Tier 2 Skills (Optional - `--full-skills` flag):**
+
+| Skill | Purpose | Source |
+|-------|---------|--------|
+| code-review | Pre-review checklists, feedback integration | obra/superpowers |
+| verification | Evidence-based completion verification | obra/superpowers |
+| skill-creator | Guide for creating custom Agent OS skills | anthropics/skills |
+| mcp-builder | Guide for creating MCP servers | anthropics/skills |
+
+**Command Integrations:**
+
+| Command | New Skills Integrated |
+|---------|----------------------|
+| debug.md | systematic-debugging (root cause analysis) |
+| create-spec.md | brainstorming (scope exploration) |
+| create-tasks.md | tdd, writing-plans (TDD structure) |
+| execute-tasks.md | tdd, verification (implementation gates) |
+
+**Installation:**
+
+```bash
+# Default (7 skills)
+./setup/project.sh --claude-code
+
+# Full (11 skills including optional)
+./setup/project.sh --claude-code --full-skills
+```
+
+**Skills Total:** 7 default + 4 optional = 11 skills
+
+---
+
+## [1.5.0] - 2025-12-05
+
+### Native Claude Code Integration - BREAKING CHANGE
+
+Major architectural update to leverage Claude Code's native features, reducing complexity while preserving unique value. **This is a breaking change requiring re-installation in existing projects.**
+
+**Component Changes:**
+- Subagents reduced from 9 to 3 (56% reduction)
+- Added 3 new Skills (model-invoked capabilities)
+- Commands simplified to use native Explore agent
+
+### Retired Subagents (6)
+
+| Agent | Replacement |
+|-------|-------------|
+| date-checker | Native environment context (Claude receives date in every session) |
+| file-creator | Native Write tool + embedded templates in commands |
+| spec-cache-manager | Native Explore agent (fast enough without caching) |
+| context-fetcher | Native Explore agent + codebase-names Skill |
+| test-runner | Converted to test-check Skill |
+| build-checker | Converted to build-check Skill |
+
+### New Skills (3)
+
+Skills are model-invoked - Claude automatically decides when to use them based on context.
+
+| Skill | Purpose |
+|-------|---------|
+| build-check | Auto-invoked before git commits to verify build and classify errors |
+| test-check | Auto-invoked after code changes to run tests and analyze failures |
+| codebase-names | Auto-invoked when writing code to validate existing function/variable names |
+
+### Remaining Subagents (3)
+
+| Agent | Purpose |
+|-------|---------|
+| git-workflow | Branch management, commits, PRs (unique conventions) |
+| codebase-indexer | Code reference updates and compliance tracking |
+| project-manager | Task/roadmap state management |
+
+### Key Benefits
+
+- **56% fewer custom components** (9 subagents → 3 subagents + 3 skills)
+- **Automatic quality gates** via Skills (tests & builds never forgotten)
+- **Faster execution** using native Explore agent
+- **Simpler maintenance** (fewer custom components to maintain)
+- **Better alignment** with Claude Code's native patterns
+
+### Migration
+
+This is a breaking change. Existing AgentOS installations must re-run the installer:
+```bash
+./setup/project.sh --claude-code
+```
+
 ## [1.4.1] - 2025-08-18
 
 ### Replaced Decisions with Recaps

@@ -50,7 +50,7 @@ const todos = [
 When executing this command:
 1. **Initialize TodoWrite** with the workflow steps above for visibility
 2. Read specification documents from the provided spec folder
-3. Use Task tool to invoke file-creator subagent as specified
+3. Use Write tool to create files as specified
 4. Handle codebase reference integration conditionally
 5. **Update TodoWrite** status throughout execution
 6. Present clear execution readiness check
@@ -68,9 +68,33 @@ With the user's approval, proceed to creating a tasks list based on the current 
 
 ## Process Flow
 
-### Step 1: Create tasks.md
+### Step 1: Create tasks.md (writing-plans + tdd skills)
 
-Use the file-creator subagent to create file: tasks.md inside of the current feature's spec folder.
+Use the writing-plans skill to create detailed micro-tasks and the tdd skill to enforce test-first structure.
+
+**Core Principle:** DOCUMENT EVERYTHING THE EXECUTOR NEEDS TO KNOW
+
+**Writing Plans Approach:**
+```
+ACTION: writing-plans skill structures task breakdown
+WORKFLOW:
+  1. Break down hierarchically: Feature → Components → Tasks → Subtasks
+  2. Each subtask should be 2-5 minutes of focused work
+  3. Include exact file paths and complete code examples
+  4. Follow TDD structure for each task
+```
+
+**TDD Task Structure (tdd skill):**
+```
+FOR each behavior/component:
+  1. Write failing test for [behavior]
+  2. Verify test fails (RED)
+  3. Implement minimal code (GREEN)
+  4. Verify test passes
+  5. Commit
+```
+
+Create the file: tasks.md inside of the current feature's spec folder using the Write tool.
 
 **File Template:**
 ```markdown
@@ -85,7 +109,8 @@ Use the file-creator subagent to create file: tasks.md inside of the current fea
 - **Subtasks**:
   - Count: up to 8 per major task
   - Format: decimal notation (1.1, 1.2)
-  - First subtask: typically write tests
+  - First subtask: write tests (TDD RED phase)
+  - Implementation subtask: minimal code (TDD GREEN phase)
   - Last subtask: verify all tests pass
 
 **Task Template:**
@@ -93,21 +118,23 @@ Use the file-creator subagent to create file: tasks.md inside of the current fea
 ## Tasks
 
 - [ ] 1. [MAJOR_TASK_DESCRIPTION]
-  - [ ] 1.1 Write tests for [COMPONENT]
-  - [ ] 1.2 [IMPLEMENTATION_STEP]
-  - [ ] 1.3 [IMPLEMENTATION_STEP]
+  - [ ] 1.1 Write failing tests for [COMPONENT] (TDD RED)
+  - [ ] 1.2 Verify tests fail as expected
+  - [ ] 1.3 Implement [COMPONENT] (TDD GREEN)
   - [ ] 1.4 Verify all tests pass
+  - [ ] 1.5 Commit changes
 
 - [ ] 2. [MAJOR_TASK_DESCRIPTION]
-  - [ ] 2.1 Write tests for [COMPONENT]
-  - [ ] 2.2 [IMPLEMENTATION_STEP]
+  - [ ] 2.1 Write failing tests for [COMPONENT] (TDD RED)
+  - [ ] 2.2 Implement [COMPONENT] (TDD GREEN)
 ```
 
 **Ordering Principles:**
 - Consider technical dependencies
-- Follow TDD approach
+- **Enforce TDD approach** (test before implementation)
 - Group related functionality
 - Build incrementally
+- Micro-tasks (2-5 min each)
 
 **Codebase Reference Integration:**
 
@@ -243,6 +270,5 @@ const taskState = {
    - Allow partial execution of individual tasks
    - Maintain task completion tracking
 
-## Subagent Integration
-When the instructions mention agents, use the Task tool to invoke these subagents:
-- `file-creator` for creating the tasks.md file with proper formatting and structure
+## File Creation
+Use the native Write tool for creating the tasks.md file with proper formatting and structure.

@@ -13,6 +13,7 @@ CLAUDE_CODE=false
 CURSOR=false
 PROJECT_TYPE=""
 WITH_HOOKS=false
+FULL_SKILLS=false
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -41,6 +42,10 @@ while [[ $# -gt 0 ]]; do
             WITH_HOOKS=true
             shift
             ;;
+        --full-skills)
+            FULL_SKILLS=true
+            shift
+            ;;
         --project-type=*)
             PROJECT_TYPE="${1#*=}"
             shift
@@ -55,6 +60,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --claude-code               Add Claude Code support (with embedded instructions)"
             echo "  --cursor                    Add Cursor support"
             echo "  --with-hooks                Add optional validation hooks for state management"
+            echo "  --full-skills               Install all skills including optional Tier 2 skills"
             echo "  --project-type=TYPE         Use specific project type for installation"
             echo "  -h, --help                  Show this help message"
             echo ""
@@ -199,6 +205,7 @@ if [ "$CLAUDE_CODE" = true ]; then
     echo "📥 Installing Claude Code support..."
     mkdir -p "./.claude/commands"
     mkdir -p "./.claude/agents"
+    mkdir -p "./.claude/skills"
 
     if [ "$IS_FROM_BASE" = true ]; then
         # Copy from base installation
@@ -213,13 +220,37 @@ if [ "$CLAUDE_CODE" = true ]; then
 
         echo ""
         echo "  📂 Agents:"
-        for agent in context-fetcher date-checker file-creator git-workflow project-manager test-runner spec-cache-manager codebase-indexer build-checker; do
+        for agent in git-workflow project-manager codebase-indexer; do
             if [ -f "$BASE_AGENT_OS/claude-code/agents/${agent}.md" ]; then
                 copy_file "$BASE_AGENT_OS/claude-code/agents/${agent}.md" "./.claude/agents/${agent}.md" "false" "agents/${agent}.md"
             else
                 echo "  ⚠️  Warning: ${agent}.md not found in base installation"
             fi
         done
+
+        echo ""
+        echo "  📂 Skills (Tier 1 - Default):"
+        for skill in build-check test-check codebase-names systematic-debugging tdd brainstorming writing-plans; do
+            if [ -f "$BASE_AGENT_OS/claude-code/skills/${skill}.md" ]; then
+                copy_file "$BASE_AGENT_OS/claude-code/skills/${skill}.md" "./.claude/skills/${skill}.md" "false" "skills/${skill}.md"
+            else
+                echo "  ⚠️  Warning: ${skill}.md not found in base installation"
+            fi
+        done
+
+        # Install optional Tier 2 skills if --full-skills flag is set
+        if [ "$FULL_SKILLS" = true ]; then
+            echo ""
+            echo "  📂 Skills (Tier 2 - Optional):"
+            mkdir -p "./.claude/skills/optional"
+            for skill in code-review verification skill-creator mcp-builder; do
+                if [ -f "$BASE_AGENT_OS/claude-code/skills/optional/${skill}.md" ]; then
+                    copy_file "$BASE_AGENT_OS/claude-code/skills/optional/${skill}.md" "./.claude/skills/optional/${skill}.md" "false" "skills/optional/${skill}.md"
+                else
+                    echo "  ⚠️  Warning: ${skill}.md not found in base installation"
+                fi
+            done
+        fi
     else
         # Download from GitHub when using --no-base
         echo "  Downloading Claude Code files from GitHub..."
@@ -234,12 +265,34 @@ if [ "$CLAUDE_CODE" = true ]; then
 
         echo ""
         echo "  📂 Agents:"
-        for agent in context-fetcher date-checker file-creator git-workflow project-manager test-runner spec-cache-manager codebase-indexer build-checker; do
+        for agent in git-workflow project-manager codebase-indexer; do
             download_file "${BASE_URL}/claude-code/agents/${agent}.md" \
                 "./.claude/agents/${agent}.md" \
                 "false" \
                 "agents/${agent}.md"
         done
+
+        echo ""
+        echo "  📂 Skills (Tier 1 - Default):"
+        for skill in build-check test-check codebase-names systematic-debugging tdd brainstorming writing-plans; do
+            download_file "${BASE_URL}/claude-code/skills/${skill}.md" \
+                "./.claude/skills/${skill}.md" \
+                "false" \
+                "skills/${skill}.md"
+        done
+
+        # Install optional Tier 2 skills if --full-skills flag is set
+        if [ "$FULL_SKILLS" = true ]; then
+            echo ""
+            echo "  📂 Skills (Tier 2 - Optional):"
+            mkdir -p "./.claude/skills/optional"
+            for skill in code-review verification skill-creator mcp-builder; do
+                download_file "${BASE_URL}/claude-code/skills/optional/${skill}.md" \
+                    "./.claude/skills/optional/${skill}.md" \
+                    "false" \
+                    "skills/optional/${skill}.md"
+            done
+        fi
     fi
 fi
 
@@ -359,6 +412,10 @@ echo "   .agent-os/state/           - State management and caching"
 if [ "$CLAUDE_CODE" = true ]; then
     echo "   .claude/commands/          - Claude Code commands (with embedded instructions)"
     echo "   .claude/agents/            - Claude Code specialized subagents"
+    echo "   .claude/skills/            - Claude Code skills (7 default skills)"
+    if [ "$FULL_SKILLS" = true ]; then
+        echo "   .claude/skills/optional/   - Optional Tier 2 skills (4 additional)"
+    fi
 fi
 
 if [ "$WITH_HOOKS" = true ]; then
