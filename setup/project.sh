@@ -78,6 +78,7 @@ CURSOR=false
 PROJECT_TYPE=""
 WITH_HOOKS=false
 FULL_SKILLS=false
+UPGRADE=false
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -110,6 +111,12 @@ while [[ $# -gt 0 ]]; do
             FULL_SKILLS=true
             shift
             ;;
+        --upgrade)
+            UPGRADE=true
+            OVERWRITE_INSTRUCTIONS=true
+            OVERWRITE_STANDARDS=true
+            shift
+            ;;
         --project-type=*)
             PROJECT_TYPE="${1#*=}"
             shift
@@ -118,14 +125,15 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: $0 [OPTIONS]"
             echo ""
             echo "Options:"
-            echo "  --no-base                   Install from GitHub (not from a base Agent OSinstallation on your system)"
-            echo "  --overwrite-instructions    Overwrite existing instruction files"
-            echo "  --overwrite-standards       Overwrite existing standards files"
             echo "  --claude-code               Add Claude Code support (with embedded instructions)"
             echo "  --cursor                    Add Cursor support"
-            echo "  --with-hooks                Add optional validation hooks for state management"
             echo "  --full-skills               Install all skills including optional Tier 2 skills"
+            echo "  --upgrade                   Upgrade existing installation (overwrites all commands, agents, skills, standards)"
+            echo "  --with-hooks                Add optional validation hooks for state management"
             echo "  --project-type=TYPE         Use specific project type for installation"
+            echo "  --no-base                   Install from GitHub (not from a base installation)"
+            echo "  --overwrite-instructions    Overwrite existing instruction files only"
+            echo "  --overwrite-standards       Overwrite existing standards files only"
             echo "  -h, --help                  Show this help message"
             echo ""
             exit 0
@@ -272,18 +280,28 @@ fi
 # Handle Claude Code installation for project
 if [ "$CLAUDE_CODE" = true ]; then
     echo ""
-    echo "📥 Installing Claude Code support..."
+    if [ "$UPGRADE" = true ]; then
+        echo "📥 Upgrading Claude Code support..."
+    else
+        echo "📥 Installing Claude Code support..."
+    fi
     create_tracked_dir "./.claude"
     create_tracked_dir "./.claude/commands"
     create_tracked_dir "./.claude/agents"
     create_tracked_dir "./.claude/skills"
+
+    # Determine overwrite setting for Claude Code files
+    OVERWRITE_CLAUDE="false"
+    if [ "$UPGRADE" = true ]; then
+        OVERWRITE_CLAUDE="true"
+    fi
 
     if [ "$IS_FROM_BASE" = true ]; then
         # Copy from base installation
         echo "  📂 Commands:"
         for cmd in plan-product create-spec create-tasks execute-tasks analyze-product index-codebase debug; do
             if [ -f "$BASE_AGENT_OS/commands/${cmd}.md" ]; then
-                copy_file "$BASE_AGENT_OS/commands/${cmd}.md" "./.claude/commands/${cmd}.md" "false" "commands/${cmd}.md"
+                copy_file "$BASE_AGENT_OS/commands/${cmd}.md" "./.claude/commands/${cmd}.md" "$OVERWRITE_CLAUDE" "commands/${cmd}.md"
             else
                 echo "  ⚠️  Warning: ${cmd}.md not found in base installation"
             fi
@@ -293,7 +311,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         echo "  📂 Agents:"
         for agent in git-workflow project-manager codebase-indexer; do
             if [ -f "$BASE_AGENT_OS/claude-code/agents/${agent}.md" ]; then
-                copy_file "$BASE_AGENT_OS/claude-code/agents/${agent}.md" "./.claude/agents/${agent}.md" "false" "agents/${agent}.md"
+                copy_file "$BASE_AGENT_OS/claude-code/agents/${agent}.md" "./.claude/agents/${agent}.md" "$OVERWRITE_CLAUDE" "agents/${agent}.md"
             else
                 echo "  ⚠️  Warning: ${agent}.md not found in base installation"
             fi
@@ -303,7 +321,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         echo "  📂 Skills (Tier 1 - Default):"
         for skill in build-check test-check codebase-names systematic-debugging tdd brainstorming writing-plans; do
             if [ -f "$BASE_AGENT_OS/claude-code/skills/${skill}.md" ]; then
-                copy_file "$BASE_AGENT_OS/claude-code/skills/${skill}.md" "./.claude/skills/${skill}.md" "false" "skills/${skill}.md"
+                copy_file "$BASE_AGENT_OS/claude-code/skills/${skill}.md" "./.claude/skills/${skill}.md" "$OVERWRITE_CLAUDE" "skills/${skill}.md"
             else
                 echo "  ⚠️  Warning: ${skill}.md not found in base installation"
             fi
@@ -316,7 +334,7 @@ if [ "$CLAUDE_CODE" = true ]; then
             create_tracked_dir "./.claude/skills/optional"
             for skill in code-review verification skill-creator mcp-builder; do
                 if [ -f "$BASE_AGENT_OS/claude-code/skills/optional/${skill}.md" ]; then
-                    copy_file "$BASE_AGENT_OS/claude-code/skills/optional/${skill}.md" "./.claude/skills/optional/${skill}.md" "false" "skills/optional/${skill}.md"
+                    copy_file "$BASE_AGENT_OS/claude-code/skills/optional/${skill}.md" "./.claude/skills/optional/${skill}.md" "$OVERWRITE_CLAUDE" "skills/optional/${skill}.md"
                 else
                     echo "  ⚠️  Warning: ${skill}.md not found in base installation"
                 fi
@@ -327,10 +345,10 @@ if [ "$CLAUDE_CODE" = true ]; then
         echo "  Downloading Claude Code files from GitHub..."
         echo ""
         echo "  📂 Commands:"
-        for cmd in plan-product create-spec create-tasks execute-tasks analyze-product; do
+        for cmd in plan-product create-spec create-tasks execute-tasks analyze-product index-codebase debug; do
             download_file "${BASE_URL}/commands/${cmd}.md" \
                 "./.claude/commands/${cmd}.md" \
-                "false" \
+                "$OVERWRITE_CLAUDE" \
                 "commands/${cmd}.md"
         done
 
@@ -339,7 +357,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         for agent in git-workflow project-manager codebase-indexer; do
             download_file "${BASE_URL}/claude-code/agents/${agent}.md" \
                 "./.claude/agents/${agent}.md" \
-                "false" \
+                "$OVERWRITE_CLAUDE" \
                 "agents/${agent}.md"
         done
 
@@ -348,7 +366,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         for skill in build-check test-check codebase-names systematic-debugging tdd brainstorming writing-plans; do
             download_file "${BASE_URL}/claude-code/skills/${skill}.md" \
                 "./.claude/skills/${skill}.md" \
-                "false" \
+                "$OVERWRITE_CLAUDE" \
                 "skills/${skill}.md"
         done
 
@@ -360,7 +378,7 @@ if [ "$CLAUDE_CODE" = true ]; then
             for skill in code-review verification skill-creator mcp-builder; do
                 download_file "${BASE_URL}/claude-code/skills/optional/${skill}.md" \
                     "./.claude/skills/optional/${skill}.md" \
-                    "false" \
+                    "$OVERWRITE_CLAUDE" \
                     "skills/optional/${skill}.md"
             done
         fi
