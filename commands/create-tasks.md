@@ -194,81 +194,25 @@ ELSE:
 
 ## SECTION: State Management
 
-### State Operations
-All task creation uses simple file operations with validation:
+Use patterns from @shared/state-patterns.md for file operations.
 
-```javascript
-// Validate spec folder exists
-const specFolder = validateSpecFolder(specFolderPath);
-if (!specFolder) {
-  throw new Error(`Specification folder not found: ${specFolderPath}`);
-}
-
-// Read specification documents
-const specFiles = {
-  main: readFile(`${specFolder}/spec.md`),
-  technical: readFile(`${specFolder}/sub-specs/technical-spec.md`),
-  database: readFileIfExists(`${specFolder}/sub-specs/database-schema.md`),
-  api: readFileIfExists(`${specFolder}/sub-specs/api-spec.md`)
-};
-
-// Check for existing tasks.md
-const tasksFile = `${specFolder}/tasks.md`;
-if (fileExists(tasksFile)) {
-  const overwrite = promptOverwrite();
-  if (!overwrite) return;
-}
-
-// Track task creation state
-const taskState = {
-  spec_folder: specFolder,
-  generated_tasks: [],
-  codebase_references: codebaseAware ? loadCodebaseReferences() : null,
-  complexity_estimates: {}
-};
-```
-
-### Codebase Reference Integration
-- Conditionally load codebase references based on availability
-- Use function signatures for task complexity estimation
-- Identify reusable components and integration points
-- Adjust task breakdown based on existing implementations
+**Create-tasks specific:** Validate spec folder exists, read spec documents, check for existing tasks.md before overwriting.
 
 ---
 
 ## SECTION: Error Handling
 
-### Error Recovery Procedures
+See @shared/error-recovery.md for general recovery procedures.
 
-1. **Specification Reading Failures**:
-   - Validate all required spec files exist
-   - Prompt for missing specifications
-   - Continue with available documentation
-   - Note missing context in task breakdown
+### Create-tasks Specific Error Handling
 
-2. **Task Generation Failures**:
-   - Fall back to basic task template structure
-   - Allow manual task entry and refinement
-   - Preserve any successfully generated tasks
-   - Provide clear editing instructions
-
-3. **Codebase Reference Failures**:
-   - Continue without codebase integration
-   - Use standard task complexity estimates
-   - Log codebase analysis errors for debugging
-   - Proceed with greenfield development approach
-
-4. **File Creation Conflicts**:
-   - Prompt for overwrite confirmation
-   - Backup existing tasks.md if present
-   - Allow side-by-side comparison
-   - Preserve user customizations where possible
-
-5. **User Confirmation Timeout**:
-   - Save generated tasks.md for later review
-   - Provide clear resumption instructions
-   - Allow partial execution of individual tasks
-   - Maintain task completion tracking
+| Error | Recovery |
+|-------|----------|
+| Spec folder not found | Verify path, run create-spec first |
+| Spec reading failure | Continue with available docs, note gaps in breakdown |
+| Task generation failure | Fall back to basic template, allow manual entry |
+| Codebase reference failure | Continue without, use standard complexity estimates |
+| File creation conflict | Prompt overwrite, backup existing tasks.md |
 
 ## File Creation
 Use the native Write tool for creating the tasks.md file with proper formatting and structure.

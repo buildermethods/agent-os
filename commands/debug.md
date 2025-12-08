@@ -852,77 +852,39 @@ If Step 10.5 returned DOCUMENT_AND_COMMIT, append the build check addendum to th
 
 ## SECTION: State Management
 
-### State Operations
-All debugging uses context-aware state management with scope preservation:
+Use patterns from @shared/state-patterns.md:
+- State writes: ATOMIC_WRITE_PATTERN
+- State loads: STATE_LOAD_PATTERN
 
-```javascript
-// Detect debugging context
-const debugContext = detectDebuggingContext();
-const debugState = {
-  context: debugContext.type, // 'spec_implementation' or 'general'
-  scope: debugContext.scope,  // 'task', 'spec', or 'general'
-  spec_name: debugContext.specName,
-  task_number: debugContext.taskNumber,
-  issue_details: {},
-  investigation_results: {},
-  fix_applied: false,
-  tests_verified: false
-};
-
-// Context-specific state management
-if (debugState.scope === 'task') {
-  debugState.task_context = loadTaskContext(debugState.spec_name, debugState.task_number);
-} else if (debugState.scope === 'spec') {
-  debugState.spec_context = loadSpecContext(debugState.spec_name);
+**Debug-specific state:**
+```json
+{
+  "debug_context": {
+    "scope": "task|spec|general",
+    "spec_name": "optional",
+    "task_number": "optional",
+    "investigation_phase": 1
+  }
 }
-
-// Track debugging progress
-debugState.steps_completed = [];
-debugState.current_step = null;
-debugState.errors_encountered = [];
 ```
 
-### Context Detection Logic
-- Scan for active spec implementations in .agent-os/tasks/
-- Check task completion status and identify blocking issues
-- Determine scope based on issue impact (single task vs multiple tasks vs system-wide)
-- Preserve context information throughout debugging workflow
+**Context detection:** Scan .agent-os/tasks/ for active specs, determine scope by issue impact.
 
 ---
 
 ## SECTION: Error Handling
 
-### Error Recovery Procedures
+See @shared/error-recovery.md for general recovery procedures.
 
-1. **Context Detection Failures**:
-   - Fall back to general debugging scope
-   - Prompt user for context clarification
-   - Continue with available context information
-   - Document context limitations in debug report
+### Debug-Specific Error Handling
 
-2. **Issue Reproduction Failures**:
-   - Document reproduction attempts and failures
-   - Continue with available error information
-   - Use alternative investigation methods
-   - Note reproduction limitations in final report
-
-3. **Fix Implementation Failures**:
-   - Roll back partial changes
-   - Document what was attempted
-   - Preserve debugging state for retry
-   - Suggest manual intervention points
-
-4. **Test Verification Failures**:
-   - Identify which tests failed after fix
-   - Determine if fix introduced regressions
-   - Provide rollback instructions
-   - Document incomplete resolution status
-
-5. **Documentation Creation Failures**:
-   - Use fallback documentation format
-   - Store debug information in temporary files
-   - Allow manual documentation completion
-   - Preserve investigation results for reference
+| Error | Recovery |
+|-------|----------|
+| Context detection failure | Fall back to "general" scope, ask user |
+| Issue reproduction failure | Document attempts, continue with available info |
+| Fix implementation failure | Roll back partial changes, preserve debug state |
+| Test verification failure | Identify regressions, provide rollback instructions |
+| Documentation creation failure | Use fallback format, preserve investigation results |
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:

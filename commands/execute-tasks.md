@@ -908,364 +908,59 @@ PURPOSE: Alert user that task is complete
 
 ## SECTION: State Management
 
-### State Operations
-All state operations use atomic functions to prevent corruption:
+Use patterns from @shared/state-patterns.md:
+- State writes: ATOMIC_WRITE_PATTERN
+- State loads: STATE_LOAD_PATTERN
+- Cache validation: CACHE_VALIDATION_PATTERN (5-min expiry, mtime-based)
+- Locking: LOCK_PATTERN
 
-```javascript
-// Load existing state or create new
-const stateFile = '.agent-os/state/workflow.json';
-const cacheFile = '.agent-os/state/session-cache.json';
-
-// Initialize state if needed
-initializeStateFiles('.agent-os');
-
-// Load with recovery fallback
-const workflow = loadState(stateFile, {
-  state_version: "1.0.0",
-  current_workflow: null
-});
-
-// Create session cache for task execution
-// Note: [CURRENT_DATE] should be replaced with today's date from environment context
-// Note: Cache expiration is managed by file modification time, not JavaScript dates
-const sessionCache = {
-  spec_cache: {},
-  context_cache: {},
-  metadata: {
-    created_date: "[CURRENT_DATE from environment]",
-    workflow_id: "tasks-[CURRENT_DATE]-[SESSION_NUMBER]",
-    access_count: 1,
-    auto_extend: true,
-    extension_count: 0,
-    max_extensions: 12,
-    state_version: "1.0.0"
+**Execute-tasks specific state:**
+```json
+{
+  "task_iteration": {
+    "current_task": "1.2",
+    "subtask_index": 0,
+    "tdd_phase": "RED|GREEN|REFACTOR"
   }
-};
-
-// Save cache file with atomic operation
-// The file's modification time serves as the expiration mechanism
-saveState(cacheFile, sessionCache);
-
-// Check cache validity using file modification time
-// Cache expires after 5 minutes since last modification
-// Use: ls -la .agent-os/state/session-cache.json to check age
-```
-
-### Cache Persistence Between Task Iterations
-- Load spec_cache at start of workflow
-- Pass cache to each task iteration
-- Auto-extend expiration for active workflows
-- Save cache state after each task completion
-- Clean expired caches after workflow completion
-
-### Lock Management
-```javascript
-// Acquire lock for critical sections
-acquireLock('.agent-os/state/.lock');
-
-try {
-  // Perform state modifications
-  // ...
-} finally {
-  // Always release lock
-  releaseLock('.agent-os/state/.lock');
 }
 ```
+
+**Cache rules:** Load at workflow start, auto-extend for active workflows (max 12 extensions = 1 hour), save after each task completion.
 
 ---
 
 ## SECTION: Error Handling
 
-### Error Recovery Procedures
-
 **Recovery Philosophy**: Save state early, save often. Every step should be resumable.
 
----
-
-#### 1. State Corruption Recovery
-```
-SYMPTOMS:
-- JSON parse errors in workflow.json or session-cache.json
-- Unexpected null values or missing fields
-- "Invalid state" errors during load
-
-RECOVERY PROCEDURE:
-1. CHECK: .agent-os/state/recovery/ for backups
-   COMMAND: ls -la .agent-os/state/recovery/
-
-2. IF backup exists (sorted by date):
-   - Identify most recent valid backup
-   - Validate JSON: jq empty [backup-file]
-   - Copy to main location: cp [backup] .agent-os/state/workflow.json
-
-3. IF no valid backup:
-   - Reinitialize state:
-   ```json
-   {
-     "state_version": "1.0.0",
-     "current_workflow": null,
-     "recovery_note": "Reinitialized due to corruption on [DATE]"
-   }
-   ```
-
-4. DOCUMENT: Note in tasks.md what was lost (if anything)
-5. RESUME: From task discovery (Step 1)
-```
-
----
-
-#### 2. Git Workflow Failures
-```
-SYMPTOMS:
-- Branch checkout fails (uncommitted changes)
-- Merge conflicts during branch switch
-- Push rejected (force push needed)
-- PR creation fails
-
-RECOVERY PROCEDURES:
-
-A. Uncommitted Changes:
-   1. CHECK: git status for changes
-   2. DECISION:
-      - If changes belong to current task: git stash
-      - If changes should be committed: create WIP commit
-      - If changes can be discarded: git checkout -- .
-   3. RETRY: Branch operation
-   4. RESTORE: git stash pop (if stashed)
-
-B. Merge Conflicts:
-   1. IDENTIFY: Conflicting files (git status)
-   2. ANALYZE: Nature of conflicts
-   3. OPTIONS:
-      - Accept theirs: git checkout --theirs [file]
-      - Accept ours: git checkout --ours [file]
-      - Manual merge: Edit conflict markers
-   4. RESOLVE: git add [resolved-files]
-   5. CONTINUE: git merge --continue
-
-C. Push Rejected:
-   1. FETCH: git fetch origin
-   2. CHECK: If behind remote: git pull --rebase
-   3. RESOLVE: Any rebase conflicts
-   4. RETRY: git push
-   5. NEVER: Force push without explicit user permission
-
-D. PR Creation Fails:
-   1. VERIFY: gh auth status (GitHub CLI authenticated)
-   2. CHECK: Repository permissions
-   3. ALTERNATIVE: Provide PR URL construction for manual creation
-```
-
----
-
-#### 3. Test Failures During Execution
-```
-SYMPTOMS:
-- Tests fail after implementation
-- Flaky tests (pass sometimes, fail others)
-- Test timeouts
-- Missing test dependencies
-
-RECOVERY PROCEDURES:
-
-A. Implementation-Related Failures:
-   1. ANALYZE: Test output for specific failure reason
-   2. CLASSIFY:
-      - Logic error: Fix implementation
-      - Missing feature: Verify against spec
-      - Wrong assertion: Verify test correctness
-   3. FIX: Address root cause
-   4. RE-RUN: Specific failing test first
-   5. VERIFY: Full test suite after fix
-
-B. Flaky Tests:
-   1. IDENTIFY: Which tests are flaky (run 3x)
-   2. ISOLATE: Run test alone vs in suite
-   3. COMMON CAUSES:
-      - Race conditions: Add proper waits/locks
-      - Shared state: Reset state between tests
-      - External dependencies: Mock or stabilize
-   4. FIX: Or mark as known flaky with skip annotation
-
-C. Test Timeouts:
-   1. CHECK: Is test actually hanging or just slow?
-   2. INCREASE: Timeout for slow tests if legitimate
-   3. INVESTIGATE: Infinite loops or deadlocks
-   4. ADD: Debug logging to identify hang point
-
-D. Missing Dependencies:
-   1. CHECK: Test setup/fixtures are present
-   2. VERIFY: Test database/services running
-   3. RUN: npm install / pip install / etc.
-   4. DOCUMENT: Required test environment setup
-```
-
----
-
-#### 4. Build Failures
-```
-SYMPTOMS:
-- Type errors in modified files
-- Type errors in unmodified files
-- Missing imports
-- Configuration errors
-
-RECOVERY PROCEDURES:
-
-A. Type Errors in Modified Files:
-   1. CLASSIFY: Each error
-   2. FIX: Immediately before proceeding
-   3. RE-RUN: Build to verify fix
-   4. CONTINUE: Only when clean
-
-B. Type Errors in Unmodified Files:
-   1. CHECK: If error existed before changes
-   2. DETERMINE: If current task should fix it
-   3. OPTIONS:
-      - Fix now if quick (<5 min)
-      - Document and defer if future task addresses it
-      - Create new task if out of scope
-   4. USE: DOCUMENT_AND_COMMIT decision if deferring
-
-C. Missing Imports:
-   1. SEARCH: codebase for correct import path
-   2. CHECK: imports.md in codebase references
-   3. VERIFY: Module actually exports the item
-   4. FIX: Import statement
-
-D. Configuration Errors:
-   1. IDENTIFY: Which config file is problematic
-   2. COMPARE: With working version (git diff)
-   3. VALIDATE: Against schema if available
-   4. TEST: Config in isolation
-```
-
----
-
-#### 5. Subagent/Skill Invocation Failures
-```
-SYMPTOMS:
-- Task tool returns error
-- Skill doesn't produce expected output
-- Timeout waiting for subagent
-- Subagent returns partial results
-
-RECOVERY PROCEDURES:
-
-A. Task Tool Errors:
-   1. RETRY: Once with same parameters
-   2. SIMPLIFY: Break request into smaller parts
-   3. FALLBACK: Execute manually if critical path
-
-B. Skill Output Issues:
-   1. VERIFY: Skill description matches use case
-   2. CHECK: allowed-tools are sufficient
-   3. INVOKE: Explicitly if auto-invoke failed
-   4. DOCUMENT: For skill improvement
-
-C. Timeouts:
-   1. BREAK: Large request into chunks
-   2. ADD: Progress indicators if possible
-   3. RETRY: With smaller scope
-
-D. Partial Results:
-   1. IDENTIFY: What's missing
-   2. SUPPLEMENT: With manual approach
-   3. COMBINE: Results for complete picture
-```
-
----
-
-#### 6. Cache Expiration Recovery
-```
-SYMPTOMS:
-- "Cache expired" warnings
-- Stale spec references
-- Session restart mid-task
-
-RECOVERY PROCEDURE:
-1. IF within same session:
-   - Rebuild cache from source files
-   - Use native Explore agent to rediscover specs
-   - Continue from current step
-
-2. IF new session:
-   - Check tasks.md for completion status
-   - Identify last completed task
-   - Resume from next incomplete task
-   - Rebuild context via Step 3-4 (Context Analysis)
-```
-
----
-
-#### 7. Partial Task Failure (Resume Protocol)
-```
-SITUATION: Task execution interrupted mid-way (crash, timeout, user stop)
-
-RESUME PROCEDURE:
-1. CHECK: tasks.md for last completed checkpoint
-   - Look for [x] completed tasks
-   - Identify first [ ] incomplete task
-
-2. CHECK: git status for uncommitted changes
-   - If clean: Resume from incomplete task
-   - If changes: Evaluate if changes are complete for any task
-
-3. CHECK: Test status
-   COMMAND: npm test (or equivalent)
-   - If passing: Implementation may be complete
-   - If failing: Determine scope of failure
-
-4. RECONSTRUCT: Context
-   - Re-run Steps 3-4 (Spec Discovery, Context Analysis)
-   - Skip completed tasks
-   - Resume from first incomplete
-
-5. DOCUMENT: Resume point in session notes
-```
-
----
-
-#### 8. Development Server Conflicts
-```
-SYMPTOMS:
-- "Port already in use" errors
-- Multiple server instances
-- Zombie processes
-
-RECOVERY PROCEDURE:
-1. IDENTIFY: Process using port
-   COMMAND: lsof -i :[PORT]
-
-2. VERIFY: Is it our dev server or something else?
-
-3. IF our server:
-   - Kill gracefully: kill [PID]
-   - Or force: kill -9 [PID]
-
-4. IF unknown process:
-   - ASK: User before killing
-   - ALTERNATIVE: Use different port
-
-5. VERIFY: Port is free before starting new server
-```
-
----
+See @shared/error-recovery.md for detailed recovery procedures covering:
+- State corruption recovery
+- Git workflow failures
+- Test failures during execution
+- Build failures
+- Subagent/skill invocation failures
+- Cache expiration recovery
+- Partial task failure (resume protocol)
+- Development server conflicts
 
 ### Quick Reference: Error → Recovery
-```
-| Error Type                    | First Action                        | Escalation              |
-|-------------------------------|-------------------------------------|-------------------------|
-| State corruption              | Load from recovery/                 | Reinitialize            |
-| Git checkout fails            | Stash changes                       | Manual resolution       |
-| Tests fail                    | Analyze output, fix implementation  | Skip with documentation |
-| Build errors (own files)      | Fix immediately                     | -                       |
-| Build errors (other files)    | DOCUMENT_AND_COMMIT                 | Create new task         |
-| Subagent timeout              | Retry once                          | Manual fallback         |
-| Cache expired                 | Rebuild from source                 | Full context reload     |
-| Partial execution             | Check tasks.md, resume             | Restart with context    |
-| Port conflict                 | Kill process                        | Use alternate port      |
-```
+
+| Error Type | First Action | Escalation |
+|------------|--------------|------------|
+| State corruption | Load from recovery/ | Reinitialize |
+| Git checkout fails | Stash changes | Manual resolution |
+| Tests fail | Analyze output, fix | Skip with documentation |
+| Build errors (own files) | Fix immediately | - |
+| Build errors (other files) | DOCUMENT_AND_COMMIT | Create new task |
+| Subagent timeout | Retry once | Manual fallback |
+| Cache expired | Rebuild from source | Full context reload |
+| Partial execution | Check tasks.md, resume | Restart with context |
+| Port conflict | Kill process | Use alternate port |
+
+### Execute-tasks Specific
+
+- **Cache auto-extension failure**: Reset extension_count, rebuild cache
+- **TDD gate failure**: Return to Step 7.5, delete code written without failing test
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:

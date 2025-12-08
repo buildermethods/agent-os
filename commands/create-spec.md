@@ -593,75 +593,36 @@ When you're ready, run the /create-tasks command to have me build the tasks chec
 
 ## SECTION: State Management
 
-### State Operations
-All spec creation uses basic file operations with conditional overwrites:
+Use patterns from @shared/state-patterns.md for file operations.
 
-```javascript
-// Check for existing specs
-const specExists = checkSpecExists(specPath);
-if (specExists) {
-  // Prompt user for overwrite confirmation
-  const confirmed = promptOverwrite();
-  if (!confirmed) return;
-}
-
-// Create spec directory structure
-const specFolder = `.agent-os/specs/${dateString}-${kebabCaseName}`;
-createDirectory(specFolder);
-createDirectory(`${specFolder}/sub-specs`);
-
-// Track creation progress
-const creationState = {
-  spec_folder: specFolder,
-  created_files: [],
-  conditional_files: {
-    database_schema: needsDbSchema,
-    api_spec: needsApiSpec
+**Create-spec specific state:**
+```json
+{
+  "spec_creation": {
+    "spec_folder": "YYYY-MM-DD-name",
+    "created_files": [],
+    "conditional_files": { "database_schema": false, "api_spec": false }
   }
-};
+}
 ```
 
-### File Creation Tracking
-- Track all created files for cleanup on failure
-- Store file creation sequence for rollback
-- Maintain checksums for content validation
-- Log creation timestamps for audit trail
+**Overwrite handling:** Check for existing specs, prompt user for confirmation before overwriting.
 
 ---
 
 ## SECTION: Error Handling
 
-### Error Recovery Procedures
+See @shared/error-recovery.md for general recovery procedures.
 
-1. **File Creation Failures**:
-   - Roll back any partially created files
-   - Clean up empty directories
-   - Preserve user input for retry
-   - Report specific failure cause
+### Create-spec Specific Error Handling
 
-2. **Template Generation Errors**:
-   - Fall back to minimal template structure
-   - Allow manual content entry
-   - Preserve completed sections
-   - Continue with remaining sections
-
-3. **Context Gathering Failures**:
-   - Use cached context from previous sessions
-   - Allow proceeding with reduced context
-   - Prompt for missing critical information
-   - Document context limitations
-
-4. **Date/Naming Conflicts**:
-   - Generate alternative folder names
-   - Append disambiguation suffix
-   - Prompt user for preferred naming
-   - Validate name availability
-
-5. **User Review Timeout**:
-   - Save work in progress
-   - Allow resumption from any step
-   - Preserve all generated content
-   - Provide clear resumption instructions
+| Error | Recovery |
+|-------|----------|
+| File creation failure | Roll back partial files, clean empty directories |
+| Template generation error | Fall back to minimal template, allow manual entry |
+| Context gathering failure | Proceed with reduced context, document limitations |
+| Date/naming conflict | Append suffix (-v2, -alt), prompt user for preference |
+| User review timeout | Save progress, provide resumption instructions |
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:

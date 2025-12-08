@@ -379,79 +379,25 @@ Created: [CURRENT_DATE from environment]
 
 ## SECTION: State Management
 
-### State Operations
-All product planning uses basic file operations with overwrite protection:
+Use patterns from @shared/state-patterns.md for file operations.
 
-```javascript
-// Check for existing Agent OS installation
-const agentOSExists = checkDirectory('.agent-os');
-if (agentOSExists) {
-  const productExists = checkDirectory('.agent-os/product');
-  if (productExists) {
-    // Prompt for overwrite confirmation
-    const confirmed = promptOverwrite();
-    if (!confirmed) return;
-  }
-}
-
-// Create directory structure
-createDirectory('.agent-os');
-createDirectory('.agent-os/product');
-
-// Track creation progress
-const productState = {
-  directories_created: ['.agent-os', '.agent-os/product'],
-  files_created: [],
-  user_inputs: {
-    product_concept: productConcept,
-    key_features: keyFeatures,
-    target_users: targetUsers,
-    tech_stack: techStackPreferences
-  }
-};
-```
-
-### Input Validation and Storage
-- Validate minimum required inputs before proceeding
-- Store user inputs for reference during document generation
-- Track file creation sequence for rollback capability
-- Maintain input validation state for error recovery
+**Plan-product specific:** Check for existing .agent-os installation, prompt before overwriting existing product docs.
 
 ---
 
 ## SECTION: Error Handling
 
-### Error Recovery Procedures
+See @shared/error-recovery.md for general recovery procedures.
 
-1. **Input Validation Failures**:
-   - Prompt for missing required inputs
-   - Allow partial input completion
-   - Save valid inputs for retry
-   - Provide clear input format examples
+### Plan-product Specific Error Handling
 
-2. **Directory Creation Failures**:
-   - Check write permissions in current directory
-   - Suggest alternative locations if needed
-   - Roll back any partially created structure
-   - Report specific permission issues
-
-3. **File Creation Conflicts**:
-   - Detect existing Agent OS installations
-   - Prompt for merge vs overwrite options
-   - Backup existing files before overwrite
-   - Allow selective file replacement
-
-4. **Template Generation Errors**:
-   - Fall back to minimal template structure
-   - Allow manual content completion
-   - Preserve successfully generated sections
-   - Continue with remaining documents
-
-5. **Tech Stack Resolution Failures**:
-   - Continue with provided tech stack preferences
-   - Mark missing items for later completion
-   - Provide reasonable defaults where possible
-   - Document incomplete tech stack items
+| Error | Recovery |
+|-------|----------|
+| Input validation failure | Prompt for missing inputs, save valid for retry |
+| Directory creation failure | Check permissions, roll back partial structure |
+| File creation conflict | Detect existing install, prompt merge/overwrite |
+| Template generation error | Fall back to minimal template, allow manual completion |
+| Tech stack resolution failure | Continue with defaults, mark for later completion |
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:

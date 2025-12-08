@@ -269,78 +269,25 @@ Your codebase is now Agent OS-enabled! 🚀
 
 ## SECTION: State Management
 
-### State Operations
-All product analysis uses comprehensive discovery with state preservation:
+Use patterns from @shared/state-patterns.md for file operations.
 
-```javascript
-// Analyze existing codebase structure
-const codebaseAnalysis = {
-  directory_structure: scanDirectoryTree(),
-  technology_stack: detectTechStack(),
-  implementation_progress: analyzeFeatures(),
-  existing_specs: discoverSpecifications(),
-  code_patterns: analyzeCodeStyle()
-};
-
-// Check for existing Agent OS installation
-const existingAgentOS = checkDirectory('.agent-os');
-if (existingAgentOS && !preserveExisting) {
-  // Backup existing structure
-  backupDirectory('.agent-os', `.agent-os-backup-${timestamp}`);
-}
-
-// Track analysis state
-const analysisState = {
-  codebase_analysis: codebaseAnalysis,
-  user_context: {},
-  generated_docs: [],
-  customizations: [],
-  installation_status: 'in_progress'
-};
-```
-
-### Codebase Analysis Integration
-- Scan project structure and identify patterns
-- Detect technology stack from package files and imports
-- Analyze existing features and implementation progress
-- Discover specifications in common documentation locations
-- Integrate findings with plan-product workflow
+**Analyze-product specific:** Scan codebase structure, detect tech stack, backup existing .agent-os before changes.
 
 ---
 
 ## SECTION: Error Handling
 
-### Error Recovery Procedures
+See @shared/error-recovery.md for general recovery procedures.
 
-1. **Codebase Analysis Failures**:
-   - Continue with partial analysis results
-   - Prompt for missing technology stack information
-   - Document analysis limitations in generated docs
-   - Fall back to standard plan-product workflow
+### Analyze-product Specific Error Handling
 
-2. **Specification Discovery Failures**:
-   - Continue without existing specification context
-   - Note missing specification coverage
-   - Recommend specification creation for undocumented features
-   - Proceed with greenfield documentation approach
-
-3. **User Context Gathering Failures**:
-   - Use codebase analysis as primary source
-   - Infer product purpose from code structure
-   - Generate minimal viable documentation
-   - Allow post-installation customization
-
-4. **Documentation Generation Conflicts**:
-   - Backup existing Agent OS structure
-   - Allow selective merge of new and existing content
-   - Preserve user customizations where possible
-   - Provide rollback instructions
-
-5. **Installation Verification Failures**:
-   - Report specific missing or corrupted files
-   - Provide manual completion instructions
-   - Allow partial installation usage
-   - Offer reinstallation with different settings
+| Error | Recovery |
+|-------|----------|
+| Codebase analysis failure | Continue with partial results, prompt for tech stack |
+| Spec discovery failure | Continue without, recommend spec creation |
+| User context failure | Infer from code structure, allow customization |
+| Documentation conflict | Backup existing, allow selective merge |
+| No existing codebase | Expected for new projects, proceed with defaults |
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:

@@ -318,6 +318,17 @@ if [ "$CLAUDE_CODE" = true ]; then
         done
 
         echo ""
+        echo "  📂 Shared Modules:"
+        create_tracked_dir "./.agent-os/shared"
+        for shared in error-recovery state-patterns; do
+            if [ -f "$BASE_AGENT_OS/shared/${shared}.md" ]; then
+                copy_file "$BASE_AGENT_OS/shared/${shared}.md" "./.agent-os/shared/${shared}.md" "$OVERWRITE_CLAUDE" "shared/${shared}.md"
+            else
+                echo "  ⚠️  Warning: ${shared}.md not found in base installation"
+            fi
+        done
+
+        echo ""
         echo "  📂 Skills (Tier 1 - Default):"
         for skill in build-check test-check codebase-names systematic-debugging tdd brainstorming writing-plans; do
             if [ -f "$BASE_AGENT_OS/claude-code/skills/${skill}.md" ]; then
@@ -359,6 +370,16 @@ if [ "$CLAUDE_CODE" = true ]; then
                 "./.claude/agents/${agent}.md" \
                 "$OVERWRITE_CLAUDE" \
                 "agents/${agent}.md"
+        done
+
+        echo ""
+        echo "  📂 Shared Modules:"
+        create_tracked_dir "./.agent-os/shared"
+        for shared in error-recovery state-patterns; do
+            download_file "${BASE_URL}/shared/${shared}.md" \
+                "./.agent-os/shared/${shared}.md" \
+                "$OVERWRITE_CLAUDE" \
+                "shared/${shared}.md"
         done
 
         echo ""
@@ -580,6 +601,7 @@ echo "📍 Project-level files installed to:"
 echo "   .agent-os/version.json     - Installation version and metadata"
 echo "   .agent-os/standards/       - Development standards"
 echo "   .agent-os/state/           - State management and caching"
+echo "   .agent-os/shared/          - Shared modules (error recovery, state patterns)"
 
 if [ "$CLAUDE_CODE" = true ]; then
     echo "   .claude/commands/          - Claude Code commands (with embedded instructions)"

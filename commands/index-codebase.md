@@ -321,88 +321,28 @@ Provide a summary of the indexing operation.
 
 ## SECTION: State Management
 
-### State Operations
-All codebase indexing uses batched processing with progress tracking:
+Use patterns from @shared/state-patterns.md:
+- Reference files: ATOMIC_WRITE_PATTERN
+- Locking: LOCK_PATTERN during indexing
 
-```javascript
-// Initialize indexing state
-const indexingState = {
-  total_files: 0,
-  processed_files: 0,
-  indexed_functions: 0,
-  indexed_classes: 0,
-  indexed_exports: 0,
-  current_batch: [],
-  completed_batches: [],
-  errors: []
-};
-
-// File discovery and batching
-const discoveredFiles = scanProjectFiles(includePatterns, fileLimit);
-const fileBatches = batchFiles(discoveredFiles, BATCH_SIZE);
-
-// Progress tracking during batching
-for (const batch of fileBatches) {
-  const batchResults = await processBatch(batch);
-  indexingState.processed_files += batch.length;
-  indexingState.completed_batches.push(batchResults);
-  updateProgressDisplay(indexingState);
-}
-```
-
-### Reference File Management
-- Use atomic writes for all reference files
-- Track changes for incremental updates
-- Maintain file locks during indexing operations
-- Backup existing references before overwrite
-
-### Configuration Integration
-- Read and update .agent-os/config.yml safely
-- Enable automatic incremental updates
-- Configure file watching for future updates
-- Set appropriate scan limits and patterns
+**Index-codebase specific:** Batched processing with progress tracking, backup references before overwrite.
 
 ---
 
 ## SECTION: Error Handling
 
-### Error Recovery Procedures
+See @shared/error-recovery.md for general recovery procedures.
 
-1. **Existing Reference Conflicts**:
-   - Prompt user for overwrite confirmation
-   - Backup existing references with timestamp
-   - Allow selective file replacement
-   - Preserve user customizations where possible
+### Index-codebase Specific Error Handling
 
-2. **File Discovery Failures**:
-   - Continue with discovered files
-   - Report inaccessible directories
-   - Skip corrupted or binary files
-   - Log discovery errors for review
-
-3. **Code Extraction Failures**:
-   - Continue processing remaining files
-   - Log extraction errors per file
-   - Provide partial results with warnings
-   - Allow manual addition of missed signatures
-
-4. **Batching Timeout Issues**:
-   - Reduce batch size automatically
-   - Skip problematic files temporarily
-   - Allow resumption from last successful batch
-   - Provide manual override options
-
-5. **Schema Discovery Failures**:
-   - Continue without schema documentation
-   - Note missing schema files in report
-   - Allow manual schema file specification
-   - Provide post-indexing schema addition
-
-6. **Configuration Update Failures**:
-   - Continue without auto-update configuration
-   - Warn about manual update requirements
-   - Provide manual configuration instructions
-   - Allow retry of configuration update
+| Error | Recovery |
+|-------|----------|
+| Existing reference conflicts | Prompt overwrite, backup with timestamp |
+| File discovery failure | Continue with discovered files, log errors |
+| Code extraction failure | Continue processing, provide partial results |
+| Batching timeout | Reduce batch size, resume from last batch |
+| Schema discovery failure | Continue without, note missing in report |
+| Large codebase timeout | Process in batches by directory |
 
 ## Subagent Integration
 When the instructions mention agents, use the Task tool to invoke these subagents:
