@@ -5,6 +5,109 @@ All notable changes to Agent OS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2025-12-08
+
+### Progress Log System (Cross-Session Memory)
+
+Based on Anthropic's "Effective Harnesses for Long-Running Agents" research, this release implements persistent progress logging for cross-session memory.
+
+**Reference**: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+
+**New Features:**
+
+| Feature | Description |
+|---------|-------------|
+| **Progress Log** | Permanent chronological log of accomplishments (`progress.json`) |
+| **Human-Readable Log** | Auto-generated markdown version (`progress.md`) |
+| **Archive System** | Automatic archival of entries older than 30 days |
+| **Cross-Session Context** | New sessions can read previous accomplishments |
+
+**Problem Solved:**
+
+Previously, session cache expired after 1 hour max, losing all context between sessions. Now progress persists indefinitely, enabling:
+- Context continuity across unlimited sessions
+- Blocker tracking visible across sessions
+- Team visibility via version-controlled progress files
+
+**Integration Points:**
+
+| Step | Event Logged | When |
+|------|-------------|------|
+| Step 6.5 | `session_started` | After Phase 1 (environment verified) |
+| Step 7.10 | `task_completed` | After each parent task |
+| Step 15 | `session_ended` | After Phase 3 (workflow complete) |
+
+**New Files:**
+
+- `shared/progress-log.md` - Canonical patterns for progress logging
+- `shared/task-json.md` - Patterns for JSON task tracking
+- `claude-code/skills/session-startup.md` - Session startup protocol skill
+- `.agent-os/progress/progress.json` - Machine-readable progress data
+- `.agent-os/progress/progress.md` - Human-readable progress log
+- `.agent-os/progress/archive/` - Archived old entries
+- `tests/progress-log-validation.md` - Validation procedures
+
+### Session Startup Protocol (New Skill)
+
+New `session-startup` skill auto-invokes at execute-tasks start:
+
+| Step | Purpose |
+|------|---------|
+| 1. Directory verification | Confirm project root |
+| 2. Progress context load | Read recent accomplishments |
+| 3. Git state review | Check branch, uncommitted changes |
+| 4. Task status check | Current spec progress |
+| 5. Environment health | Dev server, config files |
+| 6. Session focus confirmation | Confirm task selection |
+
+**Benefits**: Cross-session context automatically loaded, blockers highlighted, environment issues caught early.
+
+### Scope Constraint Logic
+
+New Step 1.5 in execute-tasks warns when multiple parent tasks selected:
+
+- Displays research-backed recommendation for single-task focus
+- User can override with explicit confirmation
+- Overrides logged to progress log for analysis
+
+### JSON Task Format
+
+New `tasks.json` generated alongside `tasks.md`:
+
+```json
+{
+  "tasks": [{
+    "id": "1.1",
+    "status": "pass",
+    "attempts": 2,
+    "duration_minutes": 45
+  }],
+  "summary": {
+    "completed": 5,
+    "total_tasks": 10,
+    "overall_percent": 50
+  }
+}
+```
+
+**Benefits**: Programmatic task queries, attempt tracking, duration metrics.
+
+**Installation:**
+
+All features automatically available on new installations:
+```bash
+./setup/project.sh --claude-code
+```
+
+Existing installations get new features on upgrade:
+```bash
+./setup/project.sh --claude-code --upgrade
+```
+
+**Skills Total:** 8 default + 4 optional = 12 skills
+
+---
+
 ## [1.6.0] - 2025-12-05
 
 ### Extended Skills Library

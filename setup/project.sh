@@ -6,8 +6,8 @@
 set -e  # Exit on error
 
 # Version information
-AGENT_OS_VERSION="1.6.0"
-AGENT_OS_RELEASE_DATE="2025-12-05"
+AGENT_OS_VERSION="1.7.0"
+AGENT_OS_RELEASE_DATE="2025-12-08"
 
 # Track installation progress for cleanup
 INSTALL_STARTED=false
@@ -192,6 +192,8 @@ create_tracked_dir "$INSTALL_DIR"
 create_tracked_dir "$INSTALL_DIR/state"
 create_tracked_dir "$INSTALL_DIR/state/recovery"
 create_tracked_dir "$INSTALL_DIR/standards"
+create_tracked_dir "$INSTALL_DIR/progress"
+create_tracked_dir "$INSTALL_DIR/progress/archive"
 
 # Configure tools and project type based on installation type
 if [ "$IS_FROM_BASE" = true ]; then
@@ -320,7 +322,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         echo ""
         echo "  📂 Shared Modules:"
         create_tracked_dir "./.agent-os/shared"
-        for shared in error-recovery state-patterns; do
+        for shared in error-recovery state-patterns progress-log task-json; do
             if [ -f "$BASE_AGENT_OS/shared/${shared}.md" ]; then
                 copy_file "$BASE_AGENT_OS/shared/${shared}.md" "./.agent-os/shared/${shared}.md" "$OVERWRITE_CLAUDE" "shared/${shared}.md"
             else
@@ -330,7 +332,7 @@ if [ "$CLAUDE_CODE" = true ]; then
 
         echo ""
         echo "  📂 Skills (Tier 1 - Default):"
-        for skill in build-check test-check codebase-names systematic-debugging tdd brainstorming writing-plans; do
+        for skill in build-check test-check codebase-names systematic-debugging tdd brainstorming writing-plans session-startup; do
             if [ -f "$BASE_AGENT_OS/claude-code/skills/${skill}.md" ]; then
                 copy_file "$BASE_AGENT_OS/claude-code/skills/${skill}.md" "./.claude/skills/${skill}.md" "$OVERWRITE_CLAUDE" "skills/${skill}.md"
             else
@@ -375,7 +377,7 @@ if [ "$CLAUDE_CODE" = true ]; then
         echo ""
         echo "  📂 Shared Modules:"
         create_tracked_dir "./.agent-os/shared"
-        for shared in error-recovery state-patterns; do
+        for shared in error-recovery state-patterns progress-log task-json; do
             download_file "${BASE_URL}/shared/${shared}.md" \
                 "./.agent-os/shared/${shared}.md" \
                 "$OVERWRITE_CLAUDE" \
@@ -384,7 +386,7 @@ if [ "$CLAUDE_CODE" = true ]; then
 
         echo ""
         echo "  📂 Skills (Tier 1 - Default):"
-        for skill in build-check test-check codebase-names systematic-debugging tdd brainstorming writing-plans; do
+        for skill in build-check test-check codebase-names systematic-debugging tdd brainstorming writing-plans session-startup; do
             download_file "${BASE_URL}/claude-code/skills/${skill}.md" \
                 "./.claude/skills/${skill}.md" \
                 "$OVERWRITE_CLAUDE" \
@@ -416,6 +418,57 @@ cat > "$INSTALL_DIR/state/workflow.json" << 'EOF'
   "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
 EOF
+
+# Initialize progress log (persistent cross-session memory)
+echo ""
+echo "📥 Initializing progress log..."
+if [ ! -f "$INSTALL_DIR/progress/progress.json" ]; then
+    PROGRESS_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    cat > "$INSTALL_DIR/progress/progress.json" << EOF
+{
+  "version": "1.0",
+  "project": "$PROJECT_NAME",
+  "entries": [
+    {
+      "id": "entry-init-001",
+      "timestamp": "$PROGRESS_TIMESTAMP",
+      "type": "milestone_reached",
+      "data": {
+        "description": "Agent OS installed",
+        "notes": "Progress logging initialized for cross-session memory"
+      }
+    }
+  ],
+  "metadata": {
+    "total_entries": 1,
+    "oldest_entry": "$PROGRESS_TIMESTAMP",
+    "last_updated": "$PROGRESS_TIMESTAMP",
+    "archived_through": null
+  }
+}
+EOF
+    echo "  ✓ Created progress log (progress.json)"
+
+    # Generate initial markdown
+    cat > "$INSTALL_DIR/progress/progress.md" << EOF
+# Agent OS Progress Log
+
+*Project: $PROJECT_NAME*
+*Total entries: 1*
+
+---
+
+## $(date +%Y-%m-%d)
+
+### $(date +%H:%M) - 🎯 Agent OS installed
+- **Details**: Progress logging initialized for cross-session memory
+
+---
+EOF
+    echo "  ✓ Created progress log (progress.md)"
+else
+    echo "  ✓ Progress log already exists (preserved)"
+fi
 
 # Create version tracking file
 echo ""
@@ -498,11 +551,12 @@ EOF
 fi
 
 # Update .gitignore for state and cache files
+# NOTE: .agent-os/progress/ is NOT in gitignore - progress logs should be version controlled
 if [ -f .gitignore ]; then
     # Check if Agent-OS section already exists
     if ! grep -q "# Agent-OS cache and state files" .gitignore; then
         echo "" >> .gitignore
-        echo "# Agent-OS cache and state files" >> .gitignore
+        echo "# Agent-OS cache and state files (excludes progress/ which is version controlled)" >> .gitignore
         echo ".agent-os/state/session-cache.json" >> .gitignore
         echo ".agent-os/state/command-state.json" >> .gitignore
         echo ".agent-os/state/recovery/" >> .gitignore
@@ -512,11 +566,12 @@ if [ -f .gitignore ]; then
         echo ".agent-os/**/*.cache" >> .gitignore
         echo ".agent-os/**/*.tmp" >> .gitignore
         echo "  ✓ Updated .gitignore with state exclusions"
+        echo "  ℹ️  Note: .agent-os/progress/ is version controlled (cross-session memory)"
     fi
 else
     # Create new .gitignore with Agent-OS entries
     cat > .gitignore << 'EOF'
-# Agent-OS cache and state files
+# Agent-OS cache and state files (excludes progress/ which is version controlled)
 .agent-os/state/session-cache.json
 .agent-os/state/command-state.json
 .agent-os/state/recovery/
@@ -527,6 +582,7 @@ else
 .agent-os/**/*.tmp
 EOF
     echo "  ✓ Created .gitignore with state exclusions"
+    echo "  ℹ️  Note: .agent-os/progress/ is version controlled (cross-session memory)"
 fi
 
 # Handle Cursor installation for project
@@ -601,12 +657,13 @@ echo "📍 Project-level files installed to:"
 echo "   .agent-os/version.json     - Installation version and metadata"
 echo "   .agent-os/standards/       - Development standards"
 echo "   .agent-os/state/           - State management and caching"
-echo "   .agent-os/shared/          - Shared modules (error recovery, state patterns)"
+echo "   .agent-os/progress/        - Persistent progress log (cross-session memory)"
+echo "   .agent-os/shared/          - Shared modules (error recovery, state patterns, progress log)"
 
 if [ "$CLAUDE_CODE" = true ]; then
     echo "   .claude/commands/          - Claude Code commands (with embedded instructions)"
     echo "   .claude/agents/            - Claude Code specialized subagents"
-    echo "   .claude/skills/            - Claude Code skills (7 default skills)"
+    echo "   .claude/skills/            - Claude Code skills (8 default skills)"
     if [ "$FULL_SKILLS" = true ]; then
         echo "   .claude/skills/optional/   - Optional Tier 2 skills (4 additional)"
     fi

@@ -21,7 +21,90 @@ Canonical patterns for state management across all Agent OS commands. Use these 
 ├── session-cache.json   # Runtime cache (auto-generated)
 ├── .lock               # File lock for concurrent access
 └── recovery/           # Automatic state backups (last 5)
+
+.agent-os/progress/
+├── progress.json        # Persistent cross-session memory (NEVER expires)
+├── progress.md          # Human-readable version (auto-generated)
+└── archive/             # Archived entries older than 30 days
 ```
+
+---
+
+## Two-Tier Memory Architecture
+
+Agent OS uses two complementary memory systems with different time horizons:
+
+### Session Cache (Short-Term Memory)
+- **Purpose**: Performance optimization within a single workflow
+- **Lifespan**: 5 minutes, auto-extends up to 1 hour max
+- **Content**: File paths, cached document content, test results
+- **Git tracked**: No (ephemeral, in .gitignore)
+- **Recovery**: Rebuilds from source files if expired/corrupted
+
+**Use for**: Avoiding redundant file reads, caching spec locations, storing test results
+
+### Progress Log (Long-Term Memory)
+- **Purpose**: Cross-session context and accomplishment tracking
+- **Lifespan**: Never expires (permanent record)
+- **Content**: Events, decisions, accomplishments, blockers
+- **Git tracked**: Yes (version controlled, team-visible)
+- **Recovery**: N/A - represents irreplaceable history
+
+**Use for**: Session continuity, blocker tracking, understanding "what happened"
+
+### How They Complement Each Other
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Session Workflow                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  SESSION CACHE (ephemeral)      PROGRESS LOG (permanent)    │
+│  ┌─────────────────────┐        ┌─────────────────────┐     │
+│  │ spec_cache:         │        │ session_started:    │     │
+│  │   file paths        │        │   what we're doing  │     │
+│  │   section indexes   │        │                     │     │
+│  │                     │        │ task_completed:     │     │
+│  │ context_cache:      │        │   what we achieved  │     │
+│  │   mission content   │        │   how long it took  │     │
+│  │   tech stack        │        │                     │     │
+│  │                     │        │ task_blocked:       │     │
+│  │ test_cache:         │        │   what's stopping us│     │
+│  │   recent results    │        │                     │     │
+│  └─────────────────────┘        └─────────────────────┘     │
+│           │                              │                  │
+│           ▼                              ▼                  │
+│    Expires after                  Persists forever          │
+│    workflow ends                  across all sessions       │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Distinction
+
+| Question | Answer From |
+|----------|-------------|
+| "Where is the auth spec file?" | Session Cache (or re-discover) |
+| "What's in mission.md?" | Session Cache (or re-read file) |
+| "Did tests pass recently?" | Session Cache |
+| "What did we accomplish yesterday?" | **Progress Log only** |
+| "Why was Task 1.2 blocked?" | **Progress Log only** |
+| "What's the next step?" | **Progress Log only** |
+
+**Critical insight**: Session cache content is *re-discoverable* from source files. Progress log content is *irreplaceable* - it records decisions and events that only existed in the agent's context window.
+
+### When to Use Each
+
+**Session Cache** (see @shared/state-patterns.md patterns):
+- Cache file paths during spec discovery
+- Store document content to avoid re-reading
+- Track test results within a workflow
+
+**Progress Log** (see @shared/progress-log.md patterns):
+- Record session start with context
+- Log task completions with notes
+- Document blockers and resolutions
+- Summarize session accomplishments
 
 ---
 

@@ -25,6 +25,10 @@ Target Project/
 │   │   ├── workflow.json   # Current workflow state
 │   │   ├── session-cache.json # Runtime cache (auto-generated)
 │   │   └── recovery/       # Automatic state backups
+│   ├── progress/           # Persistent progress log (cross-session memory)
+│   │   ├── progress.json   # Machine-readable progress data
+│   │   ├── progress.md     # Human-readable progress log
+│   │   └── archive/        # Archived entries (>30 days old)
 │   ├── specs/              # Feature specifications (created by commands)
 │   ├── tasks/              # Task breakdowns (created by commands)
 │   ├── product/            # Product planning docs (created by commands)
@@ -258,30 +262,33 @@ Target Project/
 
 ### Command-to-Subagent Communication
 
-Commands invoke subagents using the Task tool:
+Commands leverage a hybrid approach of native Claude Code features and specialized subagents:
 
-```javascript
-// Example from execute-tasks.md
-ACTION: Use spec-cache-manager subagent via Task tool
-REQUEST: "Perform specification discovery for project:
-          - Search all specification directories
-          - Create lightweight index of spec files
-          - Map spec sections to file paths
-          - Return cached index for session use"
-```
+### Native Claude Code Features (Replaced Subagents)
+
+| Feature | Replaces | Purpose |
+|---------|----------|---------|
+| **Explore agent** | spec-cache-manager, context-fetcher | Specification discovery, document retrieval |
+| **Write tool** | file-creator | File and directory creation |
+| **Environment context** | date-checker | Current date/time from session |
 
 ### Subagent Specializations
 
 | Subagent | Purpose | Used By |
 |----------|---------|---------|
-| **spec-cache-manager** | One-time spec discovery with caching | execute-tasks |
-| **context-fetcher** | Batched document retrieval | All commands |
 | **git-workflow** | Branch management, commits, PRs | execute-tasks, debug |
-| **test-runner** | Test execution and failure analysis | execute-tasks, debug |
 | **codebase-indexer** | Code reference updates | execute-tasks, index-codebase, debug |
 | **project-manager** | Task/roadmap updates, notifications | execute-tasks, create-spec |
-| **file-creator** | Batch file/directory creation | All commands |
-| **date-checker** | Current date/time information | create-spec, plan-product |
+
+### Skills (Auto-Invoked)
+
+Skills handle functionality that was previously subagent-based:
+
+| Skill | Replaces | Purpose |
+|-------|----------|---------|
+| **test-check** | test-runner | Test execution and failure analysis |
+| **codebase-names** | (new) | Validates names against codebase index |
+| **build-check** | (new) | Build verification before commits |
 
 ### Skills (Model-Invoked)
 
@@ -298,6 +305,7 @@ Skills are auto-invoked by Claude based on context. They live in `.claude/skills
 | **tdd** | Enforce RED-GREEN-REFACTOR cycle | Before implementing features |
 | **brainstorming** | Socratic design refinement | During spec creation |
 | **writing-plans** | Create detailed micro-task plans | During task breakdown |
+| **session-startup** | Load progress context, verify environment | At execute-tasks start |
 
 **Tier 2 - Optional Skills (Installed with `--full-skills`):**
 
@@ -373,6 +381,75 @@ function saveState(filepath, data) {
    - Save progress at checkpoints
    - Allow resume from last successful step
    - Document blockers in task files
+
+---
+
+## 📝 Progress Log (Cross-Session Memory)
+
+Based on Anthropic's "Effective Harnesses for Long-Running Agents" research, Agent OS implements a persistent progress log for cross-session memory.
+
+### Key Difference from Session Cache
+| Aspect | Session Cache | Progress Log |
+|--------|---------------|--------------|
+| **Persistence** | Expires after 1 hour max | Never expires |
+| **Purpose** | Within-session optimization | Cross-session memory |
+| **Location** | `.agent-os/state/session-cache.json` | `.agent-os/progress/` |
+| **Git tracked** | No (in .gitignore) | Yes (version controlled) |
+
+### Progress Log Structure
+
+**progress.json** (machine-readable):
+```json
+{
+  "version": "1.0",
+  "project": "project-name",
+  "entries": [
+    {
+      "id": "entry-20251208-143000-abc",
+      "timestamp": "2025-12-08T14:30:00Z",
+      "type": "task_completed",
+      "spec": "auth-feature",
+      "task_id": "1.2",
+      "data": {
+        "description": "Implemented JWT validation",
+        "duration_minutes": 45,
+        "notes": "Added refresh token support",
+        "next_steps": "Task 1.3 - Session management"
+      }
+    }
+  ],
+  "metadata": {
+    "total_entries": 1,
+    "last_updated": "2025-12-08T14:30:00Z"
+  }
+}
+```
+
+**progress.md** (human-readable, auto-generated from JSON)
+
+### Entry Types
+
+| Type | Trigger | Purpose |
+|------|---------|---------|
+| `session_started` | Phase 1 of execute-tasks | Record session context |
+| `task_completed` | Task marked complete | Document accomplishments |
+| `task_blocked` | Blocker encountered | Track unresolved issues |
+| `debug_resolved` | Debug session completed | Document fixes |
+| `session_ended` | Phase 3 completion | Summarize session |
+
+### Integration Points
+
+Progress logging is integrated into `/execute-tasks`:
+- **Step 6.5**: Log `session_started` after environment verified
+- **Step 7.10**: Log `task_completed` for each parent task
+- **Step 15**: Log `session_ended` with summary
+
+### Benefits
+
+1. **Context Retention**: New sessions automatically know previous accomplishments
+2. **Blocker Tracking**: Unresolved issues visible across sessions
+3. **Progress Visibility**: Chronological record of all development activity
+4. **Team Collaboration**: Version-controlled log visible to all team members
 
 ---
 

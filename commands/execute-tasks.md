@@ -72,6 +72,39 @@ When executing this command:
 
 # Task Execution Workflow (Combined)
 
+## Phase 0: Session Startup (Pre-Flight Check)
+
+### Step 0: Session Startup Protocol
+The session-startup skill auto-invokes to verify environment and load cross-session context.
+
+**Instructions:**
+```
+ACTION: session-startup skill auto-invokes
+PURPOSE: Verify environment and establish session context
+PROTOCOL:
+  1. Directory verification (confirm project root)
+  2. Progress context load (read recent progress entries)
+  3. Git state review (branch, uncommitted changes)
+  4. Task status check (current spec progress)
+  5. Environment health (dev server, config files)
+  6. Session focus confirmation (confirm task selection)
+
+WAIT: For startup protocol completion
+OUTPUT: Session startup summary with suggested task
+
+IF startup fails:
+  DISPLAY: Error details and recovery suggestions
+  HALT: Do not proceed until environment verified
+```
+
+**Benefits:**
+- Cross-session context automatically loaded
+- Unresolved blockers highlighted before work begins
+- Environment issues caught early
+- Task selection informed by progress history
+
+**See**: `.claude/skills/session-startup.md` for full protocol details
+
 ## Phase 1: Task Discovery and Setup
 
 ### Step 1: Task Assignment
@@ -85,6 +118,66 @@ Identify which tasks to execute from the spec (using spec_srd_reference file pat
 1. ACTION: Identify task(s) to execute
 2. DEFAULT: Select next uncompleted parent task if not specified
 3. CONFIRM: Task selection with user
+
+### Step 1.5: Scope Constraint Check
+Verify task scope follows best practices for long-running agent sessions.
+
+**Reference**: Anthropic's research suggests focusing on ONE feature per session improves completion rate and code quality.
+
+**Scope Detection:**
+```
+COUNT: Number of parent tasks selected for this session
+
+IF parent_task_count == 1:
+  PROCEED: Single task mode (optimal)
+
+IF parent_task_count > 1:
+  DISPLAY:
+    "⚠️  Multiple Task Warning
+     ─────────────────────────────────────────
+     You've selected [count] parent tasks for this session:
+     [list task IDs and descriptions]
+
+     Research suggests focusing on ONE task per session:
+     • Higher completion rate
+     • Better code quality
+     • Cleaner context retention
+
+     Recommendation: Start with Task [first_task_id]
+     ─────────────────────────────────────────"
+
+  ASK: "How would you like to proceed?"
+  OPTIONS:
+    1. Single task - Focus on [first_task_id] only (recommended)
+    2. All tasks - Execute all [count] tasks this session
+
+  IF user selects option 1 (single task):
+    SET: tasks_to_execute = [first_task]
+    PROCEED: With single task
+
+  IF user selects option 2 (all tasks):
+    LOG: scope_override entry to progress log
+    DATA:
+      type: "scope_override"
+      requested_tasks: [list of task IDs]
+      reason: "user_override"
+    SET: tasks_to_execute = all_requested_tasks
+    PROCEED: With multiple tasks (user chose to override)
+```
+
+**Scope Override Logging:**
+```
+IF user overrides scope constraint:
+  ACTION: Append to progress log
+  ENTRY_TYPE: scope_override
+  DATA:
+    description: "User chose to execute multiple parent tasks"
+    requested_tasks: [array of task IDs]
+    reason: "user_override"
+    session_context: "Informed of single-task recommendation"
+
+  PURPOSE: Track scope decisions for analysis
+```
 
 ### Step 2: Get Current Date and Initialize Cache
 Use the current date from the environment context for timestamps and cache management.
@@ -170,6 +263,24 @@ WAIT: For branch setup completion
 - Source: spec folder name
 - Format: exclude date prefix
 - Example: folder `2025-03-15-password-reset` → branch `password-reset`
+
+### Step 6.5: Log Session Start (Progress Log)
+Log the session start to the persistent progress log for cross-session memory.
+
+**Instructions:**
+```
+ACTION: Append to progress log
+ENTRY_TYPE: session_started
+DATA:
+  spec: [SPEC_FOLDER_NAME]
+  focus_task: [SELECTED_TASK_ID]
+  context: [BRIEF_CONTEXT_FROM_PREVIOUS_PROGRESS_OR_TASK_DESCRIPTION]
+
+FILE: .agent-os/progress/progress.json
+PATTERN: Use PROGRESS_APPEND_PATTERN from @shared/progress-log.md
+```
+
+**Purpose:** Creates cross-session memory so future sessions know what was started and can continue effectively.
 
 ## Phase 2: Task Execution Loop
 
@@ -424,9 +535,9 @@ USE THESE EXACT NAMES - DO NOT DEVIATE
 **Missing Name Handling:**
 ```
 IF a needed name is not in retrieved references:
-  ACTION: Use context-fetcher to grep for it specifically
-  REQUEST: "Search functions.md for [specific-function-name]"
-  OR: "Find import path for [component-name] in imports.md"
+  ACTION: Use Explore agent to search for it specifically
+  REQUEST: "Search .agent-os/codebase/functions.md for [specific-function-name]"
+  OR: "Find import path for [component-name] in .agent-os/codebase/imports.md"
   WAIT: For confirmation before proceeding
 ```
 
@@ -659,8 +770,30 @@ IF validation fails:
 3. Correct violations and re-validate
 4. Do not mark complete until all validations pass
 
-### Step 7.10: Mark Task Complete
+### Step 7.10: Mark Task Complete and Log Progress
 ONLY after output validation passes, mark this task and its sub-tasks complete by updating each task checkbox to [x] in tasks.md.
+
+**Task Completion:**
+1. Update tasks.md with [x] for completed task and subtasks
+2. Note any blockers encountered and resolved
+
+**Progress Logging:**
+```
+ACTION: Append to progress log
+ENTRY_TYPE: task_completed
+DATA:
+  spec: [SPEC_FOLDER_NAME]
+  task_id: [PARENT_TASK_ID]
+  description: [TASK_DESCRIPTION]
+  duration_minutes: [ESTIMATED_DURATION]
+  notes: [KEY_ACCOMPLISHMENTS_OR_CHALLENGES]
+  next_steps: [NEXT_TASK_OR_PHASE]
+
+FILE: .agent-os/progress/progress.json
+PATTERN: Use PROGRESS_APPEND_PATTERN from @shared/progress-log.md
+```
+
+**Purpose:** Creates permanent record of task completion for cross-session context.
 
 ## Phase 3: Task Completion and Delivery
 
@@ -902,6 +1035,27 @@ COMMAND: afplay /System/Library/Sounds/Glass.aiff
 PURPOSE: Alert user that task is complete
 ```
 
+### Step 15: Log Session End (Progress Log)
+Log the session completion to the persistent progress log for cross-session memory.
+
+**Instructions:**
+```
+ACTION: Append to progress log
+ENTRY_TYPE: session_ended
+DATA:
+  spec: [SPEC_FOLDER_NAME]
+  summary: [BRIEF_SUMMARY_OF_SESSION_ACCOMPLISHMENTS]
+  tasks_completed: [LIST_OF_COMPLETED_TASK_IDS]
+  pr_url: [PULL_REQUEST_URL_IF_CREATED]
+  next_steps: [SUGGESTED_NEXT_ACTIONS]
+
+FILE: .agent-os/progress/progress.json
+PATTERN: Use PROGRESS_APPEND_PATTERN from @shared/progress-log.md
+ALSO: Regenerate progress.md using PROGRESS_MARKDOWN_PATTERN
+```
+
+**Purpose:** Provides complete session summary for future sessions to understand what was accomplished and what remains.
+
 <!-- END EMBEDDED CONTENT -->
 
 ---
@@ -913,6 +1067,16 @@ Use patterns from @shared/state-patterns.md:
 - State loads: STATE_LOAD_PATTERN
 - Cache validation: CACHE_VALIDATION_PATTERN (5-min expiry, mtime-based)
 - Locking: LOCK_PATTERN
+
+Use patterns from @shared/progress-log.md:
+- Append entries: PROGRESS_APPEND_PATTERN
+- Load progress: PROGRESS_LOAD_PATTERN
+- Read recent: PROGRESS_READ_RECENT_PATTERN
+
+**Progress logging events:**
+- `session_started`: Log after Phase 1 completes (environment verified, task selected)
+- `task_completed`: Log after each parent task marked complete (Step 7.10)
+- `session_ended`: Log at Phase 3 completion with summary
 
 **Execute-tasks specific state:**
 ```json
@@ -926,6 +1090,8 @@ Use patterns from @shared/state-patterns.md:
 ```
 
 **Cache rules:** Load at workflow start, auto-extend for active workflows (max 12 extensions = 1 hour), save after each task completion.
+
+**Progress rules:** Progress log NEVER expires. Append after each significant event. Use for cross-session context recovery.
 
 ---
 
