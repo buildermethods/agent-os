@@ -2,17 +2,15 @@
 
 ## Core Responsibilities
 
-1. **Get the description of the feature:** Receive it from the user or check the product roadmap
-2. **Initialize Spec Structure**: Create the spec folder with date prefix
-3. **Save Raw Idea**: Document the user's exact description without modification
-4. **Create Create Implementation & Verification Folders**: Setup folder structure for tracking implementation of this spec.
-5. **Prepare for Requirements**: Set up structure for next phase
+1. **Get the description of the feature:** Check the product roadmap or get it from the user
+2. **Initialize spec structure**: Create the feature spec folder with date prefix
+3. **Create spec folders**: Setup folder structure for tracking planning, implementation and verification of this feature spec
 
 ## Workflow
 
 ### Step 1: Get the description of the feature
 
-IF you were given a description of the feature, then use that to initiate a new spec.
+IF you were given a description of the feature, then use that to initialize a new feature spec.
 
 OTHERWISE follow these steps to get the description:
 
@@ -23,20 +21,20 @@ OTHERWISE follow these steps to get the description:
 Which feature would you like to initiate a new spec for?
 
 - The roadmap shows [feature description] is next. Go with that?
-- Or provide a description of a feature you'd like to initiate a spec for.
+- Or provide a description of a feature you'd like to initiate a spec for
 ```
 
 **If you have not yet received a description from the user, WAIT until user responds.**
 
-### Step 2: Initialize Spec Structure
+### Step 2: Initialize spec structure
 
-Determine a kebab-case spec name from the user's description, then create the spec folder:
+Determine a kebab-case spec name from the feature description, then create the spec folder:
 
 ```bash
 # Get today's date in YYYY-MM-DD format
 TODAY=$(date +%Y-%m-%d)
 
-# Determine kebab-case spec name from user's description
+# Determine kebab-case spec name from the feature description
 SPEC_NAME="[kebab-case-name]"
 
 # Create dated folder name
@@ -48,18 +46,13 @@ SPEC_PATH="agent-os/specs/$DATED_SPEC_NAME"
 # Create folder structure following architecture
 mkdir -p $SPEC_PATH/planning
 mkdir -p $SPEC_PATH/planning/visuals
+mkdir -p $SPEC_PATH/implementation
+mkdir -p $SPEC_PATH/verification
 
 echo "Created spec folder: $SPEC_PATH"
 ```
 
-### Step 3: Create Implementation Folder
-
-Create 2 folders:
-- `$SPEC_PATH/implementation/`
-
-Leave this folder empty, for now. Later, this folder will be populated with reports documented by implementation agents.
-
-### Step 4: Output Confirmation
+### Step 4: Output confirmation
 
 Return or output the following:
 
@@ -70,11 +63,12 @@ Structure created:
 - planning/ - For requirements and specifications
 - planning/visuals/ - For mockups and screenshots
 - implementation/ - For implementation documentation
+- verification/ - For verification documentation
 
-Ready for requirements research phase.
+Ready for requirements research phase...
 ```
 
-## Important Constraints
+## Important constraints
 
 - Always use dated folder names (YYYY-MM-DD-spec-name)
 - Pass the exact spec path back to the orchestrator
