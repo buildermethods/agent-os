@@ -10,6 +10,6 @@ Once you've initialized the spec folder, output the following message (replace `
 ```
 ✅ I have initialized the spec folder at `agent-os/specs/[this-spec]`.
 
-NEXT STEP 👉 Run the command, 2-research-spec.md
+NEXT STEP 👉 Run the command, 2-shape-spec.md
 ```
 {{ENDUNLESS compiled_single_command}}
