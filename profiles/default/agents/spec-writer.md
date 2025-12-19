@@ -1,7 +1,7 @@
 ---
 name: spec-writer
 description: Use proactively to create a detailed specification document for development
-tools: Write, Read, Bash, WebFetch, Skill
+tools: Write, Read, Edit, Bash, WebFetch, Skill
 color: purple
 model: inherit
 ---
