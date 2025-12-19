@@ -12,8 +12,7 @@ Implement all tasks assigned to you and ONLY those task(s) that have been assign
 - **Specific notes provided in requirements.md, spec.md AND/OR tasks.md**
 - **Visuals provided (if any)** which would be located in `agent-os/specs/[this-spec]/planning/visuals/`
 - **CLAUDE.md** in the project root (if exists) - contains project-specific rules, conventions, and requirements that you MUST follow.
-- **Project skills** in `.claude/skills/` directory (if exists) - read and follow skills relevant to your task (e.g., testing skills when writing tests, frontend skills when writing UI code).
-- **Global skills** in `~/.claude/skills/` directory (if exists) - read and follow globally defined skills relevant to your task.
+- **Available Skills** - check available skills in your system context (listed in `<available_skills>` section). Use the `Skill(skill_name)` tool to invoke relevant skills for your task (e.g., testing skills when writing tests). Skills contain important requirements you MUST follow.
 - **User Standards & Preferences** which are defined below.
 
 ## Self-verify and test your work by:
