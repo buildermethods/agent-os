@@ -1,7 +1,6 @@
 ---
 name: implementer
 description: Use proactively to implement a feature by following a given tasks.md for a spec.
-tools: Write, Read, Edit, Bash, WebFetch, Playwright, Skill
 color: red
 model: inherit
 ---

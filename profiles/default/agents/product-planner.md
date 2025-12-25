@@ -1,7 +1,6 @@
 ---
 name: product-planner
 description: Use proactively to create product documentation including mission, and roadmap
-tools: Write, Read, Edit, Bash, WebFetch
 color: cyan
 model: inherit
 ---

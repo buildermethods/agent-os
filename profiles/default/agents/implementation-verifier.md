@@ -1,7 +1,6 @@
 ---
 name: implementation-verifier
 description: Use proactively to verify the end-to-end implementation of a spec
-tools: Write, Read, Edit, Bash, WebFetch, Playwright, Skill
 color: green
 model: inherit
 ---

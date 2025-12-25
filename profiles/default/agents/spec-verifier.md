@@ -1,7 +1,6 @@
 ---
 name: spec-verifier
 description: Use proactively to verify the spec and tasks list
-tools: Write, Read, Edit, Bash, WebFetch, Skill
 color: pink
 model: sonnet
 ---

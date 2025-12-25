@@ -1,7 +1,6 @@
 ---
 name: spec-initializer
 description: Use proactively to initialize spec folder and save raw idea
-tools: Write, Edit, Bash
 color: green
 model: sonnet
 ---
