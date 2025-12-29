@@ -52,7 +52,7 @@ mkdir -p $SPEC_PATH/verification
 echo "Created spec folder: $SPEC_PATH"
 ```
 
-### Step 4: Output confirmation
+### Step 3: Output confirmation
 
 Return or output the following:
 
