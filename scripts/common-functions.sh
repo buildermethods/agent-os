@@ -488,6 +488,15 @@ replace_playwright_tools() {
     echo "$tools" | sed "s/Playwright/$playwright_tools/g"
 }
 
+# Replace Chrome tool with expanded Claude in Chrome tool list
+replace_chrome_tools() {
+    local tools=$1
+
+    local chrome_tools="mcp__claude-in-chrome__javascript_tool, mcp__claude-in-chrome__read_page, mcp__claude-in-chrome__find, mcp__claude-in-chrome__form_input, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__resize_window, mcp__claude-in-chrome__gif_creator, mcp__claude-in-chrome__upload_image, mcp__claude-in-chrome__get_page_text, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__update_plan, mcp__claude-in-chrome__read_console_messages, mcp__claude-in-chrome__read_network_requests, mcp__claude-in-chrome__shortcuts_list, mcp__claude-in-chrome__shortcuts_execute"
+
+    echo "$tools" | sed "s/Chrome/$chrome_tools/g"
+}
+
 # Process conditional compilation tags ({{IF}}, {{UNLESS}}, {{ENDIF}}, {{ENDUNLESS}})
 # Ignores {{orchestrated_standards}} and other placeholders
 process_conditionals() {
@@ -1023,6 +1032,13 @@ compile_agent() {
         local tools_line=$(echo "$content" | grep "^tools:")
         local new_tools_line=$(replace_playwright_tools "$tools_line")
         # Simple replacement since this is a single line
+        content=$(echo "$content" | sed "s|^tools:.*$|$new_tools_line|")
+    fi
+
+    # Replace Chrome in tools
+    if echo "$content" | grep -q "^tools:.*Chrome"; then
+        local tools_line=$(echo "$content" | grep "^tools:")
+        local new_tools_line=$(replace_chrome_tools "$tools_line")
         content=$(echo "$content" | sed "s|^tools:.*$|$new_tools_line|")
     fi
 
