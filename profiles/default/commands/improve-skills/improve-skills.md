@@ -25,7 +25,22 @@ Analyze and read the skill file to understand what it is, what it should be used
 - The Skill's name and file name.
 - The Skill.md contains a link that points to `agent_os/standards/...` — Follow that link and read its contents.
 
-### Step 3: Rewrite the Skill description
+### Step 3: Normalize the Skill name and rewrite the description
+
+#### 3.1: Convert the skill name to kebab-case
+
+Transform the `name` field in the frontmatter to kebab-case format:
+- Convert all letters to lowercase
+- Replace all whitespace characters (spaces, tabs) with a single hyphen
+- Collapse multiple consecutive spaces/hyphens into a single hyphen
+- Trim leading/trailing hyphens if present
+
+Example transformations:
+- `"API Standards"` → `"api-standards"`
+- `"Vue  Component   Guidelines"` → `"vue-component-guidelines"`
+- `"TypeScript Best Practices"` → `"typescript-best-practices"`
+
+#### 3.2: Rewrite the description
 
 The most important element of a skill.md file that impacts its discoverability and trigger-ability by Claude Code is the content we write in the `description` in the skill.md frontmatter.
 
