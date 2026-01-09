@@ -74,6 +74,15 @@ Are there existing features in your codebase with similar patterns we should ref
 
 Please provide file/folder paths or names of these features if they exist.
 
+**Impact Analysis (for refactoring/modification tasks):**
+If this feature involves changing existing constants, types, or shared code, I need to identify ALL affected areas to avoid missing critical updates:
+
+- Are there any OTHER packages or modules that define or use the same constants/types?
+- Are there any hardcoded values in the codebase that should be updated?
+- Which areas beyond the obvious ones might be affected? (e.g., background jobs, utilities, tests, etc.)
+
+Please list any areas you know use the affected constants/types that I should investigate.
+
 **Visual Assets Request:**
 Do you have any design mockups, wireframes, or screenshots that could help guide the development?
 
@@ -182,6 +191,17 @@ Use the following structure and do not deviate from this structure when writing 
 [If user provided no similar features]
 No similar existing features identified for reference.
 
+### Impact Analysis
+[Based on user's response about affected areas - CRITICAL for refactoring tasks]
+
+**Affected Areas Identified by User:**
+- Package/Module: [Name] - Reason: [why it's affected]
+- Hardcoded values: [locations mentioned by user]
+- Additional areas: [other modules mentioned by user]
+
+[If user provided no impact information OR this is a new feature (not refactoring)]
+No additional impact areas identified. Note: spec-writer should still perform independent impact analysis.
+
 ### Follow-up Questions
 [If any were asked]
 
@@ -251,12 +271,15 @@ Ready for specification creation.
 ## Important Constraints
 
 - **MANDATORY**: Always run bash command to check visuals folder after receiving user answers
+- **MANDATORY**: Always ask about impact analysis for refactoring tasks - which other areas use the same constants/types
 - DO NOT write technical specifications for development. Just record your findings from information gathering to this single file: `[spec-path]/planning/requirements.md`.
 - Visual check is based on actual file(s) found via bash, NOT user statements
 - Check filenames for low-fidelity indicators and clarify design intent if found
 - Ask about existing similar features to promote code reuse
+- Ask about affected areas beyond obvious ones
 - Keep follow-ups minimal (1-3 questions max)
 - Save user's exact answers, not interpretations
 - Document all visual findings including fidelity level
 - Document paths to similar features for spec-writer to reference
+- Document all affected areas mentioned by user for spec-writer's impact analysis
 - OUTPUT questions and STOP to wait for orchestrator to relay responses

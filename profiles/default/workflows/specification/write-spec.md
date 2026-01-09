@@ -4,7 +4,8 @@
 
 1. **Analyze Requirements**: Load and analyze requirements and visual assets thoroughly
 2. **Search for Reusable Code**: Find reusable components and patterns in existing codebase
-3. **Create Specification**: Write comprehensive specification document
+3. **Impact Analysis**: Find ALL code affected by this change (critical for refactoring)
+4. **Create Specification**: Write comprehensive specification document
 
 ## Workflow
 
@@ -43,6 +44,54 @@ Use appropriate search tools and commands for the project's technology stack to 
 - Architecture patterns already established
 
 Document your findings for use in the specification.
+
+### Step 2.5: Impact Analysis - Find All Affected Code
+
+**CRITICAL:** Before creating the specification, perform comprehensive impact analysis to find ALL code that will be affected by this change. This is especially important for refactoring tasks that modify shared constants, types, or patterns.
+
+**When to perform impact analysis:**
+- Modifying shared constants or type definitions
+- Renaming or changing values used across multiple files
+- Refactoring code that may have duplicates in different packages
+- Changing APIs, database schemas, or configuration formats
+
+**How to perform impact analysis:**
+
+Use appropriate search tools for the project's technology stack (grep, ripgrep, IDE search, etc.).
+
+1. **Search for constant/type usages:**
+   ```bash
+   # Find all files using the constants/types being modified
+   # Adjust file extensions for your project's language(s)
+   grep -r "CONSTANT_NAME" .
+   ```
+
+2. **Check for duplicate definitions:**
+   ```bash
+   # Detect if the same constant is defined in multiple places (this is a RED FLAG)
+   grep -rn "CONSTANT_NAME" . | grep -E "(export|define|const|var|let|=)"
+   ```
+   If duplicates are found, they MUST be consolidated in the spec.
+
+3. **Find hardcoded values:**
+   ```bash
+   # Search for hardcoded values that should use the constant
+   grep -rn "'literal_value'" .
+   ```
+
+4. **Identify all packages/modules affected:**
+   ```bash
+   # List unique directories with matches
+   grep -r "CONSTANT_NAME" . | cut -d':' -f1 | xargs -I{} dirname {} | sort -u
+   ```
+
+**Document your findings:**
+- Total files affected (count)
+- Duplicate definitions found (these MUST be listed for consolidation)
+- Hardcoded values found (these MUST be listed for refactoring)
+- All packages/modules requiring updates
+
+**Include in specification:** Add a "Files Requiring Modification" section OR expand "Existing Code to Leverage" to include all affected files, not just reusable ones.
 
 ### Step 3: Create Core Specification
 
@@ -93,7 +142,9 @@ Follow this structure exactly when creating the content of `spec.md`:
 ## Important Constraints
 
 1. **Always search for reusable code** before specifying new components
-2. **Reference visual assets** when available
-3. **Do NOT write actual code** in the spec
-4. **Keep each section short**, with clear, direct, skimmable specifications
-5. **Do NOT deviate from the template above** and do not add additional sections
+2. **Always perform impact analysis** for refactoring tasks - find ALL affected files, not just similar ones
+3. **Check for duplicate definitions** - if the same constant/type exists in multiple packages, flag it for consolidation
+4. **Reference visual assets** when available
+5. **Do NOT write actual code** in the spec
+6. **Keep each section short**, with clear, direct, skimmable specifications
+7. **Do NOT deviate from the template above** and do not add additional sections

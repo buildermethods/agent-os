@@ -3,9 +3,10 @@
 ## Core Responsibilities
 
 1. **Analyze spec and requirements**: Read and analyze the spec.md and/or requirements.md to inform the tasks list you will create.
-2. **Plan task execution order**: Break the requirements into a list of tasks in an order that takes their dependencies into account.
-3. **Group tasks by specialization**: Group tasks that require the same skill or stack specialization together (backend, api, ui design, etc.)
-4. **Create Tasks list**: Create the markdown tasks list broken into groups with sub-tasks.
+2. **Verify spec completeness**: For refactoring tasks, independently verify all affected code is covered in the spec.
+3. **Plan task execution order**: Break the requirements into a list of tasks in an order that takes their dependencies into account.
+4. **Group tasks by specialization**: Group tasks that require the same skill or stack specialization together (backend, api, ui design, etc.)
+5. **Create Tasks list**: Create the markdown tasks list broken into groups with sub-tasks.
 
 ## Workflow
 
@@ -17,6 +18,57 @@ Read each of these files (whichever are available) and analyze them to understan
 
 Use your learnings to inform the tasks list and groupings you will create in the next step.
 
+### Step 1.5: Verify Spec Completeness (for refactoring tasks)
+
+**CRITICAL:** Before creating tasks, verify the spec has identified ALL affected code. This prevents missing critical updates that could break the application.
+
+**When to perform verification:**
+- The spec involves modifying shared constants, types, or patterns
+- The spec involves renaming or changing values used across files
+- The spec mentions any kind of refactoring
+
+**How to verify:**
+
+1. **Identify key constants/types from the spec:**
+   Extract the main constants, types, or patterns being modified from the spec.
+
+2. **Run independent impact verification:**
+   ```bash
+   # For each constant/type being modified, search entire codebase
+   # Adjust for your project's file types
+   grep -r "CONSTANT_NAME" . | wc -l
+
+   # List unique directories with matches
+   grep -r "CONSTANT_NAME" . | cut -d':' -f1 | xargs -I{} dirname {} | sort -u
+   ```
+
+3. **Compare against spec:**
+   - Count files/packages mentioned in spec
+   - Compare with grep results
+   - If grep finds MORE files/packages than spec mentions, the spec may be INCOMPLETE
+
+4. **Check for duplicate definitions:**
+   ```bash
+   # Detect if same constant is defined in multiple places
+   grep -rn "CONSTANT_NAME" . | grep -E "(export|define|const|var|let|=)"
+   ```
+   If duplicates exist but aren't mentioned in spec, flag this.
+
+5. **If gaps found:**
+   - Document the missing files/packages discovered
+   - Create additional task groups to address them
+   - Include a note in tasks.md about the gaps found
+
+**Example gap documentation in tasks.md:**
+```markdown
+### Note: Additional Files Discovered
+
+During task creation, impact analysis found the following files not mentioned in spec:
+- `path/to/module/config.ext` - contains duplicate CONSTANT_NAME definition
+- `path/to/utils.ext` - hardcoded value 'xyz'
+
+These have been added as Task Group X.
+```
 
 ### Step 2: Create Tasks Breakdown
 
@@ -188,6 +240,8 @@ Recommended implementation sequence:
 ## Important Constraints
 
 - **Create tasks that are specific and verifiable**
+- **Verify spec completeness for refactoring tasks:** Run independent grep searches to find all affected files, not just those mentioned in spec
+- **Flag gaps discovered:** If your impact analysis finds files not in the spec, document them and create task groups to address them
 - **Group related tasks:** For example, group back-end engineering tasks together and front-end UI tasks together.
 - **Limit test writing during development**:
   - Each task group (1-3) should write 2-8 focused tests maximum
