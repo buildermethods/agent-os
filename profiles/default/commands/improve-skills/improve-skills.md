@@ -1,7 +1,5 @@
 I want you to help me improve the files that make up my Claude Code Skills by rewriting their descriptions so that they can be more readily discovered and used by Claude Code when it works on coding tasks.
 
-You can refer to the Claude Code documentation on the Skills feature here: https://docs.claude.com/en/docs/claude-code/skills
-
 All of the Skills in our project are located in `.claude/skills/`. Each Skill has its own folder and inside each Skill folder is a file called `SKILL.md`.
 
 LOOP through each `SKILL.md` file and FOR EACH use the following process to revise its content and improve it:
@@ -17,6 +15,130 @@ Before I proceed with improving your Claude Code Skills, can you confirm that yo
 
 If not, then please specify which Skills I should include or exclude.
 ```
+
+---
+
+## Skills Writing Reference
+
+Before improving skills, understand these key concepts:
+
+### Critical: Three-Phase Loading Model
+
+```
+Phase 1: YAML frontmatter cached for ALL skills
+    ↓
+Phase 2: SKILL.md loaded when model decides to use skill
+    ↓
+Phase 3: Related files loaded based on links + context
+```
+
+**Implications:**
+- `description` must contain trigger patterns (Phase 1 decision)
+- SKILL.md must be SHORT - loaded before full context known
+- Related files can be LONGER - loaded only when needed
+- Links must have context descriptions (when to load each file)
+
+### Supported YAML Frontmatter Fields
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `name` | auto | Identifier (lowercase, hyphens, max 64 chars) |
+| `description` | **yes** | **Critical for triggering.** Max 1024 chars |
+| `when_to_use` | no | Additional trigger guidance |
+| `allowed-tools` | no | Restrict available tools |
+
+### Unsupported Fields - REMOVE If Present
+
+These fields are **ignored** by Claude Code:
+- `tags` - not supported
+- `version` - not supported
+- `dependencies` - not supported
+
+### Description Patterns
+
+```yaml
+# Standard triggers - list scenarios:
+description: "Use when writing database queries, creating migrations, working with Prisma models"
+
+# Mandatory loading (always load):
+description: "MANDATORY: Project coding standards. Use for all code in this project"
+
+# Combined with when_to_use:
+description: "Database patterns and best practices"
+when_to_use: "When working with PostgreSQL, Prisma, or SQL queries"
+
+# File type triggers:
+description: "Tailwind CSS patterns. Use when writing .tsx, .vue, .css files with utility classes"
+
+# Comprehensive (recommended for max discoverability):
+description: "Write accessible React components. Use when creating .tsx files, implementing ARIA attributes, keyboard navigation, or fixing accessibility issues"
+```
+
+### Compactness Principle
+
+**Skills consume context window. Every character matters.**
+
+- Short, clear descriptions with triggers
+- Minimal SKILL.md content - only essentials
+- **Illustrative examples**: 3-5 lines max (showing concept)
+- **Reference patterns**: Can be longer if they provide copy-paste value
+- Link to supporting files for details
+
+### File Structure Options
+
+**Minimal:**
+```
+skill-name/
+└── SKILL.md
+```
+
+**With Supporting Files:**
+```
+skill-name/
+├── SKILL.md          # Overview + links (SHORT)
+├── REFERENCE.md      # Detailed info
+└── EXAMPLES.md       # Code examples
+```
+
+**Multi-topic (preferred for context efficiency):**
+```
+skill-name/
+├── SKILL.md              # Core rules + short illustrative examples
+├── EXAMPLES-QUERIES.md   # Examples for database queries
+├── EXAMPLES-MIGRATIONS.md # Examples for migrations
+└── EXAMPLES-MODELS.md    # Examples for models
+```
+
+### Quick Template
+
+```markdown
+---
+name: my-skill
+description: "Use when [specific trigger situations]"
+---
+
+# My Skill
+
+## When to use this skill
+
+- When writing or editing [file types]
+- When implementing [features]
+- When debugging [issues]
+
+## Purpose
+[One sentence]
+
+## Instructions
+1. Step one
+2. Step two
+
+## Example
+\`\`\`code
+// 3-5 lines max
+\`\`\`
+```
+
+---
 
 ### Step 2: Analyze what this Skill does
 
@@ -44,14 +166,45 @@ Example transformations:
 
 The most important element of a skill.md file that impacts its discoverability and trigger-ability by Claude Code is the content we write in the `description` in the skill.md frontmatter.
 
-Rewrite this description using the following guidelines:
+**Algorithm for maximum discoverability:**
 
-- The first sentence should clearly describe what this skill is. For example: "Write Tailwind CSS code and structure front-end UIs using Tailwind CSS utility classes."
-- The second sentence and subsequent sentences should clearly and directly describe multiple examples where and when this skill should be used.
-- The use case examples can include "When writing or editing [file types]" where [file types] can be a list of file extensions or types of files or components commonly found in software projects.
-- The use case examples can also include situations or areas or tools where using this skill should come into play.
-- The description text can be long. There is no maximum character or word limit.
-- Focus on adding examples where the skill SHOULD be used. Do not include instructions on when NOT to use a skill (our goal is for the Skill to be readily found and used frequently).
+1. **First sentence:** Clearly state what the skill does
+   ```
+   "Write Tailwind CSS code and structure front-end UIs using utility classes."
+   ```
+
+2. **Following sentences:** List specific trigger scenarios using these patterns:
+   - **File types:** "When writing or editing .tsx, .vue, .css files"
+   - **Situations:** "When creating forms, layouts, or responsive designs"
+   - **Tools/technologies:** "When using PostCSS, CSS-in-JS, or styled-components"
+   - **Actions:** "When debugging, optimizing, or refactoring [specific area]"
+
+**Key principle:** Focus ONLY on when to USE the skill.
+Never include when NOT to use - this reduces discoverability.
+
+**Longer descriptions are better:** More trigger scenarios = higher discoverability.
+Use the full 1024 chars if needed.
+
+**Good vs Bad Examples:**
+```yaml
+# Bad - too vague, won't trigger:
+description: "Helps with database"
+
+# Good - specific triggers:
+description: "Use when connecting to PostgreSQL/MySQL, writing queries, or debugging database issues"
+
+# Better - multiple trigger scenarios:
+description: "API documentation generator. Use when documenting REST endpoints, creating OpenAPI specs, writing JSDoc comments, or generating SDK documentation"
+```
+
+#### 3.3: Remove unsupported fields
+
+Check YAML frontmatter and REMOVE these fields if present:
+- `tags`
+- `version`
+- `dependencies`
+
+These fields are ignored by Claude Code and should be removed.
 
 ### Step 4: Insert a section for 'When to use this skill'
 
@@ -59,9 +212,11 @@ At the top of the content of skill.md, below the frontmatter, insert an H2 headi
 
 The use case examples can repeat the same one(s) listed in the description and/or expand on them.
 
+**Tip:** This section has no character limit (unlike description's 1024 chars), so you can expand on triggers mentioned in the description and add more specific scenarios.
+
 Example:
 ```markdown
-## When to use this skill:
+## When to use this skill
 
 - [Descriptive example A]
 - [Descriptive example B]
@@ -71,19 +226,30 @@ Example:
 
 ### Step 5: Advise the user on improving their skills further
 
-After revising ALL Skill.md files located in the project's `.claude/skills/` folder, display the following message to the user to advise them on how to improve their Claude Code Skills further:
+After revising ALL Skill.md files located in the project's `.claude/skills/` folder, display the following message to the user:
 
 ```
 All Claude Code Skills have been analyzed and revised!
 
-RECOMMENDATION 👉 Review and revise them further using these tips:
+## Quality Checklist
 
-- Make Skills as descriptive as possible
-- Use their 'description' frontmatter to tell Claude Code when it should proactively use this skill.
-- Include all relevant instructions, details and directives within the content of the Skill.
+Verify each skill meets these criteria:
+
+- [ ] `description` contains specific trigger patterns
+- [ ] Has "When to use this skill" section at top of content
+- [ ] No `tags`/`version`/`dependencies` fields (unsupported)
+- [ ] SKILL.md is SHORT (loaded early, before full context)
+- [ ] Illustrative examples are short (3-5 lines)
+- [ ] Links have context descriptions (when to load each file)
+- [ ] One skill = one capability (focused scope)
+
+## Additional Recommendations
+
+- **Compactness:** Skills consume context window. Every character matters.
+- **Triggering:** Description determines when skill loads - make it as specific as possible.
+- **Progressive disclosure:** SKILL.md loads first, supporting files only when needed.
+- **Multi-topic skills:** Split examples into separate files by topic for context efficiency.
+- **Content completeness:** Include all relevant instructions, details and directives within the content of the Skill.
 - You can link to other files (like your Agent OS standards files) using markdown links.
-- You can consolidate multiple similar skills into single skills where it makes sense for Claude to find and use them together.
-
-For more best practices, refer to the official Claude Code documentation on Skills:
-https://docs.claude.com/en/docs/claude-code/skills
+- Consolidate similar skills where it makes sense for Claude to find and use them together.
 ```
