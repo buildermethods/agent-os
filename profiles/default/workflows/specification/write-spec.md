@@ -85,10 +85,27 @@ Use appropriate search tools for the project's technology stack (grep, ripgrep, 
    grep -r "CONSTANT_NAME" . | cut -d':' -f1 | xargs -I{} dirname {} | sort -u
    ```
 
+5. **Find related mappings and transformations:**
+   ```bash
+   # Search for mapping structures that may reference the constants being changed
+   grep -rn "mapping\|Mapping\|MAP\|Map" .
+
+   # Search for transformation/conversion functions
+   grep -rn "transform\|Transform\|convert\|Convert\|to[A-Z]" .
+   ```
+
+   **Why this matters:** When changing constants or types, related data structures often need updates too:
+   - Lookup tables that map one value to another
+   - Configuration objects that use values from the constant
+   - Transformation functions that convert between formats
+
+   Review grep results for structures that reference or depend on the values being changed.
+
 **Document your findings:**
 - Total files affected (count)
 - Duplicate definitions found (these MUST be listed for consolidation)
 - Hardcoded values found (these MUST be listed for refactoring)
+- Related mappings/transformations found (these MUST be reviewed for updates)
 - All packages/modules requiring updates
 
 **Include in specification:** Add a "Files Requiring Modification" section OR expand "Existing Code to Leverage" to include all affected files, not just reusable ones.
@@ -144,7 +161,8 @@ Follow this structure exactly when creating the content of `spec.md`:
 1. **Always search for reusable code** before specifying new components
 2. **Always perform impact analysis** for refactoring tasks - find ALL affected files, not just similar ones
 3. **Check for duplicate definitions** - if the same constant/type exists in multiple packages, flag it for consolidation
-4. **Reference visual assets** when available
-5. **Do NOT write actual code** in the spec
-6. **Keep each section short**, with clear, direct, skimmable specifications
-7. **Do NOT deviate from the template above** and do not add additional sections
+4. **Check for related mappings** - search for lookup tables, transformations, and config objects that depend on the values being changed
+5. **Reference visual assets** when available
+6. **Do NOT write actual code** in the spec
+7. **Keep each section short**, with clear, direct, skimmable specifications
+8. **Do NOT deviate from the template above** and do not add additional sections
