@@ -42,7 +42,7 @@ Phase 3: Related files loaded based on links + context
 
 | Field | Required | Purpose |
 |-------|----------|---------|
-| `name` | auto | Identifier (lowercase, hyphens, max 64 chars) |
+| `name` | **yes** | Identifier (lowercase, hyphens, max 64 chars). Must match directory name. |
 | `description` | **yes** | **Critical for triggering.** Max 1024 chars |
 | `when_to_use` | no | Additional trigger guidance |
 | `allowed-tools` | no | Restrict available tools |
