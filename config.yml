@@ -53,4 +53,4 @@ standards_as_claude_code_skills: false
 # Override this default when running project-install.sh by using the flag --profile [profile-name]
 # ================================================
 
-profile: default
+profile: custom
