@@ -237,6 +237,15 @@ Recommended implementation sequence:
 - Different execution order based on dependencies
 - More or fewer sub-tasks per group
 
+### Step 2.5: Review Project-Specific Guidelines
+
+Before finalizing the task list, check if the project has defined guidelines or skills (typically in `.claude/skills/` or similar locations). These may contain:
+- Critical requirements that must be included in acceptance criteria
+- Testing patterns and standards to follow
+- Architecture or coding conventions to enforce
+
+Reference applicable guidelines in task descriptions where they add value. This ensures implementers have access to project-specific guidance.
+
 ## Important Constraints
 
 - **Create tasks that are specific and verifiable**
@@ -251,3 +260,4 @@ Recommended implementation sequence:
 - **Use a focused test-driven approach** where each task group starts with writing 2-8 tests (x.1 sub-task) and ends with running ONLY those tests (final sub-task)
 - **Include acceptance criteria** for each task group
 - **Reference visual assets** if visuals are available
+- **NEVER defer functionality to "future"**: If a feature or capability is mentioned in the spec or requirements, it MUST be included in the task list. Do not mark items as "future feature", "out of scope for now", or similar unless the spec explicitly states this. If unclear whether something should be included, ask for clarification rather than deferring.

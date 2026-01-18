@@ -166,3 +166,4 @@ Follow this structure exactly when creating the content of `spec.md`:
 6. **Do NOT write actual code** in the spec
 7. **Keep each section short**, with clear, direct, skimmable specifications
 8. **Do NOT deviate from the template above** and do not add additional sections
+9. **Ensure completeness for each user story**: For every user story, verify that all necessary artifacts (pages, endpoints, components, data structures) are explicitly listed in "Specific Requirements". If a user story implies functionality but doesn't specify how to implement it, either list the required artifacts or mark the ambiguity in "Out of Scope" with a note for clarification.
