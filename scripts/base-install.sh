@@ -34,7 +34,7 @@ bootstrap_error() {
 
 # Download common-functions.sh first
 download_common_functions() {
-    local functions_url="${REPO_URL}/raw/main/scripts/common-functions.sh"
+    local functions_url="${REPO_URL}/raw/v2/scripts/common-functions.sh"
 
     if curl -sL --fail "$functions_url" -o "$COMMON_FUNCTIONS_TEMP"; then
         # Source the common functions
@@ -69,7 +69,7 @@ trap cleanup EXIT
 
 # Get latest version from GitHub
 get_latest_version() {
-    local config_url="${REPO_URL}/raw/main/config.yml"
+    local config_url="${REPO_URL}/raw/v2/config.yml"
     curl -sL "$config_url" | grep "^version:" | sed 's/version: *//' | tr -d '\r\n'
 }
 
@@ -81,7 +81,7 @@ get_latest_version() {
 download_file() {
     local relative_path=$1
     local dest_path=$2
-    local file_url="${REPO_URL}/raw/main/${relative_path}"
+    local file_url="${REPO_URL}/raw/v2/${relative_path}"
 
     mkdir -p "$(dirname "$dest_path")"
 
@@ -124,7 +124,7 @@ should_exclude() {
 # Get all files from GitHub repo using the tree API
 get_all_repo_files() {
     # Get the default branch (usually main or master)
-    local branch="main"
+    local branch="v2"
 
     # Extract owner and repo name from URL
     # From: https://github.com/owner/repo to owner/repo
