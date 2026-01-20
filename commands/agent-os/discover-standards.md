@@ -36,7 +36,7 @@ Which area should we focus on for discovering standards? (Pick one, or suggest a
 
 Wait for user response before proceeding.
 
-### Step 2: Analyze the Area
+### Step 2: Analyze & Present Findings
 
 Once an area is determined:
 
@@ -47,7 +47,7 @@ Once an area is determined:
    - **Tribal** — Things a new developer wouldn't know without being told
    - **Consistent** — Patterns repeated across multiple files
 
-3. Use AskUserQuestion to present findings:
+3. Use AskUserQuestion to present findings and let user select:
 
 ```
 I analyzed [area] and found these potential standards worth documenting:
@@ -56,7 +56,7 @@ I analyzed [area] and found these potential standards worth documenting:
 2. **Error Codes** — Custom error codes like AUTH_001, DB_002 with specific meanings
 3. **Pagination Pattern** — Cursor-based pagination with consistent param names
 
-Would you like to document any of these? You can also suggest other standards for this area.
+Which would you like to document?
 
 Options:
 - "Yes, all of them"
@@ -65,24 +65,32 @@ Options:
 - "Skip this area"
 ```
 
-### Step 3: Deep Dive on Each Standard
+Wait for user selection before proceeding.
 
-For each standard the user wants to document, ask 1-2 targeted questions to understand the reasoning. Use AskUserQuestion for each.
+### Step 3: Ask Why, Then Draft Each Standard
 
-Example questions (adapt based on the specific standard):
+**IMPORTANT:** For each selected standard, you MUST complete this full loop before moving to the next standard:
+
+1. **Ask 1-2 clarifying questions** about the "why" behind the pattern. Use your AskUserQuestion tool for this.
+2. **Wait for user response**
+3. **Draft the standard** incorporating their answer
+4. **Confirm with user** before creating the file
+5. **Create the file** if approved
+
+Example questions to ask (adapt based on the specific standard):
 
 - "What problem does this pattern solve? Why not use the default/common approach?"
 - "Are there exceptions where this pattern shouldn't be used?"
 - "What's the most common mistake a developer or agent makes with this?"
 
-Keep this brief. The goal is capturing the "why" behind the pattern, not exhaustive documentation.
+**Do NOT batch all questions upfront.** Process one standard at a time through the full loop.
 
-### Step 4: Write the Standards
+### Step 4: Create the Standard File
 
-For each standard:
+For each standard (after completing Step 3's Q&A):
 
 1. Determine the appropriate folder (create if needed):
-   - `api/`, `database/`, `frontend/`, `backend/`, `testing/`, `global/`
+   - `api/`, `database/`, `javascript/`, `css/`, `backend/`, `testing/`, `global/`
 
 2. Check if a related standard file already exists — append to it if so
 
@@ -110,6 +118,7 @@ Create this file? (yes / edit: [your changes] / skip)
 ```
 
 4. Create or update the file in `agent-os/standards/[folder]/`
+5. **Then repeat Steps 3-4 for the next selected standard**
 
 ### Step 5: Update the Index
 
@@ -185,3 +194,68 @@ Use error codes: `AUTH_001`, `DB_001`, `VAL_001`
 When an error occurs in our application, we have established a consistent pattern for how errors should be formatted and returned to the client. This helps maintain consistency across our API and makes it easier for frontend developers to handle errors appropriately...
 [continues for 3 more paragraphs]
 ```
+
+## Example: Full Loop for One Standard
+
+Here's how to process a single standard through the complete workflow:
+
+**1. Present findings (Step 2):**
+```
+I found these patterns in your API code:
+1. **Response Envelope** — All responses use { success, data, error }
+2. **Error Codes** — Custom codes like AUTH_001
+
+Which would you like to document?
+```
+
+User: "Both"
+
+**2. Ask why for first standard (Step 3):**
+```
+For the Response Envelope pattern:
+- What problem does this solve? Why not return raw data?
+- Are there any endpoints that don't use this pattern?
+```
+
+User: "We use it so the frontend always knows where to find the data. All endpoints use it, no exceptions."
+
+**3. Draft first standard (Step 3 continued):**
+```
+Here's the draft for api/response-envelope.md:
+
+---
+# Response Envelope
+
+All API responses use this structure:
+\`\`\`json
+{ "success": true, "data": { ... } }
+{ "success": false, "error": { ... } }
+\`\`\`
+
+- Frontend always checks `success` first, then reads `data` or `error`
+- No exceptions — every endpoint uses this format
+---
+
+Create this file?
+```
+
+User: "Yes"
+
+**4. Create file, then move to next standard:**
+
+[Create the file]
+
+**5. Ask why for second standard (back to Step 3):**
+```
+For the Error Codes pattern:
+- What's the naming convention for codes?
+- Where should new error codes be documented?
+```
+
+User: "Format is AREA_NUMBER like AUTH_001. We keep a list in the wiki."
+
+**6. Draft second standard, confirm, create file...**
+
+[Continue until all selected standards are done]
+
+**Key point:** Complete the full ask → draft → confirm → create cycle for each standard before starting the next one.
