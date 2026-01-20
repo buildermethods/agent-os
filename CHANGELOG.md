@@ -3,6 +3,46 @@
 Get notified of major releases by subscribing here:
 https://buildermethods.com/agent-os
 
+## [3.0] - 2026-01-20
+
+Agent OS v3 is a major release that refocuses the framework on what it does best—establishing and injecting standards—while deferring to modern AI tools for the parts they now handle better.
+
+**[Full v3 documentation and video walkthrough →](https://buildermethods.com/agent-os)**
+
+### Why the major version bump?
+
+AI coding tools have evolved significantly since Agent OS's original release in mid-2025. Claude Code's plan mode, extended thinking, and improved models now handle much of the scaffolding that earlier versions provided:
+
+- **Spec writing** — Now best handled using Plan mode
+- **Task breakdown** — Tools like Claude Code automatically create and track todo lists
+- **Implementation orchestration** — Frontier models manage task delegation on their own
+
+Rather than reinvent these functions, v3 focuses on Agent OS's core strengths: establishing standards, injecting them smartly, and enhancing spec-driven development.
+
+### What's new in v3
+
+**New standards tools:**
+- `/discover-standards` — Lets the agent surface, suggest, and create standards from your codebase
+- `/inject-standards` — Injects relevant standards into any context (conversations, plans, Claude Skills) using the new `index.yml` file for automatic detection
+- **Sync script** — Syncs project standards back to your base profiles
+
+**Spec workflow changes:**
+- Spec creation now defers to **Plan Mode** (Claude Code, Cursor, or any agent with plan mode)—the industry-standard approach to spec-driven development in 2026+
+- `/shape-spec` enhances plan mode by prompting targeted questions that consider your standards and product mission, then saves the resulting plan to your Agent OS spec folder
+
+**Simplified architecture:**
+- Profile inheritance now defined in main `config.yml` instead of separate files
+- Product planning phase streamlined with AskUserQuestion tool integration
+- Implementation/orchestration phases retired—frontier models handle this well on their own now
+
+### Backward compatibility
+
+**Your content stays the same.** Standards, specs, and product docs use the same format and transfer directly to v3.
+
+**Commands and scripts are new.** The installation process is simpler, but commands are different. Use `/inject-standards` to bake your standards into subagents, Claude Skills, or any prompt you create.
+
+v2 documentation remains available for those who prefer to stay on v2, but v3 is recommended for all new projects.
+
 ## [2.1.1] - 2025-10-29
 
 - Replaced references to 'spec-researcher' (depreciated agent name) with 'spec-shaper'.
@@ -10,7 +50,6 @@ https://buildermethods.com/agent-os
 - Tightened up template and istructions for writing spec.md, aiming to keep it shorter, easier to scan, and covering only the essentials.
 - Tweaked create-task-list workflow for consistency.
 - When planning product roadmap, removed instruction to limit it to 12 items.
-- Clarified instructions in implement-tasks in regards to useage of Playwright and screenshots.
 
 ## [2.1.0] - 2025-10-21
 

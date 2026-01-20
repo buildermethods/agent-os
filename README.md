@@ -1,18 +1,17 @@
 <img width="1280" height="640" alt="agent-os-og" src="https://github.com/user-attachments/assets/f70671a2-66e8-4c80-8998-d4318af55d10" />
 
-## Your system for spec-driven agentic development.
+## Enhance your spec-driven development with smart standards.
 
-[Agent OS](https://buildermethods.com/agent-os) transforms AI coding agents from confused interns into productive developers. With structured workflows that capture your standards, your stack, and the unique details of your codebase, Agent OS gives your agents the specs they need to ship quality code on the first try—not the fifth.
+[Agent OS](https://buildermethods.com/agent-os) captures the tribal knowledge from your codebase and deploys it to your AI coding tools exactly when needed. Document your standards once, then let Agent OS inject the right conventions into the right context—so every spec and every implementation follows your patterns.
 
-Use it with:
+Works alongside Claude Code, Cursor, Antigravity, and other AI tools. Any language, any framework.
 
-✅ Claude Code, Cursor, or any other AI coding tool.
+**Core capabilities:**
 
-✅ New products or established codebases.
-
-✅ Big features, small fixes, or anything in between.
-
-✅ Any language or framework.
+- **Discover Standards** — Extract patterns and conventions from your codebase into documented standards
+- **Deploy Standards** — Intelligently inject relevant standards based on what you're building
+- **Shape Spec** — Create better plans that lead to better builds
+- **Index Standards** — Keep your standards organized and discoverable
 
 ---
 
