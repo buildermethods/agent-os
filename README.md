@@ -1,4 +1,4 @@
-<img width="1280" height="640" alt="agent-os-og" src="https://github.com/user-attachments/assets/f70671a2-66e8-4c80-8998-d4318af55d10" />
+<img width="1200" height="675" alt="Agent OS" src="https://github.com/user-attachments/assets/97ad4491-d199-4b9b-9482-ae710291dfb4" />
 
 ## Agents that build the way you would
 
@@ -38,3 +38,4 @@ Get Brian's free resources on building with AI:
 - [YouTube](https://youtube.com/@briancasel)
 
 Join [Builder Methods Pro](https://buildermethods.com/pro) for official support and connect with our community of AI-first builders:
+
