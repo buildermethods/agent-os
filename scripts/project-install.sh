@@ -221,7 +221,7 @@ install_standards() {
     while IFS= read -r profile_name; do
         [[ -z "$profile_name" ]] && continue
 
-        local profile_standards="$BASE_DIR/profiles/$profile_name/standards"
+        local profile_standards="$BASE_DIR/profiles/$profile_name"
 
         if [[ ! -d "$profile_standards" ]]; then
             continue
@@ -447,7 +447,7 @@ main() {
             done
             chain_display="$chain_display"$'\n'"$indent  ↳ inherits from: $profile_name"
         fi
-        ((chain_depth++))
+        ((chain_depth++)) || true
     done <<< "$reversed_chain"
     echo "$chain_display"
 
