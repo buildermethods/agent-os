@@ -447,7 +447,7 @@ main() {
             done
             chain_display="$chain_display"$'\n'"$indent  ↳ inherits from: $profile_name"
         fi
-        ((chain_depth++))
+        ((++chain_depth))
     done <<< "$reversed_chain"
     echo "$chain_display"
 
