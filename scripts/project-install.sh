@@ -241,11 +241,11 @@ install_standards() {
             grep -v "^${relative_path}|" "$sources_file" > "${sources_file}.tmp" 2>/dev/null || true
             mv "${sources_file}.tmp" "$sources_file"
             echo "${relative_path}|${profile_name}" >> "$sources_file"
-            ((profile_file_count++))
+            ((++profile_file_count))
         done < <(find "$profile_standards" -name "*.md" -type f ! -path "*/.backups/*" -print0 2>/dev/null)
 
         if [[ "$profile_file_count" -gt 0 ]]; then
-            ((profiles_used++))
+            ((++profiles_used))
         fi
     done <<< "$INHERITANCE_CHAIN"
 
@@ -335,11 +335,11 @@ create_index() {
             local desc=$(get_existing_description "root" "$filename")
             if [[ -z "$desc" ]]; then
                 desc="Needs description - run /index-standards"
-                ((new_count++))
+                ((++new_count))
             fi
             echo "  $filename:" >> "$temp_file"
             echo "    description: $desc" >> "$temp_file"
-            ((entry_count++))
+            ((++entry_count))
         done <<< "$root_files"
         echo "" >> "$temp_file"
     fi
@@ -357,11 +357,11 @@ create_index() {
                 local desc=$(get_existing_description "$folder_name" "$filename")
                 if [[ -z "$desc" ]]; then
                     desc="Needs description - run /index-standards"
-                    ((new_count++))
+                    ((++new_count))
                 fi
                 echo "  $filename:" >> "$temp_file"
                 echo "    description: $desc" >> "$temp_file"
-                ((entry_count++))
+                ((++entry_count))
             done <<< "$md_files"
             echo "" >> "$temp_file"
         fi
@@ -399,7 +399,7 @@ install_commands() {
     for file in "$commands_source"/*.md; do
         if [[ -f "$file" ]]; then
             cp "$file" "$commands_dest/"
-            ((count++))
+            ((++count))
         fi
     done
 

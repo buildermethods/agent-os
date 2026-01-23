@@ -219,7 +219,7 @@ copy_standards() {
 
         ensure_dir "$(dirname "$dest_file")"
         cp "$file" "$dest_file"
-        ((count++))
+        ((++count))
     done < <(find "$source_dir" -name "*.md" -type f ! -path "*/.backups/*" -print0 2>/dev/null)
 
     echo "$count"
