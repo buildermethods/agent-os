@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 # =============================================================================
 # Agent OS Sync to Profile Script
 # Syncs project standards back to a base profile for reuse
