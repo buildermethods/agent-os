@@ -449,7 +449,7 @@ backup_files() {
         if [[ -f "$source_file" ]]; then
             mkdir -p "$(dirname "$backup_file")"
             cp "$source_file" "$backup_file"
-            ((backup_count++))
+            ((++backup_count))
             print_verbose "Backed up: $file"
         fi
     done
@@ -477,7 +477,7 @@ execute_sync() {
 
         # Copy the file
         cp "$source_file" "$dest_file"
-        ((sync_count++))
+        ((++sync_count))
         print_verbose "Synced: $file"
     done
 
