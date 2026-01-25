@@ -21,6 +21,26 @@ Docs, installation, usage, & best practices 👉 [It's all here](https://builder
 
 ---
 
+### Windows Users (Git Bash / MINGW)
+
+If the installation script exits silently after displaying "Configuration:", this is caused by Windows-style line endings (CRLF).
+
+**Option 1:** Convert line endings after cloning:
+
+```bash
+find ~/agent-os -type f \( -name "*.sh" -o -name "*.yml" \) | while read f; do
+  tr -d '\r' < "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+done
+```
+
+**Option 2:** Configure Git before cloning:
+
+```bash
+git config --global core.autocrlf false
+```
+
+---
+
 ### Follow updates & releases
 
 Read the [changelog](CHANGELOG.md)
@@ -38,4 +58,3 @@ Get Brian's free resources on building with AI:
 - [YouTube](https://youtube.com/@briancasel)
 
 Join [Builder Methods Pro](https://buildermethods.com/pro) for official support and connect with our community of AI-first builders:
-
