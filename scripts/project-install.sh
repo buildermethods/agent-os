@@ -198,6 +198,38 @@ create_project_structure() {
     ensure_dir "$PROJECT_DIR/agent-os"
     ensure_dir "$PROJECT_DIR/agent-os/standards"
 
+    # Create durable state file (do not overwrite if it exists)
+    local state_file="$PROJECT_DIR/agent-os/STATE.md"
+    if [[ ! -f "$state_file" ]]; then
+        cat > "$state_file" << 'EOF'
+# Agent OS State
+
+## Active Spec
+Path: None
+Status: idle
+
+## Progress
+Tasks: 0/0 done
+Current: None
+
+## Session
+Last activity: None
+Note: None
+
+## Next Step
+Run /shape-spec to create a spec
+
+## Decisions (latest 5)
+- None
+
+## Blockers
+- None
+EOF
+        print_success "Created agent-os/STATE.md"
+    else
+        print_verbose "State file already exists: $state_file"
+    fi
+
     print_success "Created agent-os/ directory structure"
 }
 
@@ -470,6 +502,9 @@ main() {
     echo "Next steps:"
     echo "  1. Run /discover-standards to extract patterns from your codebase"
     echo "  2. Run /inject-standards to inject standards into your context"
+    echo "  3. Run /shape-spec (plan mode) to shape and save a spec"
+    echo "  4. Execute the plan, then /verify-execution"
+    echo "  5. Use /pause and /resume across sessions"
     echo ""
 }
 
