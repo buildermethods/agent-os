@@ -21,6 +21,7 @@ If no area was specified:
    - **Frontend areas:** UI components, styling/CSS, state management, forms, routing
    - **Backend areas:** API routes, database/models, authentication, background jobs
    - **Cross-cutting:** Error handling, validation, testing, naming conventions, file structure
+   - **Algorithms:** Filters, controllers, solvers, estimators, ML models, training loops, numerical methods, signal processing (use algorithm template — see "Discovering Algorithms" section below)
 3. Use AskUserQuestion to present the areas:
 
 ```
@@ -30,6 +31,7 @@ I've identified these areas in your codebase:
 2. **Database** (src/models/, src/db/) — Models, queries, migrations
 3. **React Components** (src/components/) — UI patterns, props, state
 4. **Authentication** (src/auth/) — Login, sessions, permissions
+5. **Algorithms** (src/filters/, src/control/) — Filters, controllers, solvers
 
 Which area should we focus on for discovering standards? (Pick one, or suggest a different area)
 ```
@@ -91,6 +93,7 @@ For each standard (after completing Step 3's Q&A):
 
 1. Determine the appropriate folder (create if needed):
    - `api/`, `database/`, `javascript/`, `css/`, `backend/`, `testing/`, `global/`
+   - `algorithms/` — For algorithmic/mathematical code (see "Discovering Algorithms" section)
 
 2. Check if a related standard file already exists — append to it if so
 
@@ -157,6 +160,103 @@ Standards created for [area]:
 
 Would you like to discover standards in another area, or are we done?
 ```
+
+---
+
+## Discovering Algorithms
+
+When the user selects "Algorithms" as the focus area, use a different flow. Algorithm documentation requires more structure to prevent convention bugs in mathematical/computational code.
+
+### Algorithm Step 1: Identify Algorithms
+
+Scan for algorithmic patterns:
+- Filters, estimators, state estimation
+- Controllers, planners, optimizers, solvers
+- ML models, training loops, loss functions
+- Numerical methods, simulations
+- Signal processing, transforms
+- Kinematics, dynamics
+
+Present findings:
+
+```
+I found these potential algorithms in your codebase:
+
+1. **EKF** (src/filters/ekf.cpp, src/filters/ekf.h) — State estimation filter
+2. **QP Solver** (src/control/qp_solver.py) — Quadratic programming optimization
+3. **CNN Classifier** (src/models/classifier.py, src/models/layers.py) — Image classification
+
+Which would you like to document?
+```
+
+### Algorithm Step 2: For Each Algorithm, Ask High-Level Questions
+
+Follow the algorithm template structure. Ask about:
+
+1. **Purpose**: "What does this algorithm do? What problem does it solve?"
+
+2. **I/O**: "What are the inputs and outputs? What are their types, shapes, units?"
+
+3. **Files (owns:)**: "Which files implement this algorithm? (I found: src/filters/ekf.cpp, src/filters/ekf.h — are there others?)"
+
+4. **Conventions**: "Are there domain-specific conventions that affect correctness?"
+   - This is open-ended — don't assume. Could be:
+     - Coordinate frames (robotics)
+     - Quaternion conventions (robotics, graphics)
+     - Tensor layouts (ML)
+     - Units (scientific)
+     - Sign conventions (control systems)
+   - If user says none, that's fine
+
+5. **Method**: "What are the key steps of this algorithm?"
+
+### Algorithm Step 3: Create Algorithm File
+
+Use the algorithm template (embedded in `/algorithm-drift` command):
+
+```markdown
+---
+owns:
+  - src/filters/ekf.cpp
+  - src/filters/ekf.h
+---
+
+# Extended Kalman Filter
+
+## Purpose
+[From user's answer]
+
+## I/O
+**Inputs:**
+- [From user's answer with types/units]
+
+**Outputs:**
+- [From user's answer with types/units]
+
+## Conventions
+[From user's answer, or "None identified" if not applicable]
+
+## Diagram
+[Generate based on method description]
+
+## Method
+[From user's answer, structured as steps]
+
+## Implementation
+- `ekf.cpp` — Main filter implementation
+- `ekf.h` — State and covariance types
+
+## Notes
+[Any edge cases, invariants, or validation notes from discussion]
+```
+
+Create in `agent-os/standards/algorithms/{name}.md`
+
+### Algorithm Step 4: Continue
+
+Repeat for each selected algorithm, then update index as usual.
+
+---
 
 ## Output Location
 
