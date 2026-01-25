@@ -5,7 +5,28 @@
 # Installs Agent OS into a project's codebase
 # =============================================================================
 
-set -e
+# Auto-fix CRLF line endings on Windows/MINGW
+if [[ "$(uname -s)" == MINGW* ]] || [[ "$(uname -s)" == MSYS* ]]; then
+    SCRIPT_DIR_CHECK="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    BASE_DIR_CHECK="$(dirname "$SCRIPT_DIR_CHECK")"
+    
+    # Check if any file has CRLF
+    if grep -rIl $'\r' "$SCRIPT_DIR_CHECK"/*.sh "$BASE_DIR_CHECK/config.yml" >/dev/null 2>&1; then
+        echo "Detected Windows line endings (CRLF). Converting to Unix format (LF)..."
+        find "$BASE_DIR_CHECK" -type f \( -name "*.sh" -o -name "*.yml" \) | while read f; do
+            tr -d '\r' < "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+        done
+        echo "Conversion complete. Restarting script..."
+        echo ""
+        exec "$0" "$@"
+    fi
+fi
+
+# Retry mechanism: if AGENT_OS_RETRY is set, run without set -e
+if [[ -z "$AGENT_OS_RETRY" ]]; then
+    set -e
+    trap 'echo ""; echo "Script failed. Retrying without strict mode..."; echo ""; AGENT_OS_RETRY=1 exec "$0" "$@"' ERR
+fi
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -241,11 +262,11 @@ install_standards() {
             grep -v "^${relative_path}|" "$sources_file" > "${sources_file}.tmp" 2>/dev/null || true
             mv "${sources_file}.tmp" "$sources_file"
             echo "${relative_path}|${profile_name}" >> "$sources_file"
-            ((profile_file_count++))
+            ((profile_file_count++)) || true
         done < <(find "$profile_standards" -name "*.md" -type f ! -path "*/.backups/*" -print0 2>/dev/null)
 
         if [[ "$profile_file_count" -gt 0 ]]; then
-            ((profiles_used++))
+            ((profiles_used++)) || true
         fi
     done <<< "$INHERITANCE_CHAIN"
 
@@ -335,11 +356,11 @@ create_index() {
             local desc=$(get_existing_description "root" "$filename")
             if [[ -z "$desc" ]]; then
                 desc="Needs description - run /index-standards"
-                ((new_count++))
+                ((new_count++)) || true
             fi
             echo "  $filename:" >> "$temp_file"
             echo "    description: $desc" >> "$temp_file"
-            ((entry_count++))
+            ((entry_count++)) || true
         done <<< "$root_files"
         echo "" >> "$temp_file"
     fi
@@ -357,11 +378,11 @@ create_index() {
                 local desc=$(get_existing_description "$folder_name" "$filename")
                 if [[ -z "$desc" ]]; then
                     desc="Needs description - run /index-standards"
-                    ((new_count++))
+                    ((new_count++)) || true
                 fi
                 echo "  $filename:" >> "$temp_file"
                 echo "    description: $desc" >> "$temp_file"
-                ((entry_count++))
+                ((entry_count++)) || true
             done <<< "$md_files"
             echo "" >> "$temp_file"
         fi
@@ -399,7 +420,7 @@ install_commands() {
     for file in "$commands_source"/*.md; do
         if [[ -f "$file" ]]; then
             cp "$file" "$commands_dest/"
-            ((count++))
+            ((count++)) || true
         fi
     done
 
@@ -447,7 +468,7 @@ main() {
             done
             chain_display="$chain_display"$'\n'"$indent  ↳ inherits from: $profile_name"
         fi
-        ((chain_depth++))
+        ((chain_depth++)) || true
     done <<< "$reversed_chain"
     echo "$chain_display"
 
