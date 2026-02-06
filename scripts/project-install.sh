@@ -435,7 +435,7 @@ main() {
     local chain_depth=0
     local chain_display=""
     # Read chain in reverse order (from requested profile back to base) for display
-    local reversed_chain=$(echo "$INHERITANCE_CHAIN" | tac)
+    local reversed_chain=$(echo "$INHERITANCE_CHAIN" | awk '{a[NR]=$0} END{for(i=NR;i>=1;i--)print a[i]}')
     while IFS= read -r profile_name; do
         [[ -z "$profile_name" ]] && continue
         if [[ "$chain_depth" -eq 0 ]]; then
