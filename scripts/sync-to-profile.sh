@@ -194,7 +194,7 @@ select_profile() {
 
     for profile in "${profiles[@]}"; do
         echo "  $i) $profile"
-        ((i++))
+        i=$((i + 1))
     done
     echo "  $i) [Create new profile]"
     echo ""
@@ -273,7 +273,7 @@ select_files() {
             else
                 echo "  $i) [ ] $file"
             fi
-            ((i++))
+            i=$((i + 1))
         done
         echo ""
         echo ""
@@ -449,7 +449,7 @@ backup_files() {
         if [[ -f "$source_file" ]]; then
             mkdir -p "$(dirname "$backup_file")"
             cp "$source_file" "$backup_file"
-            ((backup_count++))
+            backup_count=$((backup_count + 1))
             print_verbose "Backed up: $file"
         fi
     done
@@ -477,7 +477,7 @@ execute_sync() {
 
         # Copy the file
         cp "$source_file" "$dest_file"
-        ((sync_count++))
+        sync_count=$((sync_count + 1))
         print_verbose "Synced: $file"
     done
 
