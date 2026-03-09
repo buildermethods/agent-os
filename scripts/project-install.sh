@@ -385,23 +385,53 @@ install_commands() {
     echo ""
     print_status "Installing commands..."
 
-    local commands_source="$BASE_DIR/commands/agent-os"
     local commands_dest="$PROJECT_DIR/.claude/commands/agent-os"
-
-    if [[ ! -d "$commands_source" ]]; then
-        print_warning "No commands found in base installation"
-        return
-    fi
-
     ensure_dir "$commands_dest"
 
     local count=0
-    for file in "$commands_source"/*.md; do
-        if [[ -f "$file" ]]; then
-            cp "$file" "$commands_dest/"
-            ((count++))
-        fi
-    done
+
+    # Install base commands (agent-os built-ins: discover-standards, inject-standards, etc.)
+    local base_commands_source="$BASE_DIR/commands/agent-os"
+    if [[ -d "$base_commands_source" ]]; then
+        for file in "$base_commands_source"/*.md; do
+            if [[ -f "$file" ]]; then
+                cp "$file" "$commands_dest/"
+                ((count++))
+            fi
+        done
+    fi
+
+    # Install profile commands (shape-spec, new-spec, create-spec, implement-spec, etc.)
+    # Process each profile in the inheritance chain so derived profiles override base ones
+    while IFS= read -r profile_name; do
+        [[ -z "$profile_name" ]] && continue
+
+        local profile_commands="$BASE_DIR/profiles/$profile_name/commands"
+        [[ ! -d "$profile_commands" ]] && continue
+
+        # Each subdirectory is a command (e.g. shape-spec/, create-spec/)
+        for cmd_dir in "$profile_commands"/*/; do
+            [[ ! -d "$cmd_dir" ]] && continue
+
+            local cmd_name
+            cmd_name=$(basename "$cmd_dir")
+
+            # Prefer the multi-agent variant; fall back to single-agent
+            local cmd_file=""
+            if [[ -f "$cmd_dir/multi-agent/$cmd_name.md" ]]; then
+                cmd_file="$cmd_dir/multi-agent/$cmd_name.md"
+            elif [[ -f "$cmd_dir/single-agent/$cmd_name.md" ]]; then
+                cmd_file="$cmd_dir/single-agent/$cmd_name.md"
+            elif [[ -f "$cmd_dir/$cmd_name.md" ]]; then
+                cmd_file="$cmd_dir/$cmd_name.md"
+            fi
+
+            if [[ -n "$cmd_file" ]]; then
+                cp "$cmd_file" "$commands_dest/$cmd_name.md"
+                ((count++))
+            fi
+        done
+    done <<< "$INHERITANCE_CHAIN"
 
     if [[ "$count" -gt 0 ]]; then
         print_success "Installed $count commands to .claude/commands/agent-os/"
