@@ -16,6 +16,9 @@ https://buildermethods.com/agent-os
 - Added safe profile synchronization with diffs and recoverable backups.
 - Added doctor and manifest-scoped uninstall commands.
 - Added functional shell tests, ShellCheck, and CI validation.
+- Added a provider-neutral LLM catalog, optimization lessons, cost and
+  capability routing, multi-model review plans, and a safe execution manifest
+  for `@cloud-computing-oy/llm-router`.
 
 ## [3.0] - 2026-01-20
 

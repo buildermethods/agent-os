@@ -10,6 +10,26 @@ It provides:
 - project product and specification documents;
 - adapters for Claude Code, Codex, Cursor, and Antigravity;
 - safe installation, profile synchronization, diagnostics, and removal.
+- provider-neutral LLM education and cost/quality/privacy optimization with an
+  execution manifest for
+  [`cco-llm-router`](https://github.com/Cloud-Computing-Oy/cco-llm-router).
+
+## Optimize LLM use
+
+```bash
+./scripts/llm-optimize.sh lesson
+./scripts/llm-optimize.sh recommend \
+  --task coding --risk high --strategy balanced \
+  --input-tokens 30000 --output-tokens 5000 \
+  --budget-usd 0.50 --data-class internal \
+  --router cco --format json
+```
+
+The optimizer chooses planner, worker, and critic roles under hard context,
+modality, data-class, and budget constraints. It does not call providers or
+read credentials. `cco-llm-router` resolves the emitted selectors and remains
+responsible for runtime availability, usage, and provider budgets. See
+[the operating guide](docs/llm-optimization.md).
 
 ## Requirements
 

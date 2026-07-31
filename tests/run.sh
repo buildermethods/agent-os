@@ -51,6 +51,52 @@ make_base() {
 bash -n "$REPO_DIR"/scripts/*.sh "$REPO_DIR/install_agent_os.sh"
 pass "all shell scripts parse"
 
+python3 "$REPO_DIR/llm/optimizer.py" validate > "$TEST_ROOT/catalog.out"
+assert_contains "$TEST_ROOT/catalog.out" "catalog valid:"
+pass "LLM catalog validates"
+
+python3 "$REPO_DIR/llm/optimizer.py" recommend \
+    --task coding --risk high --strategy balanced \
+    --input-tokens 30000 --output-tokens 5000 \
+    --budget-usd 1 --data-class internal \
+    --router cco --format json > "$TEST_ROOT/llm-plan.json"
+python3 -c '
+import json, sys
+plan = json.load(open(sys.argv[1], encoding="utf-8"))
+assert plan["status"] == "ok"
+assert plan["execution"]["adapter"] == "@cloud-computing-oy/llm-router"
+assert len(plan["roles"]) == 3
+assert plan["roles"][0]["provider"] != plan["roles"][2]["provider"]
+assert all("selector" in role for role in plan["execution"]["roles"])
+' "$TEST_ROOT/llm-plan.json"
+pass "LLM optimizer emits an independent CCO router plan"
+
+if python3 "$REPO_DIR/llm/optimizer.py" recommend \
+    --task coding --risk low --data-class confidential \
+    --router cco --format json > "$TEST_ROOT/confidential-plan.json"; then
+    fail "unapproved confidential routing unexpectedly succeeded"
+fi
+python3 -c '
+import json, sys
+plan = json.load(open(sys.argv[1], encoding="utf-8"))
+assert plan["status"] == "no_eligible_models"
+assert plan["roles"] == []
+' "$TEST_ROOT/confidential-plan.json"
+pass "LLM optimizer fails closed for unapproved confidential data"
+
+python3 "$REPO_DIR/llm/optimizer.py" recommend \
+    --task coding --risk low --strategy quality \
+    --input-tokens 1000 --output-tokens 100 \
+    --data-class public --provider moonshot \
+    --router cco --allow-pilot --format json > "$TEST_ROOT/pilot-plan.json"
+python3 -c '
+import json, sys
+plan = json.load(open(sys.argv[1], encoding="utf-8"))
+assert plan["execution"]["roles"][0]["selector"] == "auto:kimi-pilot"
+assert plan["request"]["allow_pilot"] is True
+' "$TEST_ROOT/pilot-plan.json"
+pass "Kimi pilot requires explicit opt-in and emits only its safe alias"
+
 base="$TEST_ROOT/base"
 project="$TEST_ROOT/project"
 make_base "$base"
