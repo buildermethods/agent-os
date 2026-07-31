@@ -29,7 +29,8 @@ The optimizer chooses planner, worker, and critic roles under hard context,
 modality, data-class, and budget constraints. It does not call providers or
 read credentials. `cco-llm-router` resolves the emitted selectors and remains
 responsible for runtime availability, usage, and provider budgets. See
-[the operating guide](docs/llm-optimization.md).
+[the LLM operating guide](docs/llm-optimization.md) and the
+[complete English usage guide](docs/USAGE_GUIDE.md).
 
 ## Requirements
 
