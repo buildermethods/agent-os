@@ -3,7 +3,7 @@
 Get notified of major releases by subscribing here:
 https://buildermethods.com/agent-os
 
-## Unreleased
+## [3.1.0] - 2026-07-31
 
 - Fixed silent install failures caused by `((var++))` under `set -e` in `project-install.sh`, `sync-to-profile.sh`, and `common-functions.sh` (#328).
 - Replaced GNU-only `tac` in `project-install.sh` with a POSIX `awk` invocation so installs work on macOS without `coreutils` (#327).
@@ -491,6 +491,7 @@ Follow these steps to update a previous version to 1.4.0:
 - Task management with TDD workflow
 - Spec creation and organization system
 
+[3.1.0]: https://github.com/jarmo-blip/agent-os/compare/v3.0.0...v3.1.0
 [1.4.1]: https://github.com/buildermethods/agent-os/compare/v1.4.0...v1.4.1
 [1.4.2]: https://github.com/buildermethods/agent-os/compare/v1.4.1...v1.4.2
 [1.4.0]: https://github.com/buildermethods/agent-os/compare/v1.3.1...v1.4.0
