@@ -1,32 +1,28 @@
 # Shape Spec
 
-Gather context and structure planning for significant work. **Run this command while in plan mode.**
+Gather context and structure planning for significant work. Use the host
+agent's planning facility when one exists; otherwise save the same plan as a
+normal repository artifact.
 
 ## Important Guidelines
 
-- **Always use AskUserQuestion tool** when asking the user anything
+- **Use the host agent's supported user-input mechanism** only for decisions
+  that materially change scope or risk.
 - **Offer suggestions** — Present options the user can confirm, adjust, or correct
 - **Keep it lightweight** — This is shaping, not exhaustive documentation
+- **Make completion verifiable** — every implementation task needs acceptance
+  criteria and an explicit validation command or observation.
 
 ## Prerequisites
 
-This command **must be run in plan mode**.
-
-**Before proceeding, check if you are currently in plan mode.**
-
-If NOT in plan mode, **stop immediately** and tell the user:
-
-```
-Shape-spec must be run in plan mode. Please enter plan mode first, then run /shape-spec again.
-```
-
-Do not proceed with any steps below until confirmed to be in plan mode.
+If the host provides a plan mode, use it. If not, continue normally and save
+the agreed plan under `agent-os/specs/`.
 
 ## Process
 
 ### Step 1: Clarify What We're Building
 
-Use AskUserQuestion to understand the scope:
+Use the host agent's user-input mechanism to understand unresolved scope:
 
 ```
 What are we building? Please describe the feature or change.
@@ -41,7 +37,7 @@ Based on their response, ask 1-2 clarifying questions if the scope is unclear. E
 
 ### Step 2: Gather Visuals
 
-Use AskUserQuestion:
+Use the host agent's user-input mechanism:
 
 ```
 Do you have any visuals to reference?
@@ -57,7 +53,7 @@ If visuals are provided, note them for inclusion in the spec folder.
 
 ### Step 3: Identify Reference Implementations
 
-Use AskUserQuestion:
+Use the host agent's user-input mechanism:
 
 ```
 Is there similar code in this codebase I should reference?
@@ -76,7 +72,8 @@ If references are provided, read and analyze them to inform the plan.
 
 Check if `agent-os/product/` exists and contains files.
 
-If it exists, read key files (like `mission.md`, `roadmap.md`, `tech-stack.md`) and use AskUserQuestion:
+If it exists, read key files (like `mission.md`, `roadmap.md`, `tech-stack.md`)
+and confirm only material conflicts:
 
 ```
 I found product context in agent-os/product/. Should this feature align with any specific product goals or constraints?
@@ -93,7 +90,7 @@ If no product folder exists, skip this step.
 
 Read `agent-os/standards/index.yml` to identify relevant standards based on the feature being built.
 
-Use AskUserQuestion to confirm:
+Confirm the selection only when standards conflict or materially expand scope:
 
 ```
 Based on what we're building, these standards may apply:
@@ -164,6 +161,17 @@ After Task 1 is confirmed, continue building out the remaining implementation ta
 - Constraints from standards (Step 5)
 
 Each task should be specific and actionable.
+
+For each implementation task include:
+
+- **Outcome** — user-visible or system-visible result
+- **Scope** — expected files or components
+- **Acceptance criteria** — observable pass/fail conditions
+- **Validation** — tests, checks, or live evidence
+- **Risks and rollback** — for migrations, destructive changes, and releases
+
+The overall plan must state non-goals, dependencies, compatibility or migration
+impact, and unresolved decisions.
 
 ### Step 9: Ready for Execution
 

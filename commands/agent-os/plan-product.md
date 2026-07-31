@@ -4,9 +4,12 @@ Establish foundational product documentation through an interactive conversation
 
 ## Important Guidelines
 
-- **Always use AskUserQuestion tool** when asking the user anything
+- **Use the host agent's supported user-input mechanism** for decisions that
+  materially change product scope.
 - **Keep it lightweight** — gather enough to create useful docs without over-documenting
-- **One question at a time** — don't overwhelm with multiple questions
+- **Batch related questions** when this reduces unnecessary round trips.
+- **Mark unknowns explicitly** — record an owner and decision gate instead of
+  presenting placeholders as finished content.
 
 ## Process
 
@@ -17,7 +20,7 @@ Check if `agent-os/product/` exists and contains any of these files:
 - `roadmap.md`
 - `tech-stack.md`
 
-**If any files exist**, use AskUserQuestion:
+**If any files exist**, use the host agent's user-input mechanism:
 
 ```
 I found existing product documentation:
@@ -40,7 +43,7 @@ If option 3, stop here.
 
 ### Step 2: Gather Product Vision (for mission.md)
 
-Use AskUserQuestion:
+Use the host agent's user-input mechanism:
 
 ```
 Let's define your product's mission.
@@ -50,7 +53,7 @@ Let's define your product's mission.
 (Describe the core problem or pain point you're addressing)
 ```
 
-After they respond, use AskUserQuestion:
+After they respond, use the host agent's user-input mechanism:
 
 ```
 **Who is this product for?**
@@ -58,7 +61,7 @@ After they respond, use AskUserQuestion:
 (Describe your target users or audience)
 ```
 
-After they respond, use AskUserQuestion:
+After they respond, use the host agent's user-input mechanism:
 
 ```
 **What makes your solution unique?**
@@ -68,7 +71,7 @@ After they respond, use AskUserQuestion:
 
 ### Step 3: Gather Roadmap (for roadmap.md)
 
-Use AskUserQuestion:
+Use the host agent's user-input mechanism:
 
 ```
 Now let's outline your development roadmap.
@@ -78,7 +81,7 @@ Now let's outline your development roadmap.
 (List the core features needed for the first usable version)
 ```
 
-After they respond, use AskUserQuestion:
+After they respond, use the host agent's user-input mechanism:
 
 ```
 **What features are planned for after launch?**
@@ -90,7 +93,8 @@ After they respond, use AskUserQuestion:
 
 First, check if `agent-os/standards/global/tech-stack.md` exists.
 
-**If the tech-stack standard exists**, read it and use AskUserQuestion:
+**If the tech-stack standard exists**, read it and use the host agent's
+user-input mechanism:
 
 ```
 I found a tech stack standard in your standards:
@@ -108,7 +112,8 @@ Does this project use the same tech stack, or does it differ?
 If they choose option 1, use the standard's content for tech-stack.md.
 If they choose option 2, proceed to ask them to specify (see below).
 
-**If no tech-stack standard exists** (or they chose option 2 above), use AskUserQuestion:
+**If no tech-stack standard exists** (or they chose option 2 above), use the
+host agent's user-input mechanism:
 
 ```
 **What technologies does this project use?**
@@ -200,5 +205,6 @@ You can edit them directly or run /plan-product again to update.
 ## Tips
 
 - If the user provides very brief answers, that's fine — the docs can be expanded later
-- If they want to skip a section, create the file with a placeholder like "To be defined"
+- If a section is unresolved, record the exact open decision, its owner, and
+  the milestone that depends on it. Do not label incomplete documents finished.
 - The `/shape-spec` command will read these files when planning features, so having them populated helps with context

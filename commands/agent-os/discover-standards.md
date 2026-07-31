@@ -4,7 +4,11 @@ Extract tribal knowledge from your codebase into concise, documented standards.
 
 ## Important Guidelines
 
-- **Always use AskUserQuestion tool** when asking the user anything
+- **Use the host agent's supported user-input mechanism** only for decisions
+  that materially change the result. Continue with safe, evidence-based
+  assumptions when no decision is needed.
+- **Prefer evidence over preference** — cite representative repository files
+  and distinguish repeated conventions from one-off examples.
 - **Write concise standards** — Use minimal words. Standards must be scannable by AI agents without bloating context windows.
 - **Offer suggestions** — Present options the user can confirm, choose between, or correct. Don't make them think harder than necessary.
 
@@ -21,7 +25,7 @@ If no area was specified:
    - **Frontend areas:** UI components, styling/CSS, state management, forms, routing
    - **Backend areas:** API routes, database/models, authentication, background jobs
    - **Cross-cutting:** Error handling, validation, testing, naming conventions, file structure
-3. Use AskUserQuestion to present the areas:
+3. Present the areas with the host agent's user-input mechanism:
 
 ```
 I've identified these areas in your codebase:
@@ -47,7 +51,8 @@ Once an area is determined:
    - **Tribal** — Things a new developer wouldn't know without being told
    - **Consistent** — Patterns repeated across multiple files
 
-3. Use AskUserQuestion to present findings and let user select:
+3. Present findings with the host agent's user-input mechanism and let the user
+   select:
 
 ```
 I analyzed [area] and found these potential standards worth documenting:
@@ -71,7 +76,8 @@ Wait for user selection before proceeding.
 
 **IMPORTANT:** For each selected standard, you MUST complete this full loop before moving to the next standard:
 
-1. **Ask 1-2 clarifying questions** about the "why" behind the pattern. Use your AskUserQuestion tool for this.
+1. **Ask at most 1-2 clarifying questions** when the "why" cannot be established
+   from repository evidence. Use the host agent's input mechanism.
 2. **Wait for user response**
 3. **Draft the standard** incorporating their answer
 4. **Confirm with user** before creating the file
@@ -94,7 +100,8 @@ For each standard (after completing Step 3's Q&A):
 
 2. Check if a related standard file already exists — append to it if so
 
-3. Draft the content and use AskUserQuestion to confirm:
+3. Draft the content and request confirmation when it introduces a new policy
+   instead of documenting an established pattern:
 
 ```
 Here's the draft for api/response-format.md:
@@ -125,7 +132,8 @@ Create this file? (yes / edit: [your changes] / skip)
 After all standards are created:
 
 1. Scan `agent-os/standards/` for all `.md` files
-2. For each new file without an index entry, use AskUserQuestion:
+2. For each new file without an index entry, derive a concise description from
+   the file. Ask only if the description remains ambiguous:
 
 ```
 New standard needs an index entry:
@@ -139,16 +147,17 @@ Accept this description? (yes / or type a better one)
 3. Update `agent-os/standards/index.yml`:
 
 ```yaml
-api:
-  response-format:
-    description: API response envelope structure and error format
+version: 1
+standards:
+  - path: "api/response-format.md"
+    description: "API response envelope structure and error format"
 ```
 
-Alphabetize by folder, then by filename.
+Sort entries by their complete relative paths.
 
 ### Step 6: Offer to Continue
 
-Use AskUserQuestion:
+Use the host agent's user-input mechanism:
 
 ```
 Standards created for [area]:

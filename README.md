@@ -1,41 +1,160 @@
-<img width="1200" height="675" alt="Agent OS" src="https://github.com/user-attachments/assets/97ad4491-d199-4b9b-9482-ae710291dfb4" />
+# Agent OS
 
-## Agents that build the way you would
+Agent OS keeps product context, engineering standards, and implementation plans
+inside a repository so coding agents can work consistently without relying on a
+single chat history.
 
-[Agent OS](https://buildermethods.com/agent-os) helps you shape better specs, keeps agents aligned in a lightweight system that fits how you already build.
+It provides:
 
-Works alongside Claude Code, Cursor, Antigravity, and other AI tools. Any language, any framework.
+- reusable standards with profile inheritance;
+- project product and specification documents;
+- adapters for Claude Code, Codex, Cursor, and Antigravity;
+- safe installation, profile synchronization, diagnostics, and removal.
 
-**Core capabilities:**
+## Requirements
 
-- **Discover Standards** — Extract patterns and conventions from your codebase into documented standards
-- **Deploy Standards** — Intelligently inject relevant standards based on what you're building
-- **Shape Spec** — Create better plans that lead to better builds
-- **Index Standards** — Keep your standards organized and discoverable
+- Bash 4 or newer
+- `awk`, `find`, `sort`, `sha256sum`, and `realpath`
+- Git when using the bootstrap installer
 
----
+## Install into a project
 
-### Documentation & Installation
+From an Agent OS checkout:
 
-Docs, installation, usage, & best practices 👉 [It's all here](https://buildermethods.com/agent-os)
+```bash
+./scripts/project-install.sh \
+  --project-dir /path/to/project \
+  --profile default \
+  --target claude,codex \
+  --yes
+```
 
----
+Use `--dry-run` first to validate the profile, paths, and target adapters
+without changing the project.
 
-### Follow updates & releases
+The target adapters install to:
 
-Read the [changelog](CHANGELOG.md)
+| Target | Project location |
+| --- | --- |
+| Claude Code | `.claude/commands/agent-os/` |
+| Codex | `.agents/skills/agent-os-*/SKILL.md` |
+| Cursor | `.cursor/commands/agent-os/` |
+| Antigravity | `.agent/workflows/agent-os/` |
 
-[Subscribe to be notified of major new releases of Agent OS](https://buildermethods.com/agent-os)
+Only the adapter directories listed above are managed by Agent OS. Standards
+are tracked individually in `agent-os/install-manifest.tsv`.
 
----
+## Bootstrap a checkout
 
-### Created by Brian Casel @ Builder Methods
+```bash
+./install_agent_os.sh \
+  --project-dir /path/to/project \
+  --target claude,codex \
+  --ref v3.1.0
+```
 
-Created by Brian Casel, the creator of [Builder Methods](https://buildermethods.com), where Brian helps professional software developers and teams build with AI.
+Use an exact release tag or commit with `--ref` for reproducible installation.
+The bootstrap script does not modify `.bashrc`, `.zshrc`, or `PATH`.
 
-Get Brian's free resources on building with AI:
-- [Builder Briefing newsletter](https://buildermethods.com)
-- [YouTube](https://youtube.com/@briancasel)
+## Profiles
 
-Join [Builder Methods Pro](https://buildermethods.com/pro) for official support and connect with our community of AI-first builders:
+Profiles live under:
 
+```text
+profiles/<profile-name>/standards/
+```
+
+Profile names are restricted to lowercase letters, numbers, hyphens, and
+underscores. Configure inheritance in `config.yml`:
+
+```yaml
+version: 3.1
+default_profile: team
+profiles:
+  team:
+    inherits_from: default
+```
+
+Parent profiles are applied first. Child files with the same relative path
+override parent files.
+
+## Update an installation
+
+Run the same `project-install.sh` command again. Agent OS:
+
+1. stages and validates the complete result;
+2. preserves unmanaged standards;
+3. detects local edits to manifest-managed standards;
+4. replaces the standards directory atomically;
+5. updates the installation manifest.
+
+If a managed standard was changed locally, the update stops. Review the change
+and either move it into a profile or use `--force` intentionally.
+
+`--commands-only` updates adapters without changing standards.
+
+## Sync project standards to a profile
+
+Preview:
+
+```bash
+./scripts/sync-to-profile.sh \
+  --project-dir /path/to/project \
+  --profile team \
+  --all \
+  --dry-run
+```
+
+Apply and back up replaced profile content:
+
+```bash
+./scripts/sync-to-profile.sh \
+  --project-dir /path/to/project \
+  --profile team \
+  --all \
+  --overwrite
+```
+
+Without `--overwrite`, differing existing standards stop the sync. Backups are
+stored below `profiles/<name>/.backups/`.
+
+## Diagnose or remove
+
+```bash
+./scripts/doctor.sh --project-dir /path/to/project
+./scripts/uninstall.sh --project-dir /path/to/project --dry-run
+./scripts/uninstall.sh --project-dir /path/to/project --yes
+```
+
+Uninstall requires an Agent OS 3.1 manifest and removes only manifest-managed
+standards and Agent OS-owned adapter directories. It refuses broad removal of
+older installations without a manifest.
+
+## Standards index
+
+`agent-os/standards/index.yml` preserves complete relative paths:
+
+```yaml
+version: 1
+standards:
+  - path: "api/error-handling.md"
+    description: "Error response and logging conventions"
+  - path: "api/v2/error-handling.md"
+    description: "Version 2 API error behavior"
+```
+
+The installer quotes values, sorts by full path, and supports nested folders
+without duplicate-key collisions.
+
+## Development and validation
+
+```bash
+bash -n scripts/*.sh install_agent_os.sh
+./tests/run.sh
+```
+
+CI also runs ShellCheck when available. Functional tests use isolated temporary
+directories and never write into the repository's profiles.
+
+See [CHANGELOG.md](CHANGELOG.md) for release history and
+[CONTRIBUTING.md](.github/CONTRIBUTING.md) for contribution guidance.
