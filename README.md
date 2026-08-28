@@ -17,7 +17,7 @@ Ships as a plugin for **Claude Code**, **OpenAI Codex**, and **pi** from one set
 
 ### Install as a plugin
 
-Agent OS is packaged three ways from the same source: a Claude Code plugin, a pi package, and [Agent Skills](https://agentskills.io) that Codex and pi both read from `.agents/skills/`.
+Agent OS installs from a marketplace in all three harnesses. Nothing is copied into your home directory — each one loads the skills and commands from the plugin itself.
 
 **Claude Code**
 
@@ -26,22 +26,22 @@ Agent OS is packaged three ways from the same source: a Claude Code plugin, a pi
 /plugin install agent-os@agent-os
 ```
 
+**OpenAI Codex**
+
+```
+/plugin marketplace add slurpyb/agent-os
+/plugin install agent-os
+```
+
 **pi**
 
 ```bash
 pi install git:github.com/slurpyb/agent-os
 ```
 
-**Codex — or all three into one project**
+Then run `/agent-os:shape-spec`, `/agent-os:discover-standards`, and the rest — or just describe the task and let the agent load the matching skill.
 
-```bash
-git clone https://github.com/slurpyb/agent-os.git ~/agent-os
-cd /path/to/your/project
-~/agent-os/scripts/install-plugin.sh              # all three
-~/agent-os/scripts/install-plugin.sh --target codex   # just Codex
-```
-
-Every harness reads and writes the same `agent-os/` folder in your project, so a spec shaped in one is picked up by the next. Full details — install paths, per-harness command names, and how to contribute to the workflows — are in [docs/plugin.md](docs/plugin.md).
+Every harness reads and writes the same `agent-os/` folder in your project, so a spec shaped in one is picked up by the next. Layout, per-harness details, and how to contribute to the workflows are in [docs/plugin.md](docs/plugin.md).
 
 ---
 

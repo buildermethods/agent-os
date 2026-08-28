@@ -3,7 +3,7 @@ description: "Create product mission, roadmap, and tech stack docs"
 ---
 
 <!-- GENERATED FILE — do not edit.
-     Source: skills/agent-os-plan-product/SKILL.md
+     Source: plugins/agent-os/skills/agent-os-plan-product/SKILL.md
      Regenerate with: scripts/build-commands.sh -->
 
 Arguments (may be empty): $ARGUMENTS

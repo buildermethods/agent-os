@@ -4,7 +4,7 @@ description: Rebuild and maintain agent-os/standards/index.yml so Agent OS stand
 license: MIT
 metadata:
   agent-os-command: index-standards
-  agent-os-summary: Rebuild the standards index so standards stay discoverable
+  agent-os-summary: "Rebuild the standards index so standards stay discoverable"
   agent-os-argument-hint: ""
 ---
 

@@ -4,7 +4,7 @@ description: Establish foundational Agent OS product documentation (mission.md, 
 license: MIT
 metadata:
   agent-os-command: plan-product
-  agent-os-summary: Create product mission, roadmap, and tech stack docs
+  agent-os-summary: "Create product mission, roadmap, and tech stack docs"
   agent-os-argument-hint: ""
 ---
 

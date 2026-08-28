@@ -1,0 +1,20 @@
+{
+  "name": "agent-os",
+  "interface": {
+    "displayName": "Agent OS"
+  },
+  "plugins": [
+    {
+      "name": "agent-os",
+      "source": {
+        "source": "local",
+        "path": "./plugins/agent-os"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

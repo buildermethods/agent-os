@@ -4,7 +4,7 @@ description: Extract tribal knowledge from a codebase into concise, documented A
 license: MIT
 metadata:
   agent-os-command: discover-standards
-  agent-os-summary: Extract patterns and conventions from this codebase into documented standards
+  agent-os-summary: "Extract patterns and conventions from this codebase into documented standards"
   agent-os-argument-hint: "[area]"
 ---
 

@@ -5,14 +5,11 @@ https://buildermethods.com/agent-os
 
 ## Unreleased
 
-- Agent OS is now a plugin for Claude Code, OpenAI Codex, and pi, built from one source. The five workflows are [Agent Skills](https://agentskills.io) under `skills/`, which all three harnesses load; `commands/agent-os/*.md` is generated from them and doubles as Claude Code slash commands, pi prompt templates, and Codex custom prompts.
-- Added `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` so the repo installs with `/plugin marketplace add slurpyb/agent-os`, and a `pi` manifest in `package.json` so it installs with `pi install git:github.com/slurpyb/agent-os`.
-- Added `scripts/install-plugin.sh` to install the skills and commands into each harness's directories (`--target claude|codex|pi|agents|all`, `--global`, `--link`). `scripts/project-install.sh` now calls it and takes `--agents claude,codex,pi`.
-- Added `scripts/build-commands.sh` to regenerate `commands/agent-os/` from `skills/`, with `--check` wired into CI so the two cannot drift.
+- Agent OS is now a plugin for Claude Code, OpenAI Codex, and pi, installed from a marketplace in each. The plugin lives at `plugins/agent-os/` following the [openai/plugins](https://github.com/openai/plugins) layout, with `.codex-plugin/plugin.json` and `.claude-plugin/plugin.json` manifests, a Codex marketplace at `.agents/plugins/marketplace.json`, a Claude Code marketplace at `.claude-plugin/marketplace.json`, and a `pi` manifest in `package.json`. Each harness loads the skills and commands from the installed plugin — nothing is copied into a home directory.
+- The five workflows are now [Agent Skills](https://agentskills.io) under `plugins/agent-os/skills/`, which all three harnesses load. `plugins/agent-os/commands/` is generated from them by `scripts/build-commands.sh` and serves as plugin commands in Claude Code and Codex and as prompt templates in pi.
 - Reworded the workflows to be harness-neutral: `AskUserQuestion` and plan mode are now named as Claude Code examples with a stated fallback, rather than hard requirements.
-
-- Fixed silent install failures caused by `((var++))` under `set -e` in `project-install.sh`, `sync-to-profile.sh`, and `common-functions.sh` (#328).
-- Replaced GNU-only `tac` in `project-install.sh` with a POSIX `awk` invocation so installs work on macOS without `coreutils` (#327).
+- Added `scripts/validate-plugin.py`, which checks the Codex manifest against the field contract from openai/codex's `plugin-creator` skill, both marketplaces, the pi manifest, and every skill's frontmatter. CI runs it with `scripts/build-commands.sh --check` so the generated commands cannot drift from the skills.
+- `scripts/project-install.sh` is unchanged apart from reading the commands from their new location.
 
 ## [3.0] - 2026-01-20
 

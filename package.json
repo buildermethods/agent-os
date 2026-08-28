@@ -22,12 +22,15 @@
     "check": "./scripts/build-commands.sh --check"
   },
   "pi": {
-    "skills": ["./skills"],
-    "prompts": ["./commands/agent-os"]
+    "skills": [
+      "./plugins/agent-os/skills"
+    ],
+    "prompts": [
+      "./plugins/agent-os/commands"
+    ]
   },
   "files": [
-    "skills",
-    "commands",
+    "plugins",
     "profiles",
     "scripts",
     "config.yml"

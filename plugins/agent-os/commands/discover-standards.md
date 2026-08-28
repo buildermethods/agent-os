@@ -4,7 +4,7 @@ argument-hint: "[area]"
 ---
 
 <!-- GENERATED FILE — do not edit.
-     Source: skills/agent-os-discover-standards/SKILL.md
+     Source: plugins/agent-os/skills/agent-os-discover-standards/SKILL.md
      Regenerate with: scripts/build-commands.sh -->
 
 Arguments (may be empty): $ARGUMENTS

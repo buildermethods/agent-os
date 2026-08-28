@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "agent-os",
-      "source": "./",
+      "source": "./plugins/agent-os",
       "displayName": "Agent OS",
       "description": "Shape better specs and keep coding agents aligned with your codebase's own standards.",
       "version": "3.0.0",

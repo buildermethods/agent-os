@@ -4,7 +4,7 @@ description: Pull relevant Agent OS standards from agent-os/standards/ into the 
 license: MIT
 metadata:
   agent-os-command: inject-standards
-  agent-os-summary: Inject relevant standards into the current conversation, skill, or plan
+  agent-os-summary: "Inject relevant standards into the current conversation, skill, or plan"
   agent-os-argument-hint: "[folder | folder/standard ...]"
 ---
 

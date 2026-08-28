@@ -3,15 +3,12 @@
 # =============================================================================
 # Agent OS — Build Commands From Skills
 #
-# The skills under skills/ are the single source of truth. This script
-# regenerates commands/agent-os/*.md from them.
+# plugins/agent-os/skills/ is the single source of truth. This script
+# regenerates plugins/agent-os/commands/ from it.
 #
-# Those generated files are consumed by three harnesses, which all use the
-# same "markdown + frontmatter + $ARGUMENTS" prompt format:
-#
-#   Claude Code  slash commands   (.claude/commands/ or a plugin's commands/)
-#   pi           prompt templates (.pi/prompts/ or a pi package's prompts/)
-#   Codex        custom prompts   ($CODEX_HOME/prompts/)
+# Both directories ship inside the plugin. Claude Code and Codex read
+# commands/ as plugin commands; pi reads it as prompt templates. All three
+# use the same "markdown + frontmatter + $ARGUMENTS" format.
 #
 # Usage:
 #   scripts/build-commands.sh            # regenerate
@@ -22,8 +19,9 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BASE_DIR="$(dirname "$SCRIPT_DIR")"
-SKILLS_DIR="$BASE_DIR/skills"
-COMMANDS_DIR="$BASE_DIR/commands/agent-os"
+PLUGIN_DIR="$BASE_DIR/plugins/agent-os"
+SKILLS_DIR="$PLUGIN_DIR/skills"
+COMMANDS_DIR="$PLUGIN_DIR/commands"
 
 source "$SCRIPT_DIR/common-functions.sh"
 
@@ -104,7 +102,7 @@ generate_command() {
         echo "---"
         echo ""
         echo "<!-- GENERATED FILE — do not edit."
-        echo "     Source: skills/${skill_name}/SKILL.md"
+        echo "     Source: plugins/agent-os/skills/${skill_name}/SKILL.md"
         echo "     Regenerate with: scripts/build-commands.sh -->"
         echo ""
         echo "Arguments (may be empty): \$ARGUMENTS"
@@ -145,14 +143,14 @@ main() {
 
     if [[ "$CHECK_ONLY" == "true" ]]; then
         if diff -ru "$COMMANDS_DIR" "$work_dir" > /dev/null 2>&1; then
-            print_success "commands/agent-os/ is up to date ($count commands)"
+            print_success "plugins/agent-os/commands/ is up to date ($count commands)"
         else
-            print_error "commands/agent-os/ is out of date. Run scripts/build-commands.sh"
+            print_error "plugins/agent-os/commands/ is out of date. Run scripts/build-commands.sh"
             diff -ru "$COMMANDS_DIR" "$work_dir" || true
             exit 1
         fi
     else
-        print_success "Generated $count commands into commands/agent-os/"
+        print_success "Generated $count commands into plugins/agent-os/commands/"
     fi
 }
 

@@ -1,0 +1,29 @@
+{
+  "name": "agent-os",
+  "version": "3.0.0",
+  "description": "Shape better specs and keep coding agents aligned with your codebase's own standards.",
+  "author": {
+    "name": "Brian Casel",
+    "url": "https://buildermethods.com"
+  },
+  "homepage": "https://buildermethods.com/agent-os",
+  "repository": "https://github.com/slurpyb/agent-os",
+  "license": "MIT",
+  "keywords": ["standards", "specs", "planning", "conventions", "agent-os"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Agent OS",
+    "shortDescription": "Agents that build the way you would",
+    "longDescription": "Agent OS discovers the conventions already in your codebase, writes them down as concise standards, and injects the relevant ones into whatever you are building. It also shapes specs before implementation, so plans start from your product context and your standards rather than from scratch.",
+    "developerName": "Builder Methods",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://buildermethods.com/agent-os",
+    "defaultPrompt": [
+      "Discover the coding standards in this codebase",
+      "Shape a spec for the feature I'm about to build",
+      "Inject the standards relevant to this task"
+    ],
+    "brandColor": "#8E51FF"
+  }
+}

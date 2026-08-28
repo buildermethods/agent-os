@@ -9,10 +9,13 @@ permissions:
   contents: read
 
 jobs:
-  commands-up-to-date:
+  plugin:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install PyYAML
+        run: python3 -m pip install --quiet pyyaml
 
       - name: Shell syntax
         run: |
@@ -20,11 +23,8 @@ jobs:
             bash -n "$script"
           done
 
-      - name: Manifests are valid JSON
-        run: |
-          for manifest in .claude-plugin/plugin.json .claude-plugin/marketplace.json package.json; do
-            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$manifest"
-          done
+      - name: Plugin manifests, marketplaces and skills
+        run: scripts/validate-plugin.py
 
-      - name: commands/agent-os is generated from skills/
+      - name: Commands are generated from skills
         run: scripts/build-commands.sh --check
