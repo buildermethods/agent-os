@@ -1,0 +1,30 @@
+name: Build check
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  commands-up-to-date:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shell syntax
+        run: |
+          for script in scripts/*.sh; do
+            bash -n "$script"
+          done
+
+      - name: Manifests are valid JSON
+        run: |
+          for manifest in .claude-plugin/plugin.json .claude-plugin/marketplace.json package.json; do
+            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$manifest"
+          done
+
+      - name: commands/agent-os is generated from skills/
+        run: scripts/build-commands.sh --check

@@ -5,6 +5,12 @@ https://buildermethods.com/agent-os
 
 ## Unreleased
 
+- Agent OS is now a plugin for Claude Code, OpenAI Codex, and pi, built from one source. The five workflows are [Agent Skills](https://agentskills.io) under `skills/`, which all three harnesses load; `commands/agent-os/*.md` is generated from them and doubles as Claude Code slash commands, pi prompt templates, and Codex custom prompts.
+- Added `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` so the repo installs with `/plugin marketplace add slurpyb/agent-os`, and a `pi` manifest in `package.json` so it installs with `pi install git:github.com/slurpyb/agent-os`.
+- Added `scripts/install-plugin.sh` to install the skills and commands into each harness's directories (`--target claude|codex|pi|agents|all`, `--global`, `--link`). `scripts/project-install.sh` now calls it and takes `--agents claude,codex,pi`.
+- Added `scripts/build-commands.sh` to regenerate `commands/agent-os/` from `skills/`, with `--check` wired into CI so the two cannot drift.
+- Reworded the workflows to be harness-neutral: `AskUserQuestion` and plan mode are now named as Claude Code examples with a stated fallback, rather than hard requirements.
+
 - Fixed silent install failures caused by `((var++))` under `set -e` in `project-install.sh`, `sync-to-profile.sh`, and `common-functions.sh` (#328).
 - Replaced GNU-only `tac` in `project-install.sh` with a POSIX `awk` invocation so installs work on macOS without `coreutils` (#327).
 

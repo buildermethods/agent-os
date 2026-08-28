@@ -1,0 +1,22 @@
+{
+  "name": "agent-os",
+  "displayName": "Agent OS",
+  "version": "3.0.0",
+  "description": "Shape better specs and keep coding agents aligned with your codebase's own standards. Portable across Claude Code, Codex, and pi.",
+  "author": {
+    "name": "Brian Casel",
+    "url": "https://buildermethods.com"
+  },
+  "homepage": "https://buildermethods.com/agent-os",
+  "repository": "https://github.com/slurpyb/agent-os",
+  "license": "MIT",
+  "keywords": [
+    "standards",
+    "specs",
+    "planning",
+    "conventions",
+    "agent-os"
+  ],
+  "skills": "./skills/",
+  "commands": ["./commands/agent-os/"]
+}

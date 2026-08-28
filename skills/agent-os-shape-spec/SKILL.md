@@ -1,13 +1,12 @@
 ---
-description: "Shape a spec before building: scope, references, standards, and a plan"
-argument-hint: "[what we're building]"
+name: agent-os-shape-spec
+description: Shape a spec before building — gather scope, visuals, reference implementations, product context and standards, then produce a plan whose first task saves the spec to agent-os/specs/. Use before implementing any significant feature or change, when the user asks to shape, spec, or plan a feature, or when they run /shape-spec.
+license: MIT
+metadata:
+  agent-os-command: shape-spec
+  agent-os-summary: Shape a spec before building: scope, references, standards, and a plan
+  agent-os-argument-hint: "[what we're building]"
 ---
-
-<!-- GENERATED FILE — do not edit.
-     Source: skills/agent-os-shape-spec/SKILL.md
-     Regenerate with: scripts/build-commands.sh -->
-
-Arguments (may be empty): $ARGUMENTS
 
 # Shape Spec
 

@@ -1,13 +1,12 @@
 ---
-description: "Extract patterns and conventions from this codebase into documented standards"
-argument-hint: "[area]"
+name: agent-os-discover-standards
+description: Extract tribal knowledge from a codebase into concise, documented Agent OS standards under agent-os/standards/, then index them. Use when the user asks to discover, extract, capture, or document coding standards, conventions, patterns, or house style from an existing codebase, or runs /discover-standards.
+license: MIT
+metadata:
+  agent-os-command: discover-standards
+  agent-os-summary: Extract patterns and conventions from this codebase into documented standards
+  agent-os-argument-hint: "[area]"
 ---
-
-<!-- GENERATED FILE — do not edit.
-     Source: skills/agent-os-discover-standards/SKILL.md
-     Regenerate with: scripts/build-commands.sh -->
-
-Arguments (may be empty): $ARGUMENTS
 
 # Discover Standards
 

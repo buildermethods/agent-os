@@ -1,12 +1,12 @@
 ---
-description: "Create product mission, roadmap, and tech stack docs"
+name: agent-os-plan-product
+description: Establish foundational Agent OS product documentation (mission.md, roadmap.md, tech-stack.md) in agent-os/product/ through a short interactive interview. Use when starting a new product or project, when the user asks to document product vision, mission, roadmap or tech stack, or when they run /plan-product.
+license: MIT
+metadata:
+  agent-os-command: plan-product
+  agent-os-summary: Create product mission, roadmap, and tech stack docs
+  agent-os-argument-hint: ""
 ---
-
-<!-- GENERATED FILE — do not edit.
-     Source: skills/agent-os-plan-product/SKILL.md
-     Regenerate with: scripts/build-commands.sh -->
-
-Arguments (may be empty): $ARGUMENTS
 
 # Plan Product
 

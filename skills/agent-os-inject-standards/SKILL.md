@@ -1,13 +1,12 @@
 ---
-description: "Inject relevant standards into the current conversation, skill, or plan"
-argument-hint: "[folder | folder/standard ...]"
+name: agent-os-inject-standards
+description: Pull relevant Agent OS standards from agent-os/standards/ into the current context, formatted for conversation, for a skill being authored, or for a plan/spec. Use before implementing a feature, while shaping a spec, or when the user runs /inject-standards or asks which project standards apply.
+license: MIT
+metadata:
+  agent-os-command: inject-standards
+  agent-os-summary: Inject relevant standards into the current conversation, skill, or plan
+  agent-os-argument-hint: "[folder | folder/standard ...]"
 ---
-
-<!-- GENERATED FILE — do not edit.
-     Source: skills/agent-os-inject-standards/SKILL.md
-     Regenerate with: scripts/build-commands.sh -->
-
-Arguments (may be empty): $ARGUMENTS
 
 # Inject Standards
 

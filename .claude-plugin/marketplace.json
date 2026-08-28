@@ -1,0 +1,27 @@
+{
+  "name": "agent-os",
+  "owner": {
+    "name": "Brian Casel",
+    "url": "https://buildermethods.com"
+  },
+  "description": "Agent OS — agents that build the way you would.",
+  "version": "3.0.0",
+  "plugins": [
+    {
+      "name": "agent-os",
+      "source": "./",
+      "displayName": "Agent OS",
+      "description": "Shape better specs and keep coding agents aligned with your codebase's own standards.",
+      "version": "3.0.0",
+      "author": {
+        "name": "Brian Casel",
+        "url": "https://buildermethods.com"
+      },
+      "homepage": "https://buildermethods.com/agent-os",
+      "repository": "https://github.com/slurpyb/agent-os",
+      "license": "MIT",
+      "keywords": ["standards", "specs", "planning", "conventions"],
+      "category": "development"
+    }
+  ]
+}

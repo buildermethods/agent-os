@@ -4,7 +4,7 @@
 
 [Agent OS](https://buildermethods.com/agent-os) helps you shape better specs, keeps agents aligned in a lightweight system that fits how you already build.
 
-Works alongside Claude Code, Cursor, Antigravity, and other AI tools. Any language, any framework.
+Ships as a plugin for **Claude Code**, **OpenAI Codex**, and **pi** from one set of files, and works alongside Cursor, Antigravity, and other AI tools. Any language, any framework.
 
 **Core capabilities:**
 
@@ -12,6 +12,36 @@ Works alongside Claude Code, Cursor, Antigravity, and other AI tools. Any langua
 - **Deploy Standards** — Intelligently inject relevant standards based on what you're building
 - **Shape Spec** — Create better plans that lead to better builds
 - **Index Standards** — Keep your standards organized and discoverable
+
+---
+
+### Install as a plugin
+
+Agent OS is packaged three ways from the same source: a Claude Code plugin, a pi package, and [Agent Skills](https://agentskills.io) that Codex and pi both read from `.agents/skills/`.
+
+**Claude Code**
+
+```
+/plugin marketplace add slurpyb/agent-os
+/plugin install agent-os@agent-os
+```
+
+**pi**
+
+```bash
+pi install git:github.com/slurpyb/agent-os
+```
+
+**Codex — or all three into one project**
+
+```bash
+git clone https://github.com/slurpyb/agent-os.git ~/agent-os
+cd /path/to/your/project
+~/agent-os/scripts/install-plugin.sh              # all three
+~/agent-os/scripts/install-plugin.sh --target codex   # just Codex
+```
+
+Every harness reads and writes the same `agent-os/` folder in your project, so a spec shaped in one is picked up by the next. Full details — install paths, per-harness command names, and how to contribute to the workflows — are in [docs/plugin.md](docs/plugin.md).
 
 ---
 

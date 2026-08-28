@@ -1,12 +1,12 @@
 ---
-description: "Rebuild the standards index so standards stay discoverable"
+name: agent-os-index-standards
+description: Rebuild and maintain agent-os/standards/index.yml so Agent OS standards stay discoverable. Use when standards files were added, renamed, or deleted by hand, when standard suggestions look stale or out of sync, or when the user runs /index-standards.
+license: MIT
+metadata:
+  agent-os-command: index-standards
+  agent-os-summary: Rebuild the standards index so standards stay discoverable
+  agent-os-argument-hint: ""
 ---
-
-<!-- GENERATED FILE — do not edit.
-     Source: skills/agent-os-index-standards/SKILL.md
-     Regenerate with: scripts/build-commands.sh -->
-
-Arguments (may be empty): $ARGUMENTS
 
 # Index Standards
 

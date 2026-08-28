@@ -1,0 +1,35 @@
+{
+  "name": "agent-os",
+  "version": "3.0.0",
+  "description": "Shape better specs and keep coding agents aligned with your codebase's own standards. Portable across Claude Code, Codex, and pi.",
+  "license": "MIT",
+  "homepage": "https://buildermethods.com/agent-os",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slurpyb/agent-os.git"
+  },
+  "keywords": [
+    "pi-package",
+    "agent-skills",
+    "claude-code-plugin",
+    "codex",
+    "standards",
+    "specs"
+  ],
+  "private": true,
+  "scripts": {
+    "build": "./scripts/build-commands.sh",
+    "check": "./scripts/build-commands.sh --check"
+  },
+  "pi": {
+    "skills": ["./skills"],
+    "prompts": ["./commands/agent-os"]
+  },
+  "files": [
+    "skills",
+    "commands",
+    "profiles",
+    "scripts",
+    "config.yml"
+  ]
+}

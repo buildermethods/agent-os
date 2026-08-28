@@ -22,6 +22,7 @@ source "$SCRIPT_DIR/common-functions.sh"
 VERBOSE="false"
 PROFILE=""
 COMMANDS_ONLY="false"
+AGENTS="claude"
 
 # -----------------------------------------------------------------------------
 # Help Function
@@ -35,13 +36,16 @@ Install Agent OS into the current project directory.
 
 Options:
     --profile <name>     Use specified profile (default: from config.yml)
-    --commands-only      Only update commands, preserve existing standards
+    --agents <list>      Comma-separated harnesses to install commands and
+                         skills for: claude, codex, pi (default: claude)
+    --commands-only      Only update commands and skills, preserve existing standards
     --verbose            Show detailed output
     -h, --help           Show this help message
 
 Examples:
     $0
     $0 --profile rails
+    $0 --agents claude,codex,pi
     $0 --commands-only
 
 EOF
@@ -57,6 +61,10 @@ parse_arguments() {
         case $1 in
             --profile)
                 PROFILE="$2"
+                shift 2
+                ;;
+            --agents)
+                AGENTS="$2"
                 shift 2
                 ;;
             --commands-only)
@@ -383,31 +391,27 @@ create_index() {
 
 install_commands() {
     echo ""
-    print_status "Installing commands..."
+    print_status "Installing commands and skills..."
 
-    local commands_source="$BASE_DIR/commands/agent-os"
-    local commands_dest="$PROJECT_DIR/.claude/commands/agent-os"
-
-    if [[ ! -d "$commands_source" ]]; then
+    if [[ ! -d "$BASE_DIR/commands/agent-os" ]]; then
         print_warning "No commands found in base installation"
         return
     fi
 
-    ensure_dir "$commands_dest"
-
-    local count=0
-    for file in "$commands_source"/*.md; do
-        if [[ -f "$file" ]]; then
-            cp "$file" "$commands_dest/"
-            (( count++ )) || true
-        fi
+    # install-plugin.sh knows where each harness reads skills and prompts from.
+    local args=()
+    local IFS_SAVE="$IFS"
+    IFS=','
+    local target
+    for target in $AGENTS; do
+        target="$(echo "$target" | tr -d '[:space:]')"
+        [[ -n "$target" ]] && args+=(--target "$target")
     done
+    IFS="$IFS_SAVE"
 
-    if [[ "$count" -gt 0 ]]; then
-        print_success "Installed $count commands to .claude/commands/agent-os/"
-    else
-        print_warning "No command files found"
-    fi
+    [[ "$VERBOSE" == "true" ]] && args+=(--verbose)
+
+    AGENT_OS_SKIP_SUMMARY="true" "$SCRIPT_DIR/install-plugin.sh" "${args[@]}"
 }
 
 # -----------------------------------------------------------------------------
@@ -451,6 +455,7 @@ main() {
     done <<< "$reversed_chain"
     echo "$chain_display"
 
+    echo "  Agents: $AGENTS"
     echo "  Commands only: $COMMANDS_ONLY"
 
     # Confirm overwrite if standards folder exists
@@ -468,8 +473,8 @@ main() {
     print_success "Agent OS installed successfully!"
     echo ""
     echo "Next steps:"
-    echo "  1. Run /discover-standards to extract patterns from your codebase"
-    echo "  2. Run /inject-standards to inject standards into your context"
+    echo "  1. Discover standards — extract patterns from your codebase"
+    echo "  2. Inject standards — pull the relevant ones into your context"
     echo ""
 }
 
