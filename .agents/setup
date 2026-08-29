@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+step() {
+  printf '\n==> %s\n' "$1"
+  shift
+  time "$@"
+}
+
+install_system_packages() {
+  local packages=(
+    build-essential
+    ca-certificates
+    chromium
+    curl
+    libffi-dev
+    libgmp-dev
+    libpq-dev
+    libreadline-dev
+    libssl-dev
+    libvips42
+    libyaml-dev
+    postgresql
+    postgresql-client
+    zlib1g-dev
+  )
+  local missing=()
+
+  for package in "${packages[@]}"; do
+    dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -Fq "install ok installed" || missing+=("$package")
+  done
+
+  if ((${#missing[@]})); then
+    sudo apt-get update
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${missing[@]}"
+  else
+    echo "System packages already installed"
+  fi
+}
+
+install_mise() {
+  if [[ ! -x "$HOME/.local/bin/mise" ]]; then
+    curl --proto '=https' --tlsv1.2 -fsSL https://mise.run | sh
+  fi
+
+  local marker="# Builder Methods orb toolchains"
+  touch "$HOME/.bash_profile"
+  if ! grep -Fqx "$marker" "$HOME/.bash_profile"; then
+    cat >> "$HOME/.bash_profile" <<'EOF'
+
+# Builder Methods orb toolchains
+if [[ -x "$HOME/.local/bin/mise" ]]; then
+  eval "$("$HOME/.local/bin/mise" activate bash)"
+fi
+EOF
+  fi
+
+  export PATH="$HOME/.local/bin:$PATH"
+  mise settings add idiomatic_version_file_enable_tools ruby
+  mise settings add idiomatic_version_file_enable_tools node
+  eval "$(mise activate bash)"
+}
+
+prepare_postgres() {
+  local version cluster hba config
+  read -r version cluster _ < <(pg_lsclusters --no-header | head -1)
+  hba="/etc/postgresql/$version/$cluster/pg_hba.conf"
+  config="/etc/postgresql/$version/$cluster/postgresql.conf"
+
+  # Orbs are isolated development machines. Trust local connections and trade
+  # durability for faster test/database setup.
+  sudo sed -Ei '/^(local|host)[[:space:]]/ s/(peer|scram-sha-256)$/trust/' "$hba"
+  if ! sudo grep -Fq "# Amp orb performance settings" "$config"; then
+    sudo tee -a "$config" >/dev/null <<'EOF'
+
+# Amp orb performance settings
+fsync = off
+synchronous_commit = off
+full_page_writes = off
+EOF
+  fi
+
+  if pg_isready -q; then
+    sudo pg_ctlcluster "$version" "$cluster" reload
+  else
+    sudo pg_ctlcluster "$version" "$cluster" start
+  fi
+
+  if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname = '$USER'" | grep -Fq 1; then
+    sudo -u postgres createuser --superuser "$USER"
+  fi
+}
+
+install_dependencies() {
+  local ruby_version node_version bundler_version
+  ruby_version="$(tr -d '[:space:]' < .ruby-version)"
+  node_version="$(tr -d '[:space:]' < .nvmrc)"
+  bundler_version="$(awk '/^BUNDLED WITH$/{getline; gsub(/^[[:space:]]+/, ""); print}' Gemfile.lock)"
+
+  mise install "ruby@$ruby_version" "node@$node_version"
+  eval "$(mise env -s bash)"
+  hash -r
+
+  gem list --installed --exact --version "$bundler_version" bundler >/dev/null || \
+    gem install bundler --version "$bundler_version" --no-document
+  bundle check || bundle install --jobs "$(nproc)"
+  npm ci --no-audit --no-fund
+}
+
+prepare_databases() {
+  if [[ -n "${BUILDERMETHODS_RAILS_DEVELOPMENT_KEY:-}" ]]; then
+    RAILS_MASTER_KEY="$BUILDERMETHODS_RAILS_DEVELOPMENT_KEY" bin/rails db:prepare
+    RAILS_MASTER_KEY="$BUILDERMETHODS_RAILS_DEVELOPMENT_KEY" bin/rails db:seed
+  else
+    echo "BUILDERMETHODS_RAILS_DEVELOPMENT_KEY is unavailable; preparing the test database only"
+    RAILS_ENV=test bin/rails db:prepare
+  fi
+}
+
+primary_repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+rails_repo_root="${BUILDERMETHODS_REPO_PATH:-$primary_repo_root/../repos/buildermethods}"
+
+if [[ ! -f "$rails_repo_root/Gemfile.lock" ]]; then
+  echo "Builder Methods Rails repository not found at $rails_repo_root" >&2
+  exit 1
+fi
+
+cd "$rails_repo_root"
+
+step "Installing system packages" install_system_packages
+step "Installing the pinned Ruby and Node toolchains" install_mise
+step "Preparing PostgreSQL" prepare_postgres
+step "Installing repository dependencies" install_dependencies
+step "Preparing databases" prepare_databases
+
+printf '\nOrb setup complete.\n'

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+write_credentials_key() {
+  local variable="$1" environment="$2" value="${!1:-}"
+  [[ -n "$value" ]] || return 0
+
+  printf '%s' "$value" > "config/credentials/$environment.key"
+  chmod 600 "config/credentials/$environment.key"
+}
+
+primary_repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+rails_repo_root="${BUILDERMETHODS_REPO_PATH:-$primary_repo_root/../repos/buildermethods}"
+
+if [[ ! -d "$rails_repo_root/config/credentials" ]]; then
+  echo "Builder Methods Rails repository not found at $rails_repo_root" >&2
+  exit 1
+fi
+
+cd "$rails_repo_root"
+
+write_credentials_key BUILDERMETHODS_RAILS_DEVELOPMENT_KEY development
+write_credentials_key BUILDERMETHODS_RAILS_STAGING_KEY staging
+write_credentials_key BUILDERMETHODS_RAILS_PRODUCTION_KEY production
+
+if command -v pg_lsclusters >/dev/null 2>&1 && ! pg_isready -q; then
+  read -r version cluster _ < <(pg_lsclusters --no-header | head -1)
+  sudo pg_ctlcluster "$version" "$cluster" start
+fi
