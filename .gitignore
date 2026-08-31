@@ -32,3 +32,5 @@ node_modules/
 # Temporary files
 *.tmp
 *.temp
+.agent-os-install.*
+profiles/.agent-os-sync.*

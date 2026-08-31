@@ -1,0 +1,22 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Check shell syntax
+        run: bash -n scripts/*.sh install_agent_os.sh tests/run.sh
+      - name: Run ShellCheck
+        run: shellcheck -x scripts/*.sh install_agent_os.sh tests/run.sh
+      - name: Run functional tests
+        run: ./tests/run.sh

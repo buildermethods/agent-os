@@ -42,7 +42,9 @@ Before injecting standards, determine which scenario we're in. Read the current 
 - If conversation clearly mentions creating a skill, editing `.claude/skills/`, or building a reusable procedure → **Creating a Skill**
 - Otherwise → **Ask to confirm** (do not assume)
 
-**If neither skill nor plan is clearly detected**, use AskUserQuestion to confirm:
+**If neither skill nor plan is clearly detected**, use the host agent's
+supported user-input mechanism to confirm only when formatting materially
+changes the deliverable:
 
 ```
 I'll inject the relevant standards. How should I format them?
@@ -58,7 +60,8 @@ Always ask when uncertain — don't assume conversation by default.
 
 ### Step 2: Read the Index (Auto-Suggest Mode)
 
-Read `agent-os/standards/index.yml` to get the list of available standards and their descriptions.
+Read the `standards` list in `agent-os/standards/index.yml`. Treat every `path`
+as relative to `agent-os/standards/`; reject absolute paths and `..` segments.
 
 If index.yml doesn't exist or is empty:
 ```
@@ -75,7 +78,8 @@ Look at the current conversation to understand what the user is working on:
 
 ### Step 4: Match and Suggest
 
-Match index descriptions against the context. Use AskUserQuestion to present suggestions:
+Match index descriptions against the context. Ask for selection only when
+several materially different standards are plausible:
 
 ```
 Based on your task, these standards may be relevant:
@@ -123,7 +127,8 @@ I've read the following standards as they are relevant to what we're working on:
 
 #### Scenario: Creating a Skill
 
-First, use AskUserQuestion to determine how to include the standards:
+Prefer file references when the host agent can read repository files. Ask
+whether to copy content only when portability materially matters:
 
 ```
 How should these standards be included in your skill?
@@ -176,7 +181,8 @@ These standards cover:
 
 #### Scenario: Shaping/Planning
 
-First, use AskUserQuestion to determine how to include the standards:
+Prefer file references for repository-local plans. Ask whether to copy content
+only when the plan must be portable outside the repository:
 
 ```
 How should these standards be included in your plan?
@@ -237,6 +243,13 @@ Related Skills you might want to use:
 ```
 
 Don't invoke skills automatically — just surface them for awareness.
+
+### Step 7: Enforce a Context Budget
+
+- Default to at most five standards or 12,000 characters of content.
+- Prefer paths plus key-point summaries when full content exceeds the budget.
+- Report omitted standards and why they were omitted.
+- Never silently truncate a standard mid-section.
 
 ---
 

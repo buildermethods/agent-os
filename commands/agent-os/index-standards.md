@@ -11,7 +11,7 @@ The index enables `/inject-standards` to suggest relevant standards without read
 ### Step 1: Scan for Standards Files
 
 1. List all `.md` files in `agent-os/standards/` and its subfolders
-2. Build a list of all standards organized by folder:
+2. Build a list of all standards using their complete relative paths:
    ```
    root/coding-style.md        # Files in standards/ root use "root" as the folder name
    root/naming.md
@@ -39,7 +39,8 @@ Compare the file scan with the existing index:
 For each new standard file that needs an index entry:
 
 1. Read the file to understand its content
-2. Use AskUserQuestion to propose a description:
+2. Derive a concise description from the heading and first substantive
+   section. Ask only if the meaning remains ambiguous:
 
 ```
 New standard needs indexing:
@@ -63,40 +64,26 @@ Report: "Removed 2 stale index entries: api/old-pattern.md, testing/deprecated.m
 
 ### Step 6: Write Updated Index
 
-Generate `agent-os/standards/index.yml` with this structure:
+Generate `agent-os/standards/index.yml` with this path-preserving structure:
 
 ```yaml
-folder-name:
-  file-name:
-    description: Brief description here
+version: 1
+standards:
+  - path: "api/error-handling.md"
+    description: "Error codes, exception handling, and safe response formats"
+  - path: "api/v2/error-handling.md"
+    description: "Version 2 API error behavior"
 ```
 
 **Rules:**
-- Alphabetize folders
-- Alphabetize files within each folder
-- File names without `.md` extension
+- Sort entries by complete relative path
+- Preserve nested directories and the `.md` extension
+- Quote YAML strings and reject duplicate paths
 - One-line descriptions only
 
 **Example:**
-```yaml
-root:
-  coding-style:
-    description: General coding style, formatting, linting rules
-  naming:
-    description: File naming, variable naming, class naming conventions
-
-api:
-  error-handling:
-    description: Error codes, exception handling, error response format
-  response-format:
-    description: API response envelope structure, status codes, pagination
-
-database:
-  migrations:
-    description: Migration file structure, naming conventions, rollback patterns
-```
-
-**Note:** `root` appears first and contains standards files that live directly in `agent-os/standards/` (not in subfolders).
+Root standards use paths such as `coding-style.md`; do not create a `root/`
+directory.
 
 ### Step 7: Report Results
 
