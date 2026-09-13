@@ -693,11 +693,15 @@ YAML
 
 test_rollback_pipe_space_dirs() {
     new_env rbpipe
+    # Both the project directory name and the created standards directory name
+    # carry a literal "|" and a space, so rollback cannot rely on a pipe- or
+    # whitespace-delimited list of created directories.
+    PROJ="$ROOT/rbpipe/proj with|pipe"
+    mkdir -p "$PROJ"
     install --target none --yes
     before=$(snapdir "$PROJ")
-    # A brand-new directory whose name holds a literal "|" and a space; it sorts
-    # first, so the first commit creates it (and its parent) before the injected
-    # failure, exercising directory names a pipe/space-delimited list would mangle.
+    # The new directory sorts first, so the first commit creates it (and its
+    # parent) before the injected failure.
     mkdir -p "$BASE/profiles/default/aaa b|c/deep"
     printf '# Pipe dir\n' >"$BASE/profiles/default/aaa b|c/deep/file.md"
     export AGENT_OS_INSTALL_FAIL_AFTER=1

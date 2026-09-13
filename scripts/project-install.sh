@@ -92,17 +92,23 @@ parse_arguments() {
     while [ $# -gt 0 ]; do
         case "$1" in
             --project-dir)
-                [ $# -ge 2 ] && [ -n "$2" ] && [ "${2#-}" = "$2" ] || ico_die "option --project-dir requires a value"
+                if [ $# -lt 2 ] || [ -z "${2:-}" ] || [ "${2#-}" != "$2" ]; then
+                    ico_die "option --project-dir requires a value"
+                fi
                 PROJECT_DIR="$2"
                 shift 2
                 ;;
             --profile)
-                [ $# -ge 2 ] && [ -n "$2" ] && [ "${2#-}" = "$2" ] || ico_die "option --profile requires a value"
+                if [ $# -lt 2 ] || [ -z "${2:-}" ] || [ "${2#-}" != "$2" ]; then
+                    ico_die "option --profile requires a value"
+                fi
                 PROFILE="$2"
                 shift 2
                 ;;
             --target)
-                [ $# -ge 2 ] && [ -n "$2" ] && [ "${2#-}" = "$2" ] || ico_die "option --target requires a value"
+                if [ $# -lt 2 ] || [ -z "${2:-}" ] || [ "${2#-}" != "$2" ]; then
+                    ico_die "option --target requires a value"
+                fi
                 TARGET="$2"
                 shift 2
                 ;;
