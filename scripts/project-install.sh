@@ -1,477 +1,731 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# Agent OS project installer (hardened).
+#
+# Installs Agent OS standards from a profile (optionally inherited) into a
+# project's agent-os/standards directory and, for the claude target, the
+# agent-os slash commands into .claude/commands/agent-os.
+#
+# Every write is tracked in agent-os/install-manifest.tsv so that later runs,
+# doctor.sh and uninstall.sh can detect drift and never clobber user edits.
 
-# =============================================================================
-# Agent OS Project Installation Script
-# Installs Agent OS into a project's codebase
-# =============================================================================
+set -Eeuo pipefail
 
-set -e
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+BASE_DIR=$(cd "$SCRIPT_DIR/.." && pwd -P)
 
-# Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BASE_DIR="$(dirname "$SCRIPT_DIR")"
-PROJECT_DIR="$(pwd)"
+# shellcheck source=scripts/installer-common.sh
+. "$SCRIPT_DIR/installer-common.sh"
 
-# Source common functions
-source "$SCRIPT_DIR/common-functions.sh"
+PROGRAM=$(basename "$0")
 
-# -----------------------------------------------------------------------------
-# Default Values
-# -----------------------------------------------------------------------------
-
-VERBOSE="false"
+# Option state -----------------------------------------------------------------
+TARGET="claude"
 PROFILE=""
-COMMANDS_ONLY="false"
+PROJECT_DIR=""
+COMMANDS_ONLY=false
+DRY_RUN=false
+ASSUME_YES=false
+FORCE=false
+VERBOSE=false
+
+# Resolved state ---------------------------------------------------------------
+CHAIN=""
+MANIFEST=""
+MANIFEST_REL="$ICO_MANIFEST_REL"
+TARGET_PATHS=""
+CONFLICTS=""
+EXISTING=0
+SUPPLIED_INDEX=""
+COVERS_STANDARDS=true
+COVERS_COMMANDS=true
+
+WORK_DIR=""
+STAGE=""
+ROLLBACK_ARMED=false
+COMMIT_TMP=""
+commit_count=0
+SNAP_COUNT=0
+CREATED_DIR_COUNT=0
+CREATED_DIRS=()
+
+SNAP_PATHS=()
+SNAP_BACKUPS=()
+SNAP_HAD=()
 
 # -----------------------------------------------------------------------------
-# Help Function
+# Help
 # -----------------------------------------------------------------------------
 
 show_help() {
-    cat << EOF
-Usage: $0 [OPTIONS]
+    cat <<EOF
+Usage: $PROGRAM [OPTIONS]
 
-Install Agent OS into the current project directory.
+Install Agent OS standards (and commands) into a project.
 
 Options:
-    --profile <name>     Use specified profile (default: from config.yml)
-    --commands-only      Only update commands, preserve existing standards
-    --verbose            Show detailed output
-    -h, --help           Show this help message
+    --project-dir <dir>   Target project directory (default: current directory)
+    --profile <name>      Profile to install (default: default_profile in config.yml)
+    --target <target>     "claude" installs .claude/commands/agent-os, "none" installs
+                          standards only (default: claude)
+    --commands-only       Update only commands, leave existing standards untouched
+    --dry-run             Print the plan without changing the project
+    --yes                 Assume yes for any confirmation prompt
+    --force               Overwrite unmanaged/modified files, backing them up first
+    --verbose             Show detailed progress
+    -h, --help            Show this help message
 
 Examples:
-    $0
-    $0 --profile rails
-    $0 --commands-only
-
+    $PROGRAM
+    $PROGRAM --profile rails --target none
+    $PROGRAM --project-dir ../app --commands-only --yes
+    $PROGRAM --dry-run
 EOF
     exit 0
 }
 
 # -----------------------------------------------------------------------------
-# Parse Command Line Arguments
+# Argument parsing
 # -----------------------------------------------------------------------------
 
 parse_arguments() {
-    while [[ $# -gt 0 ]]; do
-        case $1 in
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --project-dir)
+                [ $# -ge 2 ] && [ -n "$2" ] && [ "${2#-}" = "$2" ] || ico_die "option --project-dir requires a value"
+                PROJECT_DIR="$2"
+                shift 2
+                ;;
             --profile)
+                [ $# -ge 2 ] && [ -n "$2" ] && [ "${2#-}" = "$2" ] || ico_die "option --profile requires a value"
                 PROFILE="$2"
                 shift 2
                 ;;
+            --target)
+                [ $# -ge 2 ] && [ -n "$2" ] && [ "${2#-}" = "$2" ] || ico_die "option --target requires a value"
+                TARGET="$2"
+                shift 2
+                ;;
             --commands-only)
-                COMMANDS_ONLY="true"
+                COMMANDS_ONLY=true
+                shift
+                ;;
+            --dry-run)
+                DRY_RUN=true
+                shift
+                ;;
+            --yes|-y)
+                ASSUME_YES=true
+                shift
+                ;;
+            --force)
+                FORCE=true
                 shift
                 ;;
             --verbose)
-                VERBOSE="true"
+                VERBOSE=true
                 shift
                 ;;
             -h|--help)
                 show_help
                 ;;
+            -*)
+                ico_die "unknown option: $1"
+                ;;
             *)
-                print_error "Unknown option: $1"
-                show_help
+                ico_die "unexpected argument: $1"
                 ;;
         esac
     done
 }
 
 # -----------------------------------------------------------------------------
-# Validation Functions
+# Validation
 # -----------------------------------------------------------------------------
+
+validate_options() {
+    case "$TARGET" in
+        claude|none) ;;
+        *) ico_die "invalid --target: $TARGET (expected 'claude' or 'none')" ;;
+    esac
+    if [ "$COMMANDS_ONLY" = true ] && [ "$TARGET" = "none" ]; then
+        ico_die "--commands-only cannot be combined with --target none (nothing would be installed)"
+    fi
+    if [ -n "$PROFILE" ]; then
+        ico_profile_name_ok "$PROFILE" || ico_die "invalid profile name: $PROFILE"
+    fi
+}
 
 validate_base_installation() {
-    if [[ ! -d "$BASE_DIR" ]]; then
-        print_error "Agent OS base installation not found"
-        exit 1
-    fi
+    [ -d "$BASE_DIR" ] || ico_die "Agent OS base installation not found: $BASE_DIR"
+    [ -f "$BASE_DIR/config.yml" ] || ico_die "missing config.yml in $BASE_DIR"
+    [ -d "$BASE_DIR/profiles" ] || ico_die "missing profiles directory in $BASE_DIR"
+}
 
-    if [[ ! -f "$BASE_DIR/config.yml" ]]; then
-        print_error "Base installation config.yml not found"
-        exit 1
+# Reject symlinked live source roots so a profile/command tree cannot be
+# redirected outside the base installation.
+validate_source_roots() {
+    local p
+    for p in profiles commands commands/agent-os; do
+        if [ -L "$BASE_DIR/$p" ]; then
+            ico_die "source root is a symlink: $p"
+        fi
+    done
+}
+
+resolve_project() {
+    local dir=${PROJECT_DIR:-$PWD}
+    PROJECT_DIR=$(ico_resolve_project_dir "$dir")
+    if [ "$PROJECT_DIR" = "$BASE_DIR" ]; then
+        ico_die "cannot install into the Agent OS base installation directory: $BASE_DIR"
+    fi
+    MANIFEST="$PROJECT_DIR/$MANIFEST_REL"
+    if [ -e "$MANIFEST" ] || [ -L "$MANIFEST" ]; then
+        ico_manifest_validate "$MANIFEST"
     fi
 }
 
-validate_not_in_base() {
-    if [[ "$PROJECT_DIR" == "$BASE_DIR" ]]; then
-        print_error "Cannot install Agent OS in the base installation directory"
-        echo ""
-        echo "Navigate to your project directory first:"
-        echo "  cd /path/to/your/project"
-        echo ""
-        exit 1
+load_profile_chain() {
+    local default_profile
+    default_profile=$(ico_config_default_profile "$BASE_DIR/config.yml")
+    if [ -z "$PROFILE" ]; then
+        PROFILE="$default_profile"
+    fi
+    ico_profile_name_ok "$PROFILE" || ico_die "invalid profile name: $PROFILE"
+    if [ -L "$BASE_DIR/profiles/$PROFILE" ]; then
+        ico_die "profile directory is a symlink: $PROFILE"
+    fi
+    if [ ! -d "$BASE_DIR/profiles/$PROFILE" ]; then
+        ico_die "profile not found: $PROFILE"
+    fi
+    CHAIN=$(ico_profile_chain "$BASE_DIR/config.yml" "$BASE_DIR/profiles" "$PROFILE")
+
+    COVERS_STANDARDS=true
+    COVERS_COMMANDS=true
+    if [ "$COMMANDS_ONLY" = true ]; then
+        COVERS_STANDARDS=false
+    fi
+    if [ "$TARGET" = "none" ]; then
+        COVERS_COMMANDS=false
     fi
 }
 
 # -----------------------------------------------------------------------------
-# Configuration Functions
+# Staging
 # -----------------------------------------------------------------------------
 
-load_configuration() {
-    local config_file="$BASE_DIR/config.yml"
-
-    # Get default profile from config
-    local default_profile=$(get_yaml_value "$config_file" "default_profile" "default")
-
-    # Use command line profile or default
-    EFFECTIVE_PROFILE="${PROFILE:-$default_profile}"
-
-    # Validate profile exists
-    if [[ ! -d "$BASE_DIR/profiles/$EFFECTIVE_PROFILE" ]]; then
-        print_error "Profile not found: $EFFECTIVE_PROFILE"
-        exit 1
-    fi
-
-    # Build inheritance chain
-    local chain_result=$(get_profile_inheritance_chain "$config_file" "$EFFECTIVE_PROFILE" "$BASE_DIR/profiles")
-
-    # Check for errors
-    if [[ "$chain_result" == CIRCULAR:* ]]; then
-        local cycle_path="${chain_result#CIRCULAR:}"
-        echo ""
-        print_error "Circular dependency detected in profile inheritance chain:"
-        echo "  $cycle_path"
-        echo ""
-        echo "Please fix the inheritance configuration in:"
-        echo "  $config_file"
-        echo ""
-        echo "The 'profiles' section contains a circular reference that must be resolved."
-        exit 1
-    fi
-
-    if [[ "$chain_result" == NOTFOUND:* ]]; then
-        local missing_profile="${chain_result#NOTFOUND:}"
-        print_error "Profile not found: $missing_profile"
-        echo ""
-        echo "This profile is referenced in the inheritance chain but doesn't exist."
-        echo "Check the 'profiles' section in: $config_file"
-        exit 1
-    fi
-
-    # Store the inheritance chain (newline-separated, base first)
-    INHERITANCE_CHAIN="$chain_result"
-
-    print_verbose "Using profile: $EFFECTIVE_PROFILE"
-    print_verbose "Inheritance chain: $(echo "$INHERITANCE_CHAIN" | tr '\n' ' ')"
+setup_workdir() {
+    WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/agent-os-install.XXXXXX")
+    STAGE="$WORK_DIR/stage"
+    mkdir -p "$STAGE"
 }
 
-# -----------------------------------------------------------------------------
-# Confirmation Functions
-# -----------------------------------------------------------------------------
+stage_standards() {
+    local name proot rel abs src dest idx list
+    SUPPLIED_INDEX=""
+    while IFS= read -r name; do
+        [ -n "$name" ] || continue
+        proot="$BASE_DIR/profiles/$name"
+        idx="$proot/index.yml"
+        if [ -L "$idx" ]; then
+            ico_die "profile index is a symlink: $name/index.yml"
+        fi
+        if [ -f "$idx" ]; then
+            SUPPLIED_INDEX="$idx"
+        fi
+        list="$WORK_DIR/find.standards.$name"
+        if ! ( cd "$proot" && find . \( -type f -name '*.md' -o -type l \) -print0 ) >"$list"; then
+            ico_die "failed to scan profile '$name' for standards"
+        fi
+        while IFS= read -r -d '' abs; do
+            rel=${abs#./}
+            if ! ico_path_ok "$rel"; then
+                ico_die "unsafe path in profile '$name': $rel"
+            fi
+            case "/$rel/" in
+                */.backups/*) continue ;;
+            esac
+            case "$rel" in
+                index.yml) continue ;;
+            esac
+            src="$proot/$rel"
+            if [ -L "$src" ]; then
+                ico_die "profile file is a symlink: $name/$rel"
+            fi
+            dest="$STAGE/agent-os/standards/$rel"
+            mkdir -p "$(dirname "$dest")"
+            cp -p "$src" "$dest"
+        done <"$list"
+    done <<<"$CHAIN"
+}
 
-confirm_standards_overwrite() {
-    if [[ "$COMMANDS_ONLY" == "true" ]]; then
+stage_index() {
+    local standards_dir="$STAGE/agent-os/standards"
+    local out="$standards_dir/index.yml"
+    mkdir -p "$standards_dir"
+    if [ -n "$SUPPLIED_INDEX" ]; then
+        cp -p "$SUPPLIED_INDEX" "$out"
+        ico_info "using profile-supplied index.yml"
+    else
+        generate_index "$standards_dir" "$PROJECT_DIR/agent-os/standards/index.yml" "$out"
+    fi
+}
+
+# Build a nested-path-aware index.yml that the existing commands understand.
+generate_index() {
+    local dir=$1 old=$2 out=$3
+    local lookup="$WORK_DIR/index.lookup"
+    local entries="$WORK_DIR/index.entries"
+    local list="$WORK_DIR/index.files"
+    : >"$lookup"
+    : >"$entries"
+
+    if [ -f "$old" ] && [ ! -L "$old" ]; then
+        sed_default_descriptions "$old" >>"$lookup"
+    fi
+
+    if ! find "$dir" -type f -name '*.md' -print0 >"$list"; then
+        ico_die "failed to scan staged standards for index generation"
+    fi
+
+    local abs rel name dpart label key sk desc
+    while IFS= read -r -d '' abs; do
+        rel=${abs#"$dir/"}
+        name=${rel##*/}
+        name=${name%.md}
+        dpart=${rel%/*}
+        if [ "$dpart" = "$rel" ]; then
+            dpart=""
+        fi
+        if [ -z "$dpart" ]; then
+            label="root"; key="root/$name"; sk="0"
+        else
+            label="$dpart"; key="$dpart/$name"; sk="1"
+        fi
+        desc=$(index_lookup "$lookup" "$key")
+        if [ -z "$desc" ]; then
+            desc="$ICO_DEFAULT_DESCRIPTION"
+        fi
+        case "$desc" in
+            *$'\t'*) desc="$ICO_DEFAULT_DESCRIPTION" ;;
+        esac
+        printf '%s\t%s\t%s\t%s\n' "$sk" "$label" "$name" "$desc" >>"$entries"
+    done <"$list"
+
+    {
+        printf '# Agent OS Standards Index\n'
+        sort -t "$(printf '\t')" -k1,1 -k2,2 -k3,3 "$entries" | {
+            local prev=""
+            while IFS=$'\t' read -r sk label name desc; do
+                if [ "$label" != "$prev" ]; then
+                    printf '\n%s:\n' "$(ico_yaml_scalar "$label")"
+                    prev="$label"
+                fi
+                printf '  %s:\n    description: %s\n' "$(ico_yaml_scalar "$name")" "$(ico_yaml_scalar "$desc")"
+            done
+        }
+    } >"$out"
+}
+
+# Extract "folder/file<TAB>description" pairs from a pre-existing index.
+sed_default_descriptions() {
+    awk '
+        /^[A-Za-z0-9_.\/-]+:[[:space:]]*$/ {
+            folder = $0; sub(/:.*/, "", folder); name = ""; next
+        }
+        /^  [A-Za-z0-9_.\/-]+:[[:space:]]*$/ {
+            name = $0; sub(/^[[:space:]]+/, "", name); sub(/:.*/, "", name); next
+        }
+        /^[[:space:]]*description:[[:space:]]*/ {
+            desc = $0; sub(/^[[:space:]]*description:[[:space:]]*/, "", desc)
+            if (desc ~ /^".*"$/) { desc = substr(desc, 2, length(desc) - 2) }
+            if (folder != "" && name != "") print folder "/" name "\t" desc
+        }
+    ' "$1"
+}
+
+index_lookup() {
+    awk -F'\t' -v k="$2" '$1 == k { print $2; exit }' "$1"
+}
+
+stage_commands() {
+    local src_dir="$BASE_DIR/commands/agent-os"
+    if [ ! -d "$src_dir" ]; then
+        ico_warn "no commands directory in base installation; skipping commands"
         return 0
     fi
-
-    local existing_standards="$PROJECT_DIR/agent-os/standards"
-
-    if [[ -d "$existing_standards" ]]; then
-        echo ""
-        print_warning "Existing standards folder detected at: $existing_standards"
-        echo ""
-        echo "This will overwrite your existing standards with standards from the '$EFFECTIVE_PROFILE' profile."
-        echo ""
-        read -p "Do you want to continue? (y/N) " -n 1 -r
-        echo ""
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            echo ""
-            echo "Installation cancelled."
-            echo ""
-            echo "To update only commands without touching standards, use:"
-            echo "  $0 --commands-only"
-            echo ""
-            exit 0
-        fi
+    local f base dest n=0 list="$WORK_DIR/find.commands"
+    if ! find "$src_dir" \( -type f -name '*.md' -o -type l \) -print0 >"$list"; then
+        ico_die "failed to scan commands directory"
     fi
+    while IFS= read -r -d '' f; do
+        if [ -L "$f" ]; then
+            ico_die "command source is a symlink: $f"
+        fi
+        base=${f##*/}
+        dest="$STAGE/.claude/commands/agent-os/$base"
+        mkdir -p "$(dirname "$dest")"
+        cp -p "$f" "$dest"
+        n=$((n + 1))
+    done <"$list"
+    ico_info "staged $n command(s)"
+}
+
+collect_paths() {
+    local raw="$WORK_DIR/paths.raw" abs list
+    : >"$raw"
+    if [ -d "$STAGE/agent-os/standards" ]; then
+        list="$WORK_DIR/find.coll.stds"
+        if ! find "$STAGE/agent-os/standards" -type f -print0 >"$list"; then
+            ico_die "failed to scan staged standards"
+        fi
+        while IFS= read -r -d '' abs; do
+            printf '%s\n' "${abs#"$STAGE/"}"
+        done <"$list" >>"$raw"
+    fi
+    if [ -d "$STAGE/.claude/commands/agent-os" ]; then
+        list="$WORK_DIR/find.coll.cmds"
+        if ! find "$STAGE/.claude/commands/agent-os" -type f -print0 >"$list"; then
+            ico_die "failed to scan staged commands"
+        fi
+        while IFS= read -r -d '' abs; do
+            printf '%s\n' "${abs#"$STAGE/"}"
+        done <"$list" >>"$raw"
+    fi
+    TARGET_PATHS=$(sort "$raw")
 }
 
 # -----------------------------------------------------------------------------
-# Installation Functions
+# Preflight and plan
 # -----------------------------------------------------------------------------
 
-create_project_structure() {
-    print_status "Creating project structure..."
-
-    ensure_dir "$PROJECT_DIR/agent-os"
-    ensure_dir "$PROJECT_DIR/agent-os/standards"
-
-    print_success "Created agent-os/ directory structure"
-}
-
-install_standards() {
-    if [[ "$COMMANDS_ONLY" == "true" ]]; then
-        print_status "Skipping standards (--commands-only)"
-        return
-    fi
-
-    echo ""
-    print_status "Installing standards..."
-
-    local project_standards="$PROJECT_DIR/agent-os/standards"
-    local profiles_used=0
-
-    # Temp file to track file sources (format: relative_path|profile_name)
-    local sources_file=$(mktemp)
-    trap "rm -f $sources_file" EXIT
-
-    # Process each profile in the inheritance chain (base first, so later ones override)
-    while IFS= read -r profile_name; do
-        [[ -z "$profile_name" ]] && continue
-
-        local profile_standards="$BASE_DIR/profiles/$profile_name/standards"
-
-        if [[ ! -d "$profile_standards" ]]; then
-            continue
+preflight() {
+    CONFLICTS=""
+    EXISTING=0
+    local rel dest mh ch
+    ico_assert_dest_safe "$PROJECT_DIR" "$MANIFEST_REL"
+    while IFS= read -r rel; do
+        [ -n "$rel" ] || continue
+        if ! ico_path_owned "$rel"; then
+            ico_die "refusing to write outside owned prefixes: $rel"
         fi
-
-        local profile_file_count=0
-
-        # Find all .md files in this profile, excluding .backups
-        while IFS= read -r -d '' file; do
-            local relative_path="${file#$profile_standards/}"
-            local dest_file="$project_standards/$relative_path"
-
-            ensure_dir "$(dirname "$dest_file")"
-            cp "$file" "$dest_file"
-
-            # Track the source - remove old entry if exists, add new one
-            grep -v "^${relative_path}|" "$sources_file" > "${sources_file}.tmp" 2>/dev/null || true
-            mv "${sources_file}.tmp" "$sources_file"
-            echo "${relative_path}|${profile_name}" >> "$sources_file"
-            (( profile_file_count++ )) || true
-        done < <(find "$profile_standards" -name "*.md" -type f ! -path "*/.backups/*" -print0 2>/dev/null)
-
-        if [[ "$profile_file_count" -gt 0 ]]; then
-            (( profiles_used++ )) || true
-        fi
-    done <<< "$INHERITANCE_CHAIN"
-
-    # Count profiles in chain to determine if we show sources
-    local chain_count=$(echo "$INHERITANCE_CHAIN" | grep -c .)
-
-    # Count and display
-    local total_count=$(wc -l < "$sources_file" | tr -d ' ')
-
-    if [[ "$total_count" -gt 0 ]]; then
-        # Sort and display files - only show source if inheritance is present
-        sort "$sources_file" | while IFS='|' read -r filepath profile; do
-            if [[ "$chain_count" -gt 1 ]]; then
-                echo "  $filepath (from $profile)"
-            else
-                echo "  $filepath"
+        ico_assert_dest_safe "$PROJECT_DIR" "$rel"
+        dest="$PROJECT_DIR/$rel"
+        if [ -e "$dest" ]; then
+            EXISTING=$((EXISTING + 1))
+            mh=""
+            if [ -f "$MANIFEST" ]; then
+                mh=$(ico_manifest_hash "$MANIFEST" "$rel") || mh=""
             fi
-        done
-
-        if [[ "$profiles_used" -gt 1 ]]; then
-            print_success "Installed $total_count standards files (from $profiles_used profiles)"
-        else
-            print_success "Installed $total_count standards files"
+            if [ -z "$mh" ]; then
+                CONFLICTS="${CONFLICTS}unmanaged: $rel"$'\n'
+            else
+                ch=$(ico_hash_file "$dest")
+                if [ "$ch" != "$mh" ]; then
+                    CONFLICTS="${CONFLICTS}modified: $rel"$'\n'
+                fi
+            fi
         fi
-    else
-        print_success "No standards to install (profile is empty)"
+    done <<<"$TARGET_PATHS"
+}
+
+target_has_path() {
+    printf '%s\n' "$TARGET_PATHS" | grep -Fqx -- "$1"
+}
+
+# Build the new manifest. Every previously tracked row that this run does not
+# rewrite is retained (ownership of stale files is never silently dropped), and
+# fresh hashes are recorded for everything staged this run.
+build_manifest() {
+    local out="$STAGE/$MANIFEST_REL"
+    local rows="$WORK_DIR/manifest.rows"
+    mkdir -p "$(dirname "$out")"
+    : >"$rows"
+
+    local hash path rel h
+    if [ -f "$MANIFEST" ]; then
+        while IFS=$'\t' read -r hash path; do
+            [ -n "$hash" ] || continue
+            if target_has_path "$path"; then
+                continue
+            fi
+            printf '%s\t%s\n' "$hash" "$path" >>"$rows"
+        done < <(ico_manifest_each "$MANIFEST")
+    fi
+
+    while IFS= read -r rel; do
+        [ -n "$rel" ] || continue
+        h=$(ico_hash_file "$STAGE/$rel") || ico_die "failed to hash staged file: $rel"
+        if [ -z "$h" ]; then
+            ico_die "empty hash for staged file: $rel"
+        fi
+        printf '%s\t%s\n' "$h" "$rel" >>"$rows"
+    done <<<"$TARGET_PATHS"
+
+    {
+        printf '%s\n' "$ICO_MANIFEST_HEADER"
+        sort "$rows"
+    } >"$out"
+}
+
+print_plan() {
+    ico_info "profile '$PROFILE' -> target '$TARGET' (commands-only: $COMMANDS_ONLY, dry-run: $DRY_RUN)"
+    local rel dest state
+    while IFS= read -r rel; do
+        [ -n "$rel" ] || continue
+        dest="$PROJECT_DIR/$rel"
+        if [ -e "$dest" ]; then
+            state="update"
+        else
+            state="create"
+        fi
+        printf '  %-6s %s\n' "$state" "$rel"
+    done <<<"$TARGET_PATHS"
+    printf '  %-6s %s\n' "update" "$MANIFEST_REL"
+    if [ -n "$CONFLICTS" ]; then
+        ico_warn "conflicts detected:"
+        printf '%s' "$CONFLICTS" | sed 's/^/    /' >&2
     fi
 }
 
-create_index() {
-    echo ""
-    print_status "Updating standards index..."
-
-    local standards_dir="$PROJECT_DIR/agent-os/standards"
-    local index_file="$standards_dir/index.yml"
-    local temp_file="$standards_dir/.index_temp.yml"
-    local old_index=""
-
-    # Save existing index content for description lookup
-    if [[ -f "$index_file" ]]; then
-        old_index=$(cat "$index_file")
+confirm_or_abort() {
+    if [ "$ASSUME_YES" = true ]; then
+        return 0
     fi
+    if [ ! -t 0 ]; then
+        return 0
+    fi
+    if [ "$EXISTING" -eq 0 ]; then
+        return 0
+    fi
+    printf 'Existing Agent OS files will be updated. Continue? (y/N) ' >&2
+    local reply=""
+    if ! read -r reply; then
+        reply=""
+    fi
+    case "$reply" in
+        [Yy]*) return 0 ;;
+        *) ico_die "installation cancelled" ;;
+    esac
+}
 
-    local entry_count=0
-    local new_count=0
+backup_conflicts() {
+    [ -n "$CONFLICTS" ] || return 0
+    local dir line rel n=0
+    dir=$(ico_make_backup_dir "$PROJECT_DIR" "$(date -u +%Y%m%dT%H%M%SZ)")
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        rel=${line#*: }
+        mkdir -p "$dir/$(dirname "$rel")"
+        cp -p "$PROJECT_DIR/$rel" "$dir/$rel"
+        n=$((n + 1))
+    done <<<"$CONFLICTS"
+    ico_warn "backed up $n conflicting file(s) to ${dir#"$PROJECT_DIR"/}/"
+}
 
-    # Start fresh
-    echo "# Agent OS Standards Index" > "$temp_file"
-    echo "" >> "$temp_file"
+# -----------------------------------------------------------------------------
+# Commit with rollback
+# -----------------------------------------------------------------------------
 
-    # Helper to get existing description from old index
-    # Looks for pattern: folder:\n  filename:\n    description: ...
-    get_existing_description() {
-        local folder="$1"
-        local filename="$2"
+# Record the directories that do not yet exist along a destination path, so a
+# failed commit can remove directories it created.
+record_created_dirs() {
+    local target=$1 root=$PROJECT_DIR rel cur part rest
+    case "$target" in
+        "$root"/*) rel=${target#"$root"/} ;;
+        *) return 0 ;;
+    esac
+    cur=$root
+    rest=$rel
+    while [ -n "$rest" ]; do
+        case "$rest" in
+            */*) part=${rest%%/*}; rest=${rest#*/} ;;
+            *) part=$rest; rest="" ;;
+        esac
+        cur="$cur/$part"
+        if [ ! -e "$cur" ]; then
+            CREATED_DIRS[CREATED_DIR_COUNT]="$cur"
+            CREATED_DIR_COUNT=$((CREATED_DIR_COUNT + 1))
+        fi
+    done
+}
 
-        if [[ -z "$old_index" ]]; then
+snapshot_path() {
+    local rel=$1
+    local dest="$PROJECT_DIR/$rel" idx=$SNAP_COUNT backup
+    if [ -e "$dest" ] || [ -L "$dest" ]; then
+        mkdir -p "$WORK_DIR/rollback"
+        backup="$WORK_DIR/rollback/$idx"
+        cp -p "$dest" "$backup" || return 1
+        if [ ! -f "$backup" ]; then
             return 1
         fi
-
-        # Use awk to find the description for this folder/file combo
-        local desc=$(echo "$old_index" | awk -v folder="$folder" -v file="$filename" '
-            $0 ~ "^"folder":$" { in_folder=1; next }
-            /^[a-zA-Z0-9_-]+:$/ { in_folder=0 }
-            in_folder && $0 ~ "^  "file":$" { in_file=1; next }
-            in_folder && /^  [a-zA-Z0-9_-]+:$/ { in_file=0 }
-            in_folder && in_file && /description:/ {
-                sub(/^[[:space:]]*description:[[:space:]]*/, "")
-                print
-                exit
-            }
-        ')
-
-        if [[ -n "$desc" && "$desc" != "Needs description - run /index-standards" ]]; then
-            echo "$desc"
-            return 0
-        fi
-        return 1
-    }
-
-    # First, handle root-level .md files (not in subfolders)
-    local root_files=$(find "$standards_dir" -maxdepth 1 -name "*.md" -type f 2>/dev/null | sort)
-    if [[ -n "$root_files" ]]; then
-        echo "root:" >> "$temp_file"
-        while IFS= read -r file; do
-            local filename=$(basename "$file" .md)
-            local desc=$(get_existing_description "root" "$filename")
-            if [[ -z "$desc" ]]; then
-                desc="Needs description - run /index-standards"
-                (( new_count++ )) || true
-            fi
-            echo "  $filename:" >> "$temp_file"
-            echo "    description: $desc" >> "$temp_file"
-            (( entry_count++ )) || true
-        done <<< "$root_files"
-        echo "" >> "$temp_file"
-    fi
-
-    # Then handle files in subfolders
-    local folders=$(find "$standards_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
-    for folder in $folders; do
-        local folder_name=$(basename "$folder")
-        local md_files=$(find "$folder" -name "*.md" -type f 2>/dev/null | sort)
-
-        if [[ -n "$md_files" ]]; then
-            echo "$folder_name:" >> "$temp_file"
-            while IFS= read -r file; do
-                local filename=$(basename "$file" .md)
-                local desc=$(get_existing_description "$folder_name" "$filename")
-                if [[ -z "$desc" ]]; then
-                    desc="Needs description - run /index-standards"
-                    (( new_count++ )) || true
-                fi
-                echo "  $filename:" >> "$temp_file"
-                echo "    description: $desc" >> "$temp_file"
-                (( entry_count++ )) || true
-            done <<< "$md_files"
-            echo "" >> "$temp_file"
-        fi
-    done
-
-    # Move temp file to final location
-    mv "$temp_file" "$index_file"
-
-    if [[ "$entry_count" -gt 0 ]]; then
-        if [[ "$new_count" -gt 0 ]]; then
-            print_success "Updated index.yml ($entry_count entries, $new_count new)"
-        else
-            print_success "Updated index.yml ($entry_count entries)"
-        fi
+        SNAP_HAD[idx]="1"
+        SNAP_BACKUPS[idx]="$backup"
     else
-        print_success "Created index.yml (no standards to index)"
+        SNAP_HAD[idx]="0"
+        SNAP_BACKUPS[idx]=""
     fi
+    SNAP_PATHS[idx]="$rel"
+    SNAP_COUNT=$((SNAP_COUNT + 1))
 }
 
-install_commands() {
-    echo ""
-    print_status "Installing commands..."
-
-    local commands_source="$BASE_DIR/commands/agent-os"
-    local commands_dest="$PROJECT_DIR/.claude/commands/agent-os"
-
-    if [[ ! -d "$commands_source" ]]; then
-        print_warning "No commands found in base installation"
-        return
+# Write one file atomically: stage a sibling temp file on the same filesystem,
+# snapshot first, then rename it into place.
+commit_one() {
+    local rel=$1 staged=$2
+    local dest="$PROJECT_DIR/$rel" d tmp
+    d=$(dirname "$dest")
+    record_created_dirs "$d"
+    mkdir -p "$d"
+    if ! snapshot_path "$rel"; then
+        ico_die "could not snapshot $rel before writing"
     fi
+    ROLLBACK_ARMED=true
+    ico_assert_dest_safe "$PROJECT_DIR" "$rel"
+    tmp=$(mktemp "$d/.agent-os-staging.XXXXXX") || ico_die "could not create staging file for $rel"
+    COMMIT_TMP="$tmp"
+    cp -p "$staged" "$tmp"
+    mv -f "$tmp" "$dest"
+    COMMIT_TMP=""
+}
 
-    ensure_dir "$commands_dest"
+rollback_commit() {
+    local i=0 p b had
+    while [ "$i" -lt "$SNAP_COUNT" ]; do
+        p=${SNAP_PATHS[$i]}
+        b=${SNAP_BACKUPS[$i]}
+        had=${SNAP_HAD[$i]}
+        if [ "$had" = "1" ]; then
+            cp -p "$b" "$PROJECT_DIR/$p" || ico_warn "rollback: could not restore $p"
+        else
+            rm -f "$PROJECT_DIR/$p" || ico_warn "rollback: could not remove $p"
+        fi
+        i=$((i + 1))
+    done
+    SNAP_PATHS=(); SNAP_BACKUPS=(); SNAP_HAD=(); SNAP_COUNT=0
+}
 
-    local count=0
-    for file in "$commands_source"/*.md; do
-        if [[ -f "$file" ]]; then
-            cp "$file" "$commands_dest/"
-            (( count++ )) || true
+# Remove, deepest first (reverse recording order), any directories created
+# during a failed commit. An indexed array plus an explicit counter (Bash 3.2
+# nounset-safe) carries directory names containing spaces or a literal "|"
+# through untouched, unlike a pipe- or whitespace-delimited list.
+rollback_created_dirs() {
+    [ "$CREATED_DIR_COUNT" -gt 0 ] || return 0
+    local i=$CREATED_DIR_COUNT d
+    while [ "$i" -gt 0 ]; do
+        i=$((i - 1))
+        d=${CREATED_DIRS[$i]}
+        [ -n "$d" ] || continue
+        if rmdir "$d" 2>/dev/null; then
+            ico_info "rollback: removed created directory ${d#"$PROJECT_DIR"/}"
         fi
     done
+    CREATED_DIRS=()
+    CREATED_DIR_COUNT=0
+}
 
-    if [[ "$count" -gt 0 ]]; then
-        print_success "Installed $count commands to .claude/commands/agent-os/"
-    else
-        print_warning "No command files found"
+commit_all() {
+    local rel
+    while IFS= read -r rel; do
+        [ -n "$rel" ] || continue
+        commit_one "$rel" "$STAGE/$rel"
+        commit_count=$((commit_count + 1))
+        if [ -n "${AGENT_OS_INSTALL_FAIL_AFTER:-}" ] && [ "$commit_count" -ge "$AGENT_OS_INSTALL_FAIL_AFTER" ]; then
+            ico_die "test hook: injected failure after $commit_count committed file(s)"
+        fi
+    done <<<"$TARGET_PATHS"
+    commit_one "$MANIFEST_REL" "$STAGE/$MANIFEST_REL"
+    ROLLBACK_ARMED=false
+}
+
+cleanup_workdir() {
+    if [ -n "$WORK_DIR" ] && [ -d "$WORK_DIR" ]; then
+        rm -rf "$WORK_DIR"
     fi
+    return 0
+}
+
+on_exit() {
+    local rc=$?
+    trap - EXIT
+    if [ "$ROLLBACK_ARMED" = true ]; then
+        ico_warn "installation failed; rolling back partial changes"
+        rollback_commit
+        rollback_created_dirs
+    fi
+    if [ -n "$COMMIT_TMP" ]; then
+        rm -f "$COMMIT_TMP"
+    fi
+    cleanup_workdir
+    exit "$rc"
+}
+
+on_signal() {
+    ROLLBACK_ARMED=true
+    exit 130
 }
 
 # -----------------------------------------------------------------------------
-# Main Execution
+# Main
 # -----------------------------------------------------------------------------
 
 main() {
-    print_section "Agent OS Project Installation"
-
-    # Parse arguments
     parse_arguments "$@"
-
-    # Validations
-    validate_not_in_base
+    validate_options
     validate_base_installation
+    validate_source_roots
+    resolve_project
+    load_profile_chain
+    setup_workdir
 
-    # Load configuration
-    load_configuration
+    if [ "$VERBOSE" = true ]; then
+        ico_info "base installation: $BASE_DIR"
+        ico_info "project directory: $PROJECT_DIR"
+        ico_info "inheritance chain: $(printf '%s' "$CHAIN" | tr '\n' ' ')"
+    fi
 
-    # Show configuration
-    echo ""
-    print_status "Configuration:"
+    if [ "$COVERS_STANDARDS" = true ]; then
+        stage_standards
+        stage_index
+    fi
+    if [ "$COVERS_COMMANDS" = true ]; then
+        stage_commands
+    fi
+    collect_paths
 
-    # Display inheritance chain
-    local chain_depth=0
-    local chain_display=""
-    # Read chain in reverse order (from requested profile back to base) for display
-    local reversed_chain=$(echo "$INHERITANCE_CHAIN" | awk '{a[NR]=$0} END{for(i=NR;i>=1;i--)print a[i]}')
-    while IFS= read -r profile_name; do
-        [[ -z "$profile_name" ]] && continue
-        if [[ "$chain_depth" -eq 0 ]]; then
-            chain_display="  Profile: $profile_name"
-        else
-            local indent=""
-            for ((i=0; i<chain_depth; i++)); do
-                indent="$indent  "
-            done
-            chain_display="$chain_display"$'\n'"$indent  ↳ inherits from: $profile_name"
-        fi
-        (( chain_depth++ )) || true
-    done <<< "$reversed_chain"
-    echo "$chain_display"
+    if [ -z "$TARGET_PATHS" ]; then
+        ico_info "nothing to install for profile '$PROFILE' (target '$TARGET')"
+        return 0
+    fi
 
-    echo "  Commands only: $COMMANDS_ONLY"
+    preflight
+    build_manifest
+    # Fail closed: never commit a manifest this run could not prove well-formed.
+    ico_manifest_validate "$STAGE/$MANIFEST_REL"
+    print_plan
 
-    # Confirm overwrite if standards folder exists
-    confirm_standards_overwrite
+    if [ "$DRY_RUN" = true ]; then
+        ico_ok "dry run complete; no changes written"
+        return 0
+    fi
 
-    echo ""
+    if [ -n "$CONFLICTS" ] && [ "$FORCE" != true ]; then
+        ico_err "refusing to overwrite locally modified or unmanaged files:"
+        printf '%s' "$CONFLICTS" | sed 's/^/    /' >&2
+        ico_err "re-run with --force to back them up and overwrite"
+        exit 1
+    fi
 
-    # Install
-    create_project_structure
-    install_standards
-    create_index
-    install_commands
-
-    echo ""
-    print_success "Agent OS installed successfully!"
-    echo ""
-    echo "Next steps:"
-    echo "  1. Run /discover-standards to extract patterns from your codebase"
-    echo "  2. Run /inject-standards to inject standards into your context"
-    echo ""
+    confirm_or_abort
+    if [ "$FORCE" = true ]; then
+        backup_conflicts
+    fi
+    commit_all
+    ico_ok "installed $(printf '%s\n' "$TARGET_PATHS" | wc -l | tr -d ' ') file(s); manifest: $MANIFEST_REL"
 }
 
-# Run main function
+trap on_exit EXIT
+trap on_signal INT TERM HUP
+
 main "$@"
