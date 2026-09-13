@@ -287,7 +287,9 @@ generate_index() {
     : >"$entries"
 
     if [ -f "$old" ] && [ ! -L "$old" ]; then
-        sed_default_descriptions "$old" >>"$lookup"
+        if ! index_parse_descriptions "$old" >>"$lookup"; then
+            ico_die "unsupported or malformed standards index at $old; refusing to reset descriptions to the default"
+        fi
     fi
 
     if ! find "$dir" -type f -name '*.md' -print0 >"$list"; then
@@ -333,25 +335,225 @@ generate_index() {
     } >"$out"
 }
 
-# Extract "folder/file<TAB>description" pairs from a pre-existing index.
-sed_default_descriptions() {
-    awk '
-        /^[A-Za-z0-9_.\/-]+:[[:space:]]*$/ {
-            folder = $0; sub(/:.*/, "", folder); name = ""; next
-        }
-        /^  [A-Za-z0-9_.\/-]+:[[:space:]]*$/ {
-            name = $0; sub(/^[[:space:]]+/, "", name); sub(/:.*/, "", name); next
-        }
-        /^[[:space:]]*description:[[:space:]]*/ {
-            desc = $0; sub(/^[[:space:]]*description:[[:space:]]*/, "", desc)
-            if (desc ~ /^".*"$/) { desc = substr(desc, 2, length(desc) - 2) }
-            if (folder != "" && name != "") print folder "/" name "\t" desc
-        }
-    ' "$1"
+# Read an existing generated index back into "folder/name<TAB>description" pairs
+# so custom descriptions survive regeneration. Only the simple shape the
+# installer itself emits is understood -- folder -> name -> description, with
+# two-space name indentation, four-space description indentation and flat
+# nested-path folder keys such as api/auth -- where every key and value is a
+# plain, single-quoted or double-quoted YAML scalar. Separators and #-comments
+# are recognised only outside quotes, so a literal hash#name stays data. The
+# file is never sourced or evaluated. Anything the reader cannot fully
+# understand is a hard error before any project mutation instead of a silent
+# reset to default descriptions: unsupported structure, an unsupported escape
+# or malformed quoting, a duplicate folder or name key (which would otherwise
+# be silently first-win), a name left without a description before the next
+# key or the end of the file, a plain key or value that begins with a YAML
+# indicator ([ { ! & * | > and friends), or a literal tab or carriage return
+# inside a quoted scalar (which the TSV round-trip and the trailing-CR strip
+# would otherwise silently lose). CRLF input is supported by stripping only a
+# single trailing carriage return from each line.
+index_parse_descriptions() {
+    local file="$1" prog="$WORK_DIR/index-parse.awk"
+    cat >"$prog" <<'AGENT_OS_AWK'
+function fail(msg) {
+    if (!failed) print "index parse error: " msg > "/dev/stderr"
+    failed = 1
+    exit 2
 }
 
+function rtrim(s,    n, c) {
+    n = length(s)
+    while (n > 0) {
+        c = substr(s, n, 1)
+        if (c == " " || c == TAB) { n--; continue }
+        break
+    }
+    return substr(s, 1, n)
+}
+
+# A plain (unquoted) scalar may not begin with a YAML indicator: a flow
+# collection ([ ] { } ,), a node property (! &), an alias (*), a block scalar
+# (| >), a directive or reserved character ( % @ `) -- or "-", "?" or ":"
+# when they stand alone or are followed by whitespace, where the node kind
+# would change and the plain reading would lose that meaning.
+function bad_plain(s,    c, d) {
+    c = substr(s, 1, 1)
+    if (c == "[" || c == "]" || c == "{" || c == "}" || c == ",") return 1
+    if (c == "&" || c == "*" || c == "!" || c == "|" || c == ">") return 1
+    if (c == "%" || c == "@" || c == "`") return 1
+    if (c == "-" || c == "?" || c == ":") {
+        d = substr(s, 2, 1)
+        if (d == "" || d == " " || d == TAB) return 1
+    }
+    return 0
+}
+
+function quoted(s, p,    n, i, c, out) {
+    n = length(s)
+    out = ""
+    if (substr(s, p, 1) == "'") {
+        i = p + 1
+        while (i <= n) {
+            c = substr(s, i, 1)
+            if (c == TAB || c == CR) fail("tab or carriage return inside a quoted scalar")
+            if (c == "'") {
+                if (substr(s, i + 1, 1) == "'") { out = out "'"; i += 2; continue }
+                sc_end = i + 1
+                return out
+            }
+            out = out c
+            i++
+        }
+        fail("unterminated single-quoted scalar")
+    }
+    i = p + 1
+    while (i <= n) {
+        c = substr(s, i, 1)
+        if (c == TAB || c == CR) fail("tab or carriage return inside a quoted scalar")
+        if (c == BS) {
+            c = substr(s, i + 1, 1)
+            if (c == DQ) out = out DQ
+            else if (c == BS) out = out BS
+            else fail("unsupported escape in double-quoted scalar")
+            i += 2
+            continue
+        }
+        if (c == DQ) { sc_end = i + 1; return out }
+        out = out c
+        i++
+    }
+    fail("unterminated double-quoted scalar")
+}
+
+function tail_ok(s, p,    n, k, c) {
+    n = length(s)
+    k = p
+    while (k <= n) {
+        c = substr(s, k, 1)
+        if (c == " " || c == TAB) { k++; continue }
+        if (c == "#") return
+        fail("unexpected trailing content in generated index")
+    }
+}
+
+function parse_key(s,    n, i) {
+    n = length(s)
+    if (substr(s, 1, 1) == "'" || substr(s, 1, 1) == DQ) {
+        key = quoted(s, 1)
+        i = sc_end
+        while (i <= n && substr(s, i, 1) == " ") i++
+        if (substr(s, i, 1) != ":") fail("expected ':' after key scalar")
+        tail_ok(s, i + 1)
+        return key
+    }
+    i = index(s, ":")
+    if (i == 0) fail("missing ':' after key")
+    key = rtrim(substr(s, 1, i - 1))
+    if (key == "" || substr(key, 1, 1) == " " || substr(key, 1, 1) == TAB) fail("empty or malformed key")
+    if (bad_plain(key)) fail("unsupported YAML indicator in plain key: " key)
+    if (index(key, TAB) > 0) fail("tab in plain key")
+    tail_ok(s, i + 1)
+    return key
+}
+
+function parse_description(s,    n, i, c, val, k) {
+    n = length(s)
+    if (substr(s, 1, 11) != "description") fail("only a description is supported here")
+    i = 12
+    while (i <= n && (substr(s, i, 1) == " " || substr(s, i, 1) == TAB)) i++
+    if (substr(s, i, 1) != ":") fail("expected ':' after description")
+    i++
+    while (i <= n && (substr(s, i, 1) == " " || substr(s, i, 1) == TAB)) i++
+    if (i > n || substr(s, i, 1) == "#") return ""
+    c = substr(s, i, 1)
+    if (c == "'" || c == DQ) {
+        val = quoted(s, i)
+        tail_ok(s, sc_end)
+        return val
+    }
+    if (bad_plain(substr(s, i))) fail("unsupported YAML indicator in plain value")
+    val = substr(s, i)
+    n = length(val)
+    for (k = 2; k <= n; k++) {
+        if (substr(val, k, 1) == "#" && (substr(val, k - 1, 1) == " " || substr(val, k - 1, 1) == TAB)) {
+            val = substr(val, 1, k - 1)
+            break
+        }
+    }
+    val = rtrim(val)
+    if (index(val, TAB) > 0) fail("tab in plain value")
+    if (index(val, ": ") > 0 || index(val, ":" TAB) > 0 || substr(val, length(val), 1) == ":") {
+        fail("unsupported nested value in generated index")
+    }
+    return val
+}
+
+BEGIN {
+    TAB = sprintf("%c", 9)
+    CR = sprintf("%c", 13)
+    DQ = sprintf("%c", 34)
+    BS = sprintf("%c", 92)
+    folder = ""
+    name = ""
+}
+{
+    line = $0
+    n = length(line)
+    if (n > 0 && substr(line, n, 1) == CR) { line = substr(line, 1, n - 1); n = n - 1 }
+    if (index(line, CR) > 0) fail("carriage return in index content")
+    i = 1
+    while (i <= n) {
+        c = substr(line, i, 1)
+        if (c == " " || c == TAB) { i++; continue }
+        break
+    }
+    if (i > n) next
+    if (substr(line, i, 1) == "#") next
+    ind = 0
+    while (ind < n && substr(line, ind + 1, 1) == " ") ind++
+    if (substr(line, ind + 1, 1) == TAB) fail("tab indentation is not supported")
+    rest = substr(line, ind + 1)
+    if (ind == 0) {
+        if (name != "") fail("name key left without a description before the next folder")
+        folder = parse_key(rest)
+        if (folder in seen) fail("duplicate folder key: " folder)
+        seen[folder] = 1
+        name = ""
+    } else if (ind == 2) {
+        if (folder == "") fail("name key without a preceding folder")
+        if (name != "") fail("name key left without a description before the next name")
+        name = parse_key(rest)
+        nkey = folder SUBSEP name
+        if (nkey in seenname) fail("duplicate name key: " folder "/" name)
+        seenname[nkey] = 1
+    } else if (ind == 4) {
+        if (folder == "" || name == "") fail("description without a folder and name")
+        desc = parse_description(rest)
+        print folder "/" name TAB desc
+        name = ""
+    } else {
+        fail("unsupported indentation level " ind)
+    }
+}
+END {
+    if (name != "") fail("name key left without a description at end of index")
+}
+AGENT_OS_AWK
+    awk -f "$prog" <"$file"
+}
+
+# Print the description recorded for a "folder/name" key, or nothing. Compared
+# with a byte-exact bash string test: passing the key to awk -v would
+# escape-process a backslash in a filename and silently mismatch the lookup.
 index_lookup() {
-    awk -F'\t' -v k="$2" '$1 == k { print $2; exit }' "$1"
+    local file="$1" want="$2" key val
+    while IFS=$'\t' read -r key val; do
+        if [ "$key" = "$want" ]; then
+            printf '%s\n' "$val"
+            return 0
+        fi
+    done <"$file"
+    return 0
 }
 
 stage_commands() {

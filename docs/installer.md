@@ -46,14 +46,31 @@ base installation directory itself is refused.
 * Index: if the profile supplies `profiles/<name>/index.yml` it is **opaque** and
   copied **byte-for-byte** (structured metadata included, never parsed or
   rewritten). Otherwise a nested-path-aware index is generated in the format the
-  existing `/index-standards` and `/inject-standards` commands read. Description
-  preservation is limited to that generated path: for each `folder/name` key it
-  reuses a description already present in the project's own
-  `agent-os/standards/index.yml` (a best-effort `folder/name<TAB>description`
-  lookup). Descriptions are not otherwise carried across profiles, and a
-  supplied profile index is never consulted for them. Generated keys and
-  descriptions are quoted when they contain YAML-significant characters such as
-  `:` or `#`.
+  existing `/index-standards` and `/inject-standards` commands read. On update,
+  the project's own `agent-os/standards/index.yml` is read back so existing
+  descriptions carry across the regenerated index: for each `folder/name` key
+  (folder keys are flat, e.g. `api/auth`) the `description` value is decoded and
+  reused. The reader understands the simple scalar styles the installer itself
+  emits — plain scalars, single-quoted strings (`''` for an apostrophe) and
+  double-quoted strings (`\"` and `\\` escapes) — with two-space name and
+  four-space description indentation, so a description containing `:`, `#`,
+  quotes or backslashes is preserved and `#`/`:` are treated as a comment or
+  separator only **outside** quotes (a literal `hash#name` stays data). It is
+  deliberately not a general YAML parser and never sources, imports or evaluates
+  the file: any other structure, an unsupported escape or malformed quoting, a
+  duplicate folder or name key, a name left without a description before the
+  next key or the end of the file, a plain key or value that begins with a YAML
+  indicator (a flow collection `[` `]` `{` `}` `,`, a node tag, anchor or alias
+  `!` `&` `*`, a block scalar `|` `>`, or another reserved character) or a
+  literal tab or carriage return inside a quoted scalar is a hard error **before
+  any project mutation**, so a project index the installer cannot fully
+  understand is never silently reset back to default descriptions. A CRLF file
+  is accepted, because only a single trailing carriage return is stripped from
+  each line.
+  Descriptions are not carried across profiles, and a supplied profile index is
+  never consulted for them. Regenerated keys and decoded descriptions are
+  re-quoted (via the same safe scalar emitter) when they contain
+  YAML-significant characters such as `:` or `#`.
 * Commands: for `--target claude`, `commands/agent-os/*.md` is copied to
   `.claude/commands/agent-os/`.
 
@@ -171,15 +188,18 @@ scripts/uninstall.sh --force
 ## Testing
 
 `tests/installer.sh` builds throwaway base installs and projects and exercises
-flat installs, index preservation/inheritance/quoting, option errors, dry-run,
-commands-only ownership, unchanged updates, stale-row retention,
-unmanaged/drift protection, unique force backups, source-root/leaf symlink and
-traversal rejection, manifest integrity (including rejection of an
-unterminated or otherwise malformed manifest with no project mutation),
-backslash and colon-space filename handling, dotted-profile inheritance, a
-failing hash tool aborting before any write, doctor, uninstall preservation,
-`--force` drift removal, symlinked-parent deletion and mid-commit rollback
-(including created directories whose names contain spaces or a literal `|`).
+flat installs, index preservation/inheritance/quoting, decoded index scalar
+round-trip across special keys and quote/backslash/escape styles, fail-closed
+rejection of an unsupported project index (leaving the project fingerprint
+unchanged), option errors, dry-run, commands-only ownership, unchanged updates,
+stale-row retention, unmanaged/drift protection, unique force backups,
+source-root/leaf symlink and traversal rejection, manifest integrity (including
+rejection of an unterminated or otherwise malformed manifest with no project
+mutation), backslash and colon-space filename handling, dotted-profile
+inheritance, a failing hash tool aborting before any write, doctor, uninstall
+preservation, `--force` drift removal, symlinked-parent deletion and mid-commit
+rollback (including created directories whose names contain spaces or a literal
+`|`).
 Each test runs in an isolated subshell with errexit active, and a harness
 self-test fails the suite if a failure followed by a success were ever reported
 as a pass:

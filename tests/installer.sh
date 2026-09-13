@@ -798,6 +798,232 @@ test_malformed_manifest_no_mutation() {
     eq "$(snapdir "$PROJ")" "$before"
 }
 
+test_index_scalar_roundtrip() {
+    new_env idxscalar
+    # Real profile keys/folders that force YAML quoting: a space, a colon, a
+    # literal hash, a double quote, a backslash, a reserved word and a
+    # digit-leading name.
+    mkdir -p "$BASE/profiles/default/space dir" "$BASE/profiles/default/weird"
+    mkdir -p "$BASE/profiles/default/quote\"dir"
+    printf '# Spaced\n'  >"$BASE/profiles/default/space dir/plain.md"
+    printf '# Colon\n'   >"$BASE/profiles/default/weird/colon:name.md"
+    printf '# Hash\n'    >"$BASE/profiles/default/weird/hash#name.md"
+    printf '# Quote\n'   >"$BASE/profiles/default/quote\"dir/plain.md"
+    printf '# Slash\n'   >"$BASE/profiles/default/weird/back\\slash.md"
+    printf '# True\n'    >"$BASE/profiles/default/weird/true.md"
+    printf '# Digit\n'   >"$BASE/profiles/default/weird/123.md"
+    install --yes
+
+    # Hand-curate the project index with every supported scalar style and
+    # YAML-significant content (colon, hash, escaped quotes, a backslash and a
+    # doubled single quote). The reader must decode these exactly.
+    cat >"$PROJ/agent-os/standards/index.yml" <<'YAML'
+# Agent OS Standards Index
+
+"space dir":
+  plain:
+    description: "colon: and hash # inside quotes"
+
+weird:
+  "colon:name":
+    description: 'it''s got a doubled apostrophe'
+  "hash#name":
+    description: "escaped \"quote\" and a # too"
+  "back\\slash":
+    description: "one\\backslash stays"
+  "true":
+    description: plain spaced value
+  "123":
+    description: "plain:colon"
+
+"quote\"dir":
+  plain:
+    description: "a \"quoted\" folder"
+YAML
+
+    # The 2nd install (forced) must decode and keep every curated description.
+    install --force --yes
+    idx=$(cat "$PROJ/agent-os/standards/index.yml")
+    # emitter-safe plain scalars stay bare; YAML-significant content is quoted
+    contains "$idx" 'space dir:'
+    contains "$idx" '"quote\"dir":'
+    contains "$idx" '"colon:name":'
+    contains "$idx" '"hash#name":'
+    contains "$idx" '"colon: and hash # inside quotes"'
+    contains "$idx" "\"it's got a doubled apostrophe\""
+    contains "$idx" '"escaped \"quote\" and a # too"'
+    contains "$idx" '"one\\backslash stays"'
+    contains "$idx" 'description: plain spaced value'
+    contains "$idx" '"plain:colon"'
+    contains "$idx" '"a \"quoted\" folder"'
+
+    # The 3rd install (forced) must be byte-stable against the 2nd and must
+    # still verify clean afterwards.
+    after2=$(snapdir "$PROJ")
+    install --force --yes
+    eq "$(snapdir "$PROJ")" "$after2"
+    contains "$(cat "$PROJ/agent-os/standards/index.yml")" '"one\\backslash stays"'
+
+    # A CRLF index (every line closed with a carriage return) is accepted: only
+    # a single trailing carriage return is stripped per line, so the curated
+    # descriptions still decode and survive regeneration to an LF index that is
+    # byte-stable on the next forced run.
+    cr=$(printf '\r')
+    while IFS= read -r line || [ -n "$line" ]; do
+        printf '%s%s\n' "$line" "$cr"
+    done <"$PROJ/agent-os/standards/index.yml" >"$PROJ/agent-os/standards/index.crlf"
+    mv "$PROJ/agent-os/standards/index.crlf" "$PROJ/agent-os/standards/index.yml"
+    grep -q "$cr" "$PROJ/agent-os/standards/index.yml" || { printf '  setup: no CR introduced\n'; return 1; }
+    install --force --yes
+    contains "$(cat "$PROJ/agent-os/standards/index.yml")" '"one\\backslash stays"'
+    crlf_stable=$(snapdir "$PROJ")
+    install --force --yes
+    eq "$(snapdir "$PROJ")" "$crlf_stable"
+
+    doctor
+}
+
+test_index_unsupported_fails_closed() {
+    # A project index the reader cannot fully understand must abort before any
+    # project mutation -- using --force so the drift guard is definitively not
+    # what refuses -- rather than silently resetting descriptions to defaults.
+
+    # Nested/structured metadata under a name.
+    new_env idxnested
+    install --yes
+    cat >"$PROJ/agent-os/standards/index.yml" <<'YAML'
+# Agent OS Standards Index
+
+global:
+  tech-stack:
+    description: "kept"
+    tags:
+      - one
+YAML
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    # An unsupported escape sequence in a double-quoted scalar.
+    new_env idxescape
+    install --yes
+    printf '%s\n' '# Agent OS Standards Index' '' 'global:' '  tech-stack:' '    description: "bad \t escape"' >"$PROJ/agent-os/standards/index.yml"
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    # Malformed (unterminated) quoting.
+    new_env idxunterm
+    install --yes
+    printf '%s\n' '# Agent OS Standards Index' '' 'global:' '  tech-stack:' "    description: 'unterminated" >"$PROJ/agent-os/standards/index.yml"
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    # Unsupported indentation level.
+    new_env idxindent
+    install --yes
+    printf '%s\n' '# Agent OS Standards Index' '' 'global:' '   tech-stack:' '    description: x' >"$PROJ/agent-os/standards/index.yml"
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    # A duplicate folder key (silently first-win otherwise).
+    new_env idxdupdir
+    install --yes
+    cat >"$PROJ/agent-os/standards/index.yml" <<'YAML'
+# Agent OS Standards Index
+
+global:
+  tech-stack:
+    description: first
+global:
+  other:
+    description: second
+YAML
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    # A duplicate name key under one folder.
+    new_env idxdupname
+    install --yes
+    cat >"$PROJ/agent-os/standards/index.yml" <<'YAML'
+# Agent OS Standards Index
+
+global:
+  tech-stack:
+    description: first
+  tech-stack:
+    description: second
+YAML
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    # A name left without a description before the next name, the next folder
+    # or the end of the file.
+    new_env idxnodesc
+    install --yes
+    idx="$PROJ/agent-os/standards/index.yml"
+
+    printf '%s\n' '# Agent OS Standards Index' '' 'global:' '  tech-stack:' '  tech-stack-2:' '    description: x' >"$idx"
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    printf '%s\n' '# Agent OS Standards Index' '' 'global:' '  tech-stack:' 'other:' '  plain:' '    description: x' >"$idx"
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    printf '%s\n' '# Agent OS Standards Index' '' 'global:' '  tech-stack:' >"$idx"
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    # A plain description value that begins with a YAML indicator: a flow
+    # collection, a node tag/anchor/alias, a block scalar or a reserved
+    # character.
+    new_env idxindicator
+    install --yes
+    idx="$PROJ/agent-os/standards/index.yml"
+    for value in '[flow]' '{flow}' '!tag v' '&anchor v' '*alias' '|block' '>folded' '%dir' '@res' '`res'; do
+        printf '%s\n' '# Agent OS Standards Index' '' 'global:' '  tech-stack:' "    description: $value" >"$idx"
+        before=$(snapdir "$PROJ")
+        expect_fail install --force --yes
+        eq "$(snapdir "$PROJ")" "$before"
+    done
+
+    # ... and a plain key that begins with an indicator.
+    printf '%s\n' '# Agent OS Standards Index' '' '!tag:' '  tech-stack:' '    description: x' >"$idx"
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    # A literal tab inside a double-quoted and a single-quoted scalar, and a
+    # literal carriage return inside a quoted scalar, which the TSV round-trip
+    # or the trailing-CR strip would otherwise silently lose.
+    new_env idxcontrol
+    install --yes
+    idx="$PROJ/agent-os/standards/index.yml"
+
+    printf '# Agent OS Standards Index\n\nglobal:\n  tech-stack:\n    description: "tab\tinside"\n' >"$idx"
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    printf '# Agent OS Standards Index\n\nglobal:\n  tech-stack:\n    description: '\''tab\tinside'\''\n' >"$idx"
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+
+    printf '# Agent OS Standards Index\n\nglobal:\n  tech-stack:\n    description: "car\rriage"\n' >"$idx"
+    before=$(snapdir "$PROJ")
+    expect_fail install --force --yes
+    eq "$(snapdir "$PROJ")" "$before"
+}
+
 # ---------------------------------------------------------------------------
 # Run
 # ---------------------------------------------------------------------------
@@ -835,6 +1061,8 @@ t rollback_removes_created_dirs    test_rollback_removes_created_dirs
 t rollback_pipe_space_dirs         test_rollback_pipe_space_dirs
 t backslash_filename_hash          test_backslash_filename_hash
 t index_quoting_reserved_numeric   test_index_quoting_reserved_and_numeric
+t index_scalar_roundtrip          test_index_scalar_roundtrip
+t index_unsupported_fails_closed  test_index_unsupported_fails_closed
 t dotted_profile_inheritance       test_dotted_profile_inheritance
 t colon_space_force_backup         test_colon_space_force_backup
 t hash_tool_failure_no_writes      test_hash_tool_failure_no_writes
