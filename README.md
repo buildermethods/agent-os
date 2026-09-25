@@ -15,6 +15,12 @@ Works alongside Claude Code, Cursor, Antigravity, and other AI tools. Any langua
 
 ---
 
+### Ecosystem & Spec Authoring Tools
+
+- [MySpec](https://myspec.dev) — Spec-driven development platform compiling guided developer interviews into 4-file specification bundles (`constitution.md`, `requirements.md`, `solution.md`, `tasks.md`) served directly to AI coding agents via MCP.
+
+---
+
 ### Documentation & Installation
 
 Docs, installation, usage, & best practices 👉 [It's all here](https://buildermethods.com/agent-os)
